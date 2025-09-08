@@ -1,6 +1,8 @@
 import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import AIChat from '@/components/ai/AIChat';
+import { AIProvider } from '@/contexts/AIContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,12 +11,15 @@ interface LayoutProps {
 
 export default function Layout({ children, onSearch }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      <Header onSearch={onSearch} />
-      <main className="min-h-screen-header">
-        {children}
-      </main>
-      <Footer />
-    </div>
+    <AIProvider>
+      <div className="min-h-screen bg-background">
+        <Header onSearch={onSearch} />
+        <main className="min-h-screen-header">
+          {children}
+        </main>
+        <Footer />
+        <AIChat />
+      </div>
+    </AIProvider>
   );
 }
