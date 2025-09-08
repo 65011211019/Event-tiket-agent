@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider, ThemeProvider, AuthProvider } from "@/contexts/AppContext";
 import Layout from "@/components/layout/Layout";
+import ScrollToTop from "@/components/common/ScrollToTop";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Home from "@/pages/Home";
 import Events from "@/pages/Events";
@@ -35,6 +36,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <ScrollToTop />
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={
@@ -112,7 +114,3 @@ const App = () => (
 );
 
 export default App;
-
-<button className="bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
-  Button
-</button>
