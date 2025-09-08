@@ -76,9 +76,8 @@ export default function EventDetail() {
   const [tickets, setTickets] = React.useState<(BookingRecord | EventTicket)[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-
   const [bookedTicketsCount, setBookedTicketsCount] = React.useState<number>(0);
-
+  const [lastUpdated, setLastUpdated] = React.useState<Date>(new Date());
 
   React.useEffect(() => {
     const loadEvent = async () => {
@@ -269,7 +268,11 @@ export default function EventDetail() {
   }
 
   const isUpcoming = event.schedule?.startDate ? new Date(event.schedule.startDate) > new Date() : false;
-
+  
+  // Calculate values for display
+  const actualParticipants = getEventParticipants();
+  const maxCapacity = event.capacity?.max || 0;
+  const availableCapacity = maxCapacity - actualParticipants;
   
   // Calculate real available tickets: max capacity - booked tickets
   const realAvailableTickets = event.capacity?.max ? Math.max(0, event.capacity.max - bookedTicketsCount) : 0;
