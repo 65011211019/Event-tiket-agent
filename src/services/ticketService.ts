@@ -46,6 +46,16 @@ class TicketUpdateService {
       ticketUpdates
     });
   }
+  
+  // Force refresh all data
+  async refreshData() {
+    // In a real implementation, this would fetch fresh data from the API
+    // For now, we'll just notify subscribers with a refresh event
+    this.notifySubscribers({
+      type: 'refresh',
+      timestamp: new Date()
+    });
+  }
 }
 
 // Export singleton instance

@@ -32,16 +32,16 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t bg-gradient-to-r from-blue-50 via-white to-purple-50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <footer className="border-t bg-gradient-to-r from-background via-muted/30 to-background backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                <Ticket className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-primary to-primary-light flex items-center justify-center shadow-lg">
+                <Ticket className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
                 EventTix
               </span>
             </div>
@@ -49,16 +49,16 @@ export default function Footer() {
               แพลตฟอร์มจองตั๋วอีเว้นท์ออนไลน์ที่ง่ายและสะดวก ค้นหาและจองตั๋วสำหรับอีเว้นท์ที่คุณชื่นชอบได้ทันที
             </p>
             <div className="space-y-3">
-              <div className="flex items-center text-sm text-muted-foreground hover:text-blue-600 transition-colors">
-                <Mail className="h-4 w-4 mr-3 text-blue-500" />
+              <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Mail className="h-4 w-4 mr-3 text-primary" />
                 support@eventtix.com
               </div>
-              <div className="flex items-center text-sm text-muted-foreground hover:text-blue-600 transition-colors">
-                <Phone className="h-4 w-4 mr-3 text-green-500" />
+              <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Phone className="h-4 w-4 mr-3 text-primary" />
                 +66 2 123 4567
               </div>
-              <div className="flex items-center text-sm text-muted-foreground hover:text-blue-600 transition-colors">
-                <MapPin className="h-4 w-4 mr-3 text-red-500" />
+              <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+                <MapPin className="h-4 w-4 mr-3 text-primary" />
                 กรุงเทพมหานคร ประเทศไทย
               </div>
             </div>
@@ -80,13 +80,13 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-blue-700">ผลิตภัณฑ์</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">ผลิตภัณฑ์</h3>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-sm text-muted-foreground hover:text-blue-600 transition-colors duration-200"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
                   >
                     {link.name}
                   </Link>
@@ -97,13 +97,13 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-green-700">บริษัท</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">บริษัท</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-sm text-muted-foreground hover:text-green-600 transition-colors duration-200"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
                   >
                     {link.name}
                   </Link>
@@ -114,13 +114,13 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-purple-700">กฎหมาย</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">กฎหมาย</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-sm text-muted-foreground hover:text-purple-600 transition-colors duration-200"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
                   >
                     {link.name}
                   </Link>
@@ -131,7 +131,7 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-indigo-700">ข่าวสาร</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">ข่าวสาร</h3>
             <p className="text-sm text-muted-foreground mb-4">
               สมัครรับข่าวสารและโปรโมชั่นพิเศษ
             </p>
@@ -139,9 +139,9 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="อีเมลของคุณ"
-                className="flex-1 rounded-l-lg border-2 border-blue-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                className="flex-1 rounded-l-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
               />
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-r-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md">
+              <button className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground px-4 py-2 rounded-r-lg text-sm font-medium hover:from-primary/90 hover:to-primary-light transition-all duration-200 shadow-md">
                 สมัคร
               </button>
             </div>
@@ -153,13 +153,13 @@ export default function Footer() {
             © 2024 EventTix. สงวนลิขสิทธิ์.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="#" className="text-muted-foreground hover:text-blue-600 transition-colors text-sm duration-200">
+            <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">
               ข้อกำหนด
             </Link>
-            <Link to="#" className="text-muted-foreground hover:text-blue-600 transition-colors text-sm duration-200">
+            <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">
               ความเป็นส่วนตัว
             </Link>
-            <Link to="#" className="text-muted-foreground hover:text-blue-600 transition-colors text-sm duration-200">
+            <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">
               คุกกี้
             </Link>
           </div>

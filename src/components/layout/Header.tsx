@@ -36,14 +36,14 @@ export default function Header({ onSearch }: HeaderProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-blue-50 via-white to-purple-50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-            <Calendar className="h-5 w-5 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-primary-light shadow-lg hover:from-primary/90 hover:to-primary-light/90 transition-all duration-300">
+            <Calendar className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
             EventTix
           </span>
         </Link>
@@ -56,8 +56,8 @@ export default function Header({ onSearch }: HeaderProps) {
               to="/admin"
               className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                 location.pathname.startsWith('/admin') 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                  : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                  ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
               {t('nav.admin')}
@@ -69,8 +69,8 @@ export default function Header({ onSearch }: HeaderProps) {
                 to="/"
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive('/') 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                    : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                    ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
                 {t('nav.home')}
@@ -79,8 +79,8 @@ export default function Header({ onSearch }: HeaderProps) {
                 to="/events"
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive('/events') 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                    : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                    ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
                 {t('nav.events')}
@@ -90,8 +90,8 @@ export default function Header({ onSearch }: HeaderProps) {
                   to="/my-tickets"
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                     isActive('/my-tickets') 
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                      : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                      ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
                   {t('nav.myTickets')}
@@ -109,7 +109,7 @@ export default function Header({ onSearch }: HeaderProps) {
               placeholder={t('general.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full rounded-full border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              className="pl-10 w-full rounded-full border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </form>
         </div>
@@ -120,18 +120,18 @@ export default function Header({ onSearch }: HeaderProps) {
           <div className="hidden sm:block">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="rounded-full hover:bg-blue-100 text-blue-600">
+                <Button variant="ghost" size="sm" className="rounded-full hover:bg-accent">
                   <Globe className="h-4 w-4" />
                   <span className="ml-1 text-xs font-medium hidden md:inline">
                     {language.toUpperCase()}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-blue-200">
-                <DropdownMenuItem onClick={() => setLanguage('th')} className="rounded-md hover:bg-blue-50 text-blue-700">
+              <DropdownMenuContent align="end" className="rounded-xl shadow-lg bg-popover text-popover-foreground">
+                <DropdownMenuItem onClick={() => setLanguage('th')} className="rounded-md hover:bg-accent">
                   ไทย (Thai)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')} className="rounded-md hover:bg-blue-50 text-blue-700">
+                <DropdownMenuItem onClick={() => setLanguage('en')} className="rounded-md hover:bg-accent">
                   English
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -139,7 +139,7 @@ export default function Header({ onSearch }: HeaderProps) {
           </div>
 
           {/* Theme Toggle */}
-          <Button variant="ghost" size="sm" onClick={toggleTheme} className="rounded-full hover:bg-purple-100 text-purple-600">
+          <Button variant="ghost" size="sm" onClick={toggleTheme} className="rounded-full hover:bg-accent">
             {theme === 'light' ? (
               <Moon className="h-4 w-4" />
             ) : (
@@ -151,38 +151,38 @@ export default function Header({ onSearch }: HeaderProps) {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="rounded-full hover:bg-indigo-100 text-indigo-600">
+                <Button variant="ghost" size="sm" className="rounded-full hover:bg-accent">
                   <User className="h-4 w-4" />
                   <span className="ml-2 hidden lg:inline">{user.name}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-lg border-indigo-200">
+              <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-lg bg-popover text-popover-foreground">
                 <div className="px-3 py-2 text-sm">
-                  <div className="font-semibold text-indigo-700">{user.name}</div>
+                  <div className="font-semibold">{user.name}</div>
                   <div className="text-muted-foreground text-xs">{user.email}</div>
                 </div>
                 <DropdownMenuSeparator />
                 {isAdmin ? (
                   // Admin เห็นเฉพาะรายการ admin
-                  <DropdownMenuItem onClick={() => navigate('/admin')} className="rounded-md hover:bg-indigo-50 text-indigo-700">
+                  <DropdownMenuItem onClick={() => navigate('/admin')} className="rounded-md hover:bg-accent">
                     <Settings className="mr-2 h-4 w-4" />
                     {t('nav.admin')}
                   </DropdownMenuItem>
                 ) : (
                   // User ปกติเห็นรายการทั่วไป
                   <>
-                    <DropdownMenuItem onClick={() => navigate('/my-tickets')} className="rounded-md hover:bg-indigo-50 text-indigo-700">
+                    <DropdownMenuItem onClick={() => navigate('/my-tickets')} className="rounded-md hover:bg-accent">
                       <Calendar className="mr-2 h-4 w-4" />
                       {t('nav.myTickets')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-md hover:bg-indigo-50 text-indigo-700">
+                    <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-md hover:bg-accent">
                       <Settings className="mr-2 h-4 w-4" />
                       {t('nav.settings')}
                     </DropdownMenuItem>
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="rounded-md text-red-600 focus:text-red-600 hover:bg-red-50">
+                <DropdownMenuItem onClick={logout} className="rounded-md text-destructive focus:text-destructive hover:bg-destructive/10">
                   <LogOut className="mr-2 h-4 w-4" />
                   ออกจากระบบ
                 </DropdownMenuItem>
@@ -193,7 +193,7 @@ export default function Header({ onSearch }: HeaderProps) {
               variant="outline"
               size="sm"
               onClick={() => navigate('/login')}
-              className="hidden sm:inline-flex rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border-0 shadow-md"
+              className="hidden sm:inline-flex rounded-full bg-gradient-to-r from-primary to-primary-light text-primary-foreground hover:from-primary/90 hover:to-primary-light/90 border-0 shadow-md"
             >
               <span className="hidden md:inline">เข้าสู่ระบบ</span>
               <User className="h-4 w-4 md:hidden" />
@@ -204,7 +204,7 @@ export default function Header({ onSearch }: HeaderProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden rounded-full hover:bg-blue-100 text-blue-600"
+            className="lg:hidden rounded-full hover:bg-accent"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? (
@@ -218,7 +218,7 @@ export default function Header({ onSearch }: HeaderProps) {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur">
+        <div className="lg:hidden border-t bg-background/95 backdrop-blur">
           <div className="container py-4 space-y-4">
             {/* Mobile Search */}
             <div className="md:hidden">
@@ -228,7 +228,7 @@ export default function Header({ onSearch }: HeaderProps) {
                   placeholder={t('general.search')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full rounded-full border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  className="pl-10 w-full rounded-full border focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </form>
             </div>
@@ -240,8 +240,8 @@ export default function Header({ onSearch }: HeaderProps) {
                   to="/admin"
                   className={`block px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                     location.pathname.startsWith('/admin') 
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                      : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                      ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -253,8 +253,8 @@ export default function Header({ onSearch }: HeaderProps) {
                     to="/"
                     className={`block px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                       isActive('/') 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                        : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                        ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -264,8 +264,8 @@ export default function Header({ onSearch }: HeaderProps) {
                     to="/events"
                     className={`block px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                       isActive('/events') 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                        : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                        ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -276,8 +276,8 @@ export default function Header({ onSearch }: HeaderProps) {
                       to="/my-tickets"
                       className={`block px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                         isActive('/my-tickets') 
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                          : 'text-muted-foreground hover:bg-blue-100 hover:text-blue-700'
+                          ? 'bg-gradient-to-r from-primary to-primary-light text-primary-foreground shadow-md' 
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -294,16 +294,16 @@ export default function Header({ onSearch }: HeaderProps) {
                 <span className="text-sm font-medium">ภาษา / Language</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="rounded-full border-blue-300 text-blue-600">
+                    <Button variant="outline" size="sm" className="rounded-full">
                       <Globe className="h-4 w-4 mr-2" />
                       {language.toUpperCase()}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-blue-200">
-                    <DropdownMenuItem onClick={() => setLanguage('th')} className="rounded-md hover:bg-blue-50 text-blue-700">
+                  <DropdownMenuContent align="end" className="rounded-xl shadow-lg bg-popover text-popover-foreground">
+                    <DropdownMenuItem onClick={() => setLanguage('th')} className="rounded-md hover:bg-accent">
                       ไทย (Thai)
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('en')} className="rounded-md hover:bg-blue-50 text-blue-700">
+                    <DropdownMenuItem onClick={() => setLanguage('en')} className="rounded-md hover:bg-accent">
                       English
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -316,7 +316,7 @@ export default function Header({ onSearch }: HeaderProps) {
               <div className="sm:hidden border-t pt-4">
                 <Button
                   variant="outline"
-                  className="w-full rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border-0"
+                  className="w-full rounded-full bg-gradient-to-r from-primary to-primary-light text-primary-foreground hover:from-primary/90 hover:to-primary-light/90 border-0"
                   onClick={() => {
                     navigate('/login');
                     setIsMobileMenuOpen(false);

@@ -179,7 +179,7 @@ export default function AdminEvents() {
             สร้าง แก้ไข และจัดการอีเว้นท์ทั้งหมด
           </p>
         </div>
-        <Button asChild className="bg-gradient-primary hover:shadow-lg transition-all">
+        <Button asChild className="bg-gradient-primary hover:shadow-lg transition-all text-primary-foreground">
           <Link to="/admin/events/create">
             <Plus className="h-4 w-4 mr-2" />
             สร้างอีเว้นท์ใหม่
@@ -188,7 +188,7 @@ export default function AdminEvents() {
       </div>
 
       {/* Enhanced Search and Filter Section */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm bg-card text-card-foreground">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1 max-w-md">
@@ -197,10 +197,10 @@ export default function AdminEvents() {
                 placeholder="ค้นหาอีเว้นท์..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-background text-foreground border-input"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2 border-primary/20 hover:bg-primary/10">
+            <Button variant="outline" className="flex items-center gap-2 border-input hover:bg-accent hover:text-accent-foreground">
               <Filter className="h-4 w-4" />
               กรอง
             </Button>
@@ -209,7 +209,7 @@ export default function AdminEvents() {
       </Card>
 
       {/* Enhanced Events Table */}
-      <Card className="shadow-sm hover:shadow-lg transition-all">
+      <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Calendar className="h-5 w-5 mr-2 text-primary" />
@@ -231,7 +231,7 @@ export default function AdminEvents() {
               <p className="text-muted-foreground">
                 ไม่พบอีเว้นท์
               </p>
-              <Button asChild variant="outline" className="mt-4">
+              <Button asChild variant="outline" className="mt-4 border-input hover:bg-accent">
                 <Link to="/admin/events/create">
                   <Plus className="h-4 w-4 mr-2" />
                   สร้างอีเว้นท์ใหม่
@@ -239,16 +239,16 @@ export default function AdminEvents() {
               </Button>
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border border-border">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="font-semibold">ชื่ออีเว้นท์</TableHead>
-                    <TableHead className="font-semibold">หมวดหมู่</TableHead>
-                    <TableHead className="font-semibold">วันที่</TableHead>
-                    <TableHead className="font-semibold">สถานะ</TableHead>
-                    <TableHead className="font-semibold">ผู้เข้าร่วม</TableHead>
-                    <TableHead className="text-right font-semibold">การจัดการ</TableHead>
+                    <TableHead className="font-semibold text-foreground">ชื่ออีเว้นท์</TableHead>
+                    <TableHead className="font-semibold text-foreground">หมวดหมู่</TableHead>
+                    <TableHead className="font-semibold text-foreground">วันที่</TableHead>
+                    <TableHead className="font-semibold text-foreground">สถานะ</TableHead>
+                    <TableHead className="font-semibold text-foreground">ผู้เข้าร่วม</TableHead>
+                    <TableHead className="text-right font-semibold text-foreground">การจัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -264,7 +264,7 @@ export default function AdminEvents() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="capitalize">
+                        <Badge variant="outline" className="capitalize border-border">
                           {event.category}
                         </Badge>
                       </TableCell>
@@ -286,12 +286,12 @@ export default function AdminEvents() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
-                          <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10" asChild>
+                          <Button variant="outline" size="sm" className="border-input hover:bg-accent" asChild>
                             <Link to={`/events/${event.id}`}>
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10" asChild>
+                          <Button variant="outline" size="sm" className="border-input hover:bg-accent" asChild>
                             <Link to={`/admin/events/${event.id}/edit`}>
                               <Edit className="h-4 w-4" />
                             </Link>
@@ -299,7 +299,7 @@ export default function AdminEvents() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="border-destructive/20 hover:bg-destructive/10"
+                            className="border-destructive/20 hover:bg-destructive/10 text-destructive"
                             onClick={() => handleDeleteEvent(event.id)}
                           >
                             <Trash2 className="h-4 w-4" />
