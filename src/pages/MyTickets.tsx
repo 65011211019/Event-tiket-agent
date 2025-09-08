@@ -33,6 +33,12 @@ export default function MyTickets() {
         const processedTickets = [];
         
         for (const booking of userTickets) {
+          // Skip if eventId is null or invalid
+          if (!booking.eventId || booking.eventId === 'null') {
+            console.warn(`Skipping booking with invalid eventId: ${booking.eventId}`);
+            continue;
+          }
+          
           // Get event details
           let eventDetails = null;
           try {
