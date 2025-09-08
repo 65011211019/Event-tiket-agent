@@ -171,6 +171,26 @@ export const eventApi = {
     return await apiRequest<BookingRecord[]>('/event-tickets');
   },
 
+  // Get booked tickets count for a specific event
+  getBookedTicketsCount: async (eventId: string): Promise<number> => {
+    try {
+      const tickets = await apiRequest<BookingRecord[]>('/event-tickets');
+      const eventTickets = tickets.filter(ticket => ticket.eventId === eventId);
+      
+      // Count total tickets booked for this event
+      const totalBooked = eventTickets.reduce((sum, booking) => {
+        return sum + booking.tickets.reduce((ticketSum, ticket) => {
+          return ticketSum + ticket.quantity;
+        }, 0);
+      }, 0);
+      
+      return totalBooked;
+    } catch (error) {
+      console.warn('Failed to get booked tickets count:', error);
+      return 0;
+    }
+  },
+
   validateTicket: async (ticketId: string): Promise<{ valid: boolean; message: string }> => {
     return await apiRequest<{ valid: boolean; message: string }>(`/tickets/${ticketId}/validate`, {
       method: 'POST',

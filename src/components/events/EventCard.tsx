@@ -15,9 +15,10 @@ interface EventCardProps {
   isAdmin?: boolean;
   onEdit?: (eventId: string) => void;
   onDelete?: (eventId: string) => void;
+  bookedTicketsCount?: number;
 }
 
-export default function EventCard({ event, variant = 'default', className, isAdmin = false, onEdit, onDelete }: EventCardProps) {
+export default function EventCard({ event, variant = 'default', className, isAdmin = false, onEdit, onDelete, bookedTicketsCount = 0 }: EventCardProps) {
   const { t } = useLanguage();
 
   const formatDate = (dateStr: string) => {
@@ -54,7 +55,10 @@ export default function EventCard({ event, variant = 'default', className, isAdm
   };
 
   const isUpcoming = event.schedule?.startDate ? new Date(event.schedule.startDate) > new Date() : false;
-  const availabilityPercentage = event.capacity ? (event.capacity.available / event.capacity.max) * 100 : 0;
+  
+  // Calculate real available tickets: max capacity - booked tickets
+  const realAvailableTickets = event.capacity?.max ? Math.max(0, event.capacity.max - bookedTicketsCount) : 0;
+  const availabilityPercentage = event.capacity?.max ? (realAvailableTickets / event.capacity.max) * 100 : 0;
 
   return (
     <Card 
@@ -103,7 +107,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           </div>
         )}
 
-        {event.capacity?.available === 0 && (
+        {realAvailableTickets === 0 && (
           <div className="absolute bottom-3 left-3">
             <Badge variant="destructive">
               ขายหมดแล้ว
@@ -147,7 +151,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           <div className="flex items-center text-sm text-muted-foreground">
             <Users className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>
-              {event.capacity?.available || 0} / {event.capacity?.max || 0} ที่เหลือ
+              {realAvailableTickets} / {event.capacity?.max || 0} ที่เหลือ
             </span>
           </div>
         </div>
@@ -195,8 +199,10 @@ export default function EventCard({ event, variant = 'default', className, isAdm
               </Link>
             </Button>
             
-            {(event.capacity?.available || 0) > 0 && isUpcoming && (
-              <Button asChild size="sm" className="flex-1 bg-gradient-primary text-primary-foreground hover:opacity-90">
+
+            {realAvailableTickets > 0 && isUpcoming && (
+              <Button asChild size="sm" className="flex-1 bg-gradient-primary">
+
                 <Link to={`/events/${event.id}/book`}>
                   {t('events.bookNow')}
                 </Link>

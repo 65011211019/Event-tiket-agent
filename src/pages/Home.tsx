@@ -22,6 +22,7 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = React.useState<Event[]>([]);
   const [categories, setCategories] = React.useState<EventCategory[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [bookedTicketsCounts, setBookedTicketsCounts] = React.useState<Record<string, number>>({});
 
   React.useEffect(() => {
     const loadData = async () => {
@@ -37,6 +38,19 @@ export default function Home() {
         setFeaturedEvents(events.filter(e => e.featured).slice(0, 6));
         setUpcomingEvents(events.slice(0, 8));
         setCategories(categoriesData || []);
+        
+        // Load booked tickets count for all events
+        const counts: Record<string, number> = {};
+        for (const event of events) {
+          try {
+            const bookedCount = await eventApi.getBookedTicketsCount(event.id);
+            counts[event.id] = bookedCount;
+          } catch (err) {
+            console.warn(`Failed to get booked count for event ${event.id}:`, err);
+            counts[event.id] = 0;
+          }
+        }
+        setBookedTicketsCounts(counts);
       } catch (error) {
         console.error('Failed to load home data:', error);
       } finally {
@@ -254,7 +268,12 @@ export default function Home() {
           ) : featuredEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredEvents.slice(0, 6).map((event) => (
-                <EventCard key={event.id} event={event} variant="featured" />
+                <EventCard 
+                  key={event.id} 
+                  event={event} 
+                  variant="featured" 
+                  bookedTicketsCount={bookedTicketsCounts[event.id] || 0}
+                />
               ))}
             </div>
           ) : (
@@ -292,7 +311,11 @@ export default function Home() {
           ) : upcomingEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {upcomingEvents.slice(0, 8).map((event) => (
-                <EventCard key={event.id} event={event} />
+                <EventCard 
+                  key={event.id} 
+                  event={event} 
+                  bookedTicketsCount={bookedTicketsCounts[event.id] || 0}
+                />
               ))}
             </div>
           ) : (

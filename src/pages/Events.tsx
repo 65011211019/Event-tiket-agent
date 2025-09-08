@@ -17,6 +17,7 @@ export default function Events() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [pagination, setPagination] = React.useState<any>({});
+  const [bookedTicketsCounts, setBookedTicketsCounts] = React.useState<Record<string, number>>({});
 
   // Parse filters from URL
   const getFiltersFromUrl = (): Filters => {
@@ -87,8 +88,22 @@ export default function Events() {
       setError(null);
 
       const response = await eventApi.getEvents(currentFilters);
-      setEvents(response.events || []);
+      const eventsData = response.events || [];
+      setEvents(eventsData);
       setPagination(response.pagination || {});
+      
+      // Load booked tickets count for each event
+      const counts: Record<string, number> = {};
+      for (const event of eventsData) {
+        try {
+          const bookedCount = await eventApi.getBookedTicketsCount(event.id);
+          counts[event.id] = bookedCount;
+        } catch (err) {
+          console.warn(`Failed to get booked count for event ${event.id}:`, err);
+          counts[event.id] = 0;
+        }
+      }
+      setBookedTicketsCounts(counts);
     } catch (err) {
       console.error('Failed to load events:', err);
       setError('เกิดข้อผิดพลาดในการโหลดข้อมูลอีเว้นท์');
@@ -201,7 +216,11 @@ export default function Events() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {events.map((event) => (
-                <EventCard key={event.id} event={event} />
+                <EventCard 
+                  key={event.id} 
+                  event={event} 
+                  bookedTicketsCount={bookedTicketsCounts[event.id] || 0}
+                />
               ))}
             </div>
 

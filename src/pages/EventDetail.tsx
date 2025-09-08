@@ -76,7 +76,9 @@ export default function EventDetail() {
   const [tickets, setTickets] = React.useState<(BookingRecord | EventTicket)[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = React.useState<Date>(new Date());
+
+  const [bookedTicketsCount, setBookedTicketsCount] = React.useState<number>(0);
+
 
   React.useEffect(() => {
     const loadEvent = async () => {
@@ -93,8 +95,12 @@ export default function EventDetail() {
         ]);
         
         setEvent(eventData);
-        setTickets(ticketsData);
-        setLastUpdated(new Date());
+
+        
+        // Get booked tickets count for this event
+        const bookedCount = await eventApi.getBookedTicketsCount(id);
+        setBookedTicketsCount(bookedCount);
+
       } catch (err) {
         console.error('Failed to load event:', err);
         setError('ไม่พบอีเว้นท์ที่ต้องการ');
@@ -263,10 +269,12 @@ export default function EventDetail() {
   }
 
   const isUpcoming = event.schedule?.startDate ? new Date(event.schedule.startDate) > new Date() : false;
-  const actualParticipants = getEventParticipants();
-  const maxCapacity = event.capacity?.max || 0;
-  const availableCapacity = maxCapacity - actualParticipants;
-  const availabilityPercentage = maxCapacity > 0 ? (availableCapacity / maxCapacity) * 100 : 0;
+
+  
+  // Calculate real available tickets: max capacity - booked tickets
+  const realAvailableTickets = event.capacity?.max ? Math.max(0, event.capacity.max - bookedTicketsCount) : 0;
+  const availabilityPercentage = event.capacity?.max ? (realAvailableTickets / event.capacity.max) * 100 : 0;
+
   const priceData = formatPrice(event.pricing || {});
 
   return (
@@ -354,8 +362,10 @@ export default function EventDetail() {
                   <div className="flex items-center space-x-3">
                     <Users className="h-5 w-5 text-primary" />
                     <div>
-                      <div className="font-semibold text-lg">
-                        {availableCapacity.toLocaleString()} <span className="text-base font-normal">ที่เหลือ</span>
+
+                      <div className="font-semibold">
+                        {realAvailableTickets.toLocaleString()} ที่เหลือ
+
                       </div>
                       <div className="text-sm text-muted-foreground">
                         ผู้เข้าร่วม {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
@@ -551,7 +561,9 @@ export default function EventDetail() {
                   <div className="flex justify-between text-sm">
                     <span>ผู้เข้าร่วม</span>
                     <span className="font-medium">
-                      {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
+
+                      {realAvailableTickets.toLocaleString()} / {event.capacity?.max?.toLocaleString() || '0'}
+
                     </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
@@ -577,8 +589,10 @@ export default function EventDetail() {
 
                 {/* Booking Button */}
                 <div className="space-y-2">
-                  {event.capacity?.available === 0 ? (
-                    <Button disabled className="w-full bg-muted text-muted-foreground">
+
+                  {realAvailableTickets === 0 ? (
+                    <Button disabled className="w-full">
+
                       ขายหมดแล้ว
                     </Button>
                   ) : !isUpcoming ? (
