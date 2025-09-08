@@ -1,6 +1,6 @@
 import { Event, EventCategory, EventTicket, EventFilters, BookingRequest, BookingResponse, BookingRecord } from '@/types/event';
 
-const API_BASE_URL = import.meta.env.DEV ? '/api' : 'https://54.169.154.143:3497';
+const API_BASE_URL = import.meta.env.DEV ? '/api' : '/api/proxy';
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -10,7 +10,10 @@ class ApiError extends Error {
 }
 
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // For production, use proxy with path parameter
+  const url = import.meta.env.DEV 
+    ? `${API_BASE_URL}${endpoint}`
+    : `${API_BASE_URL}?path=${encodeURIComponent(endpoint.substring(1))}`;
   
   const config: RequestInit = {
     mode: 'cors',
