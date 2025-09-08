@@ -16,6 +16,9 @@ import Login from "@/pages/Login";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminEvents from "@/pages/admin/AdminEvents";
 import AdminEventForm from "@/pages/admin/AdminEventForm";
+import AdminTickets from "@/pages/admin/AdminTickets";
+import AdminTicketTypeForm from "@/pages/admin/AdminTicketTypeForm";
+import AdminReports from "@/pages/admin/AdminReports";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -35,7 +38,12 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter 
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
               <ScrollToTop />
               <Routes>
                 {/* Public Routes */}
@@ -98,6 +106,27 @@ const App = () => (
                   <ProtectedRoute requireAdmin={true}>
                     <Layout>
                       <AdminEventForm />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/tickets" element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <Layout>
+                      <AdminTickets />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/ticket-types/create" element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <Layout>
+                      <AdminTicketTypeForm />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/reports" element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <Layout>
+                      <AdminReports />
                     </Layout>
                   </ProtectedRoute>
                 } />

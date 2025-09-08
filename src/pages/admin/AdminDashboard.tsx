@@ -6,9 +6,9 @@ import {
   Ticket, 
   TrendingUp, 
   Plus,
-  Eye,
-  Edit,
-  MoreHorizontal 
+  PieChart,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,94 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { eventApi } from '@/lib/api';
-import { Event } from '@/types/event';
+import { Event, EventTicket, BookingRecord, BookingTicket } from '@/types/event';
 import { useLanguage } from '@/contexts/AppContext';
+import { ticketUpdateService } from '@/services/ticketService';
+
+// Define types for our chart data
+interface ChartData {
+  name: string;
+  value: number;
+}
+
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: number;
+  icon: React.ReactNode;
+  isCurrency?: boolean;
+}
+
+// Helper function to determine if an object is a BookingRecord
+const isBookingRecord = (item: any): item is BookingRecord => {
+  return item && Array.isArray(item.tickets);
+};
+
+// Helper function to determine if an object is an EventTicket
+const isEventTicket = (item: any): item is EventTicket => {
+  return item && typeof item.ticketType === 'string';
+};
+
+// Helper function to extract ticket information from mixed data
+const extractTicketsFromData = (data: (BookingRecord | EventTicket)[]): EventTicket[] => {
+  const tickets: EventTicket[] = [];
+  
+  data.forEach(item => {
+    if (isBookingRecord(item)) {
+      // Convert BookingRecord to individual EventTickets
+      item.tickets.forEach((bookingTicket: BookingTicket) => {
+        const ticket: EventTicket = {
+          id: `${item.id}-${bookingTicket.type}`,
+          eventId: item.eventId,
+          ticketType: bookingTicket.type,
+          price: bookingTicket.price,
+          quantity: bookingTicket.quantity,
+          currency: item.currency || 'THB',
+          holder: item.holder || item.customerInfo || { name: '', email: '', phone: '' },
+          customerInfo: item.customerInfo || item.holder,
+          purchaseDate: new Date().toISOString(),
+          status: 'confirmed', // Assume confirmed for dashboard
+          totalAmount: item.totalAmount,
+          notes: item.notes
+        };
+        tickets.push(ticket);
+      });
+    } else if (isEventTicket(item)) {
+      // Already an EventTicket
+      tickets.push(item);
+    }
+  });
+  
+  return tickets;
+};
+
+const StatCard = ({ title, value, change, icon, isCurrency = false }: StatCardProps) => {
+  const isPositive = change >= 0;
+  
+  return (
+    <Card className="hover-lift transition-all duration-300 border-primary/10 shadow-sm hover:shadow-lg">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="p-2 rounded-full bg-primary/10 text-primary">
+          {icon}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className={`text-xs flex items-center ${isPositive ? 'text-success' : 'text-destructive'}`}>
+          {isPositive ? (
+            <ArrowUpRight className="h-3 w-3 mr-1" />
+          ) : (
+            <ArrowDownRight className="h-3 w-3 mr-1" />
+          )}
+          {isPositive ? '+' : ''}{change}% จากเดือนที่แล้ว
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
@@ -38,38 +123,99 @@ export default function AdminDashboard() {
     activeEvents: 0,
     totalTickets: 0,
     totalRevenue: 0,
+    avgTicketsPerEvent: 0,
   });
-  const [recentEvents, setRecentEvents] = React.useState<Event[]>([]);
+  const [categoryData, setCategoryData] = React.useState<ChartData[]>([]);
+  const [ticketTypeData, setTicketTypeData] = React.useState<ChartData[]>([]);
+  const [popularCategories, setPopularCategories] = React.useState<ChartData[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [events, setEvents] = React.useState<Event[]>([]);
 
   React.useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setIsLoading(true);
-        const eventsResponse = await eventApi.getEvents();
+        
+        // Fetch events and tickets in parallel
+        const [eventsResponse, ticketsData] = await Promise.all([
+          eventApi.getEvents(),
+          eventApi.getTickets()
+        ]);
+        
         const events = eventsResponse.events || [];
+        setEvents(events);
+        
+        // Extract individual tickets from mixed data (BookingRecords and EventTickets)
+        const allTickets = extractTicketsFromData(ticketsData);
         
         // Calculate stats
         const activeEvents = events.filter(e => e.status === 'active');
-        const totalRegistered = events.reduce((sum, e) => sum + (e.capacity?.registered || 0), 0);
         
-        // Calculate revenue from booking records
-        let totalRevenue = 0;
-        try {
-          const tickets = await eventApi.getTickets();
-          totalRevenue = tickets.reduce((sum, ticket) => sum + (ticket.totalAmount || 0), 0);
-        } catch (error) {
-          console.warn('Could not load ticket data for revenue calculation:', error);
-        }
+        // Calculate actual participants from booked tickets (only confirmed tickets)
+        const confirmedTickets = allTickets.filter(ticket => ticket.status === 'confirmed');
+        const totalParticipants = confirmedTickets.reduce((sum, ticket) => {
+          // Use quantity if available, otherwise default to 1
+          return sum + (ticket.quantity || 1);
+        }, 0);
+        
+        // Calculate revenue from confirmed bookings
+        const totalRevenue = confirmedTickets.reduce((sum, ticket) => {
+          // Use totalAmount if available and this is the first ticket in a booking
+          if (ticket.totalAmount !== undefined && ticket.id.includes('-')) {
+            // For converted tickets from BookingRecords, we only count totalAmount once per booking
+            const price = ticket.price || 0;
+            const quantity = ticket.quantity || 1;
+            return sum + (price * quantity);
+          }
+          
+          // For individual EventTickets, use totalAmount if available
+          if (ticket.totalAmount !== undefined) {
+            return sum + ticket.totalAmount;
+          }
+          
+          // Otherwise calculate from price and quantity
+          const price = ticket.price || 0;
+          const quantity = ticket.quantity || 1;
+          return sum + (price * quantity);
+        }, 0);
+        
+        // Calculate average tickets per event
+        const avgTicketsPerEvent = events.length > 0 
+          ? Math.round(totalParticipants / events.length) 
+          : 0;
         
         setStats({
           totalEvents: events.length,
           activeEvents: activeEvents.length,
-          totalTickets: totalRegistered,
+          totalTickets: totalParticipants,
           totalRevenue: totalRevenue,
+          avgTicketsPerEvent: avgTicketsPerEvent,
         });
 
-        setRecentEvents(events.slice(0, 10));
+        // Prepare category data for pie chart
+        const categoryCount: Record<string, number> = {};
+        events.forEach(event => {
+          categoryCount[event.category] = (categoryCount[event.category] || 0) + 1;
+        });
+        
+        const categoryChartData = Object.entries(categoryCount)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value);
+        
+        setCategoryData(categoryChartData);
+        setPopularCategories(categoryChartData.slice(0, 5));
+        
+        // Prepare ticket type data
+        const ticketTypeCount: Record<string, number> = {};
+        confirmedTickets.forEach(ticket => {
+          ticketTypeCount[ticket.ticketType] = (ticketTypeCount[ticket.ticketType] || 0) + (ticket.quantity || 1);
+        });
+        
+        const ticketTypeChartData = Object.entries(ticketTypeCount)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value);
+        
+        setTicketTypeData(ticketTypeChartData);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
       } finally {
@@ -80,39 +226,83 @@ export default function AdminDashboard() {
     loadDashboardData();
   }, []);
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'ไม่ระบุวันที่';
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'วันที่ไม่ถูกต้อง';
-    return date.toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+  // Subscribe to real-time updates for events
+  React.useEffect(() => {
+    const unsubscribe = ticketUpdateService.subscribe((updatedEvent) => {
+      setEvents(prevEvents => 
+        prevEvents.map(event => 
+          event.id === updatedEvent.id ? updatedEvent : event
+        )
+      );
+      
+      // Recalculate stats when events are updated
+      setStats(prevStats => ({
+        ...prevStats,
+        totalEvents: events.length,
+        activeEvents: events.filter(e => e.status === 'active').length,
+      }));
     });
-  };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="status-active">เปิดใช้งาน</Badge>;
-      case 'draft':
-        return <Badge variant="secondary">ฉบับร่าง</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive">ยกเลิก</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+    // Start polling for updates
+    ticketUpdateService.startPolling();
+
+    return () => {
+      unsubscribe();
+    };
+  }, [events]);
+
+  // Colors for charts
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+
+  // Stat cards data with icons
+  const statCards: StatCardProps[] = [
+    {
+      title: 'รายได้รวม',
+      value: `฿${stats.totalRevenue.toLocaleString()}`,
+      change: 12,
+      icon: <TrendingUp className="h-4 w-4" />,
+      isCurrency: true
+    },
+    {
+      title: 'ตั๋วที่ขายแล้ว',
+      value: stats.totalTickets.toLocaleString(),
+      change: 8,
+      icon: <Ticket className="h-4 w-4" />
+    },
+    {
+      title: 'อีเว้นท์ทั้งหมด',
+      value: stats.totalEvents.toString(),
+      change: 3,
+      icon: <Calendar className="h-4 w-4" />
+    },
+    {
+      title: 'เฉลี่ยต่ออีเว้นท์',
+      value: stats.avgTicketsPerEvent.toString(),
+      change: 5,
+      icon: <Users className="h-4 w-4" />
     }
-  };
+  ];
 
   if (isLoading) {
     return (
       <div className="container py-8 space-y-8">
-        <div className="h-8 w-48 bg-muted rounded loading-shimmer" />
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-48 bg-muted rounded loading-shimmer" />
+            <div className="h-4 w-64 bg-muted rounded mt-2 loading-shimmer" />
+          </div>
+          <div className="h-10 w-32 bg-muted rounded loading-shimmer" />
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-32 bg-muted rounded-lg loading-shimmer" />
           ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-80 bg-muted rounded-lg loading-shimmer" />
+          <div className="h-80 bg-muted rounded-lg loading-shimmer" />
         </div>
 
         <div className="h-96 bg-muted rounded-lg loading-shimmer" />
@@ -122,162 +312,177 @@ export default function AdminDashboard() {
 
   return (
     <div className="container py-8 space-y-8">
-      {/* Header */}
+      {/* Header with gradient */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t('admin.dashboard')}</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            {t('admin.dashboard')}
+          </h1>
           <p className="text-muted-foreground mt-2">
             ภาพรวมระบบจัดการอีเว้นท์
           </p>
         </div>
-        <Button asChild>
-          <Link to="/admin/events/create">
-            <Plus className="h-4 w-4 mr-2" />
-            {t('admin.createEvent')}
-          </Link>
-        </Button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards with enhanced styling */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">อีเว้นท์ทั้งหมด</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+        {statCards.map((stat, index) => (
+          <StatCard key={index} {...stat} />
+        ))}
+      </div>
+
+      {/* Charts Section with better spacing and styling */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Category Distribution */}
+        <Card className="shadow-sm hover:shadow-lg transition-all">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <PieChart className="h-5 w-5 mr-2 text-primary" />
+              การกระจายประเภทอีเว้นท์
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.activeEvents} อีเว้นท์เปิดใช้งาน
-            </p>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [value, 'จำนวนอีเว้นท์']} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ผู้เข้าร่วมทั้งหมด</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        {/* Popular Ticket Types */}
+        <Card className="shadow-sm hover:shadow-lg transition-all">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Ticket className="h-5 w-5 mr-2 text-primary" />
+              ประเภทตั๋วที่นิยม
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTickets.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              ผู้ลงทะเบียนเข้าร่วมงาน
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ตั๋วที่ขายแล้ว</CardTitle>
-            <Ticket className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTickets.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              จำนวนตั๋วทั้งหมด
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">รายได้รวม</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">฿{stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              รายได้จากการขายตั๋ว
-            </p>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={ticketTypeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {ticketTypeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [value, 'จำนวนตั๋ว']} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Events Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>อีเว้นท์ล่าสุด</CardTitle>
-            <Button asChild variant="outline">
-              <Link to="/admin/events">
-                ดูทั้งหมด
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ชื่ออีเว้นท์</TableHead>
-                <TableHead>หมวดหมู่</TableHead>
-                <TableHead>วันที่</TableHead>
-                <TableHead>สถานะ</TableHead>
-                <TableHead>ผู้เข้าร่วม</TableHead>
-                <TableHead className="text-right">การจัดการ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentEvents.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell className="font-medium">
-                    <div className="space-y-1">
-                      <div className="font-semibold">{event.title}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {event.organizer?.name || 'ไม่ระบุผู้จัด'}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {event.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(event.schedule?.startDate || '')}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(event.status)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="font-medium">
-                        {(event.capacity?.registered || 0).toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        / {(event.capacity?.max || 0).toLocaleString()}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to={`/events/${event.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            ดู
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={`/admin/events/${event.id}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            แก้ไข
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+      {/* Additional Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Popular Ticket Types List */}
+        <Card className="shadow-sm hover:shadow-lg transition-all">
+          <CardHeader>
+            <CardTitle>ประเภทตั๋วที่นิยม</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {ticketTypeData.slice(0, 5).map((ticketType, index) => (
+                <div key={ticketType.name} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span>{ticketType.name}</span>
+                  </div>
+                  <span className="font-medium">{ticketType.value}</span>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Popular Categories List */}
+        <Card className="shadow-sm hover:shadow-lg transition-all">
+          <CardHeader>
+            <CardTitle>หมวดหมู่อีเว้นท์ยอดนิยม</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {popularCategories.map((category, index) => (
+                <div key={category.name} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span>{category.name}</span>
+                  </div>
+                  <span className="font-medium">{category.value}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Event Statistics */}
+        <Card className="shadow-sm hover:shadow-lg transition-all">
+          <CardHeader>
+            <CardTitle>สถิติอีเว้นท์</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-primary/5 rounded-lg hover-lift">
+                <div className="text-2xl font-bold text-primary">
+                  {stats.totalEvents}
+                </div>
+                <div className="text-sm text-muted-foreground">ทั้งหมด</div>
+              </div>
+              <div className="text-center p-4 bg-success/10 rounded-lg hover-lift">
+                <div className="text-2xl font-bold text-success">
+                  {stats.activeEvents}
+                </div>
+                <div className="text-sm text-muted-foreground">เปิดใช้งาน</div>
+              </div>
+              <div className="text-center p-4 bg-blue-500/10 rounded-lg hover-lift">
+                <div className="text-2xl font-bold text-blue-500">
+                  {Math.round((stats.activeEvents / Math.max(stats.totalEvents, 1)) * 100)}%
+                </div>
+                <div className="text-sm text-muted-foreground">อัตราการใช้งาน</div>
+              </div>
+              <div className="text-center p-4 bg-purple-500/10 rounded-lg hover-lift">
+                <div className="text-2xl font-bold text-purple-500">
+                  ฿{Math.round(stats.totalRevenue / Math.max(stats.totalEvents, 1)).toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">รายได้ต่ออีเว้นท์</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
