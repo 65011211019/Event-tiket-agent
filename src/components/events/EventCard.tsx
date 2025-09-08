@@ -63,7 +63,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
   return (
     <Card 
       className={cn(
-        "group overflow-hidden hover-lift focus-ring",
+        "group overflow-hidden hover-lift focus-ring bg-card text-card-foreground",
         variant === 'featured' && "ring-2 ring-primary/20",
         className
       )}
@@ -91,7 +91,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
 
         {/* Location type */}
         <div className="absolute top-3 right-3">
-          <Badge variant="secondary" className="bg-background/80 backdrop-blur">
+          <Badge variant="secondary" className="bg-background/80 backdrop-blur text-foreground">
             {event.location?.type === 'online' ? 'ออนไลน์' : 
              event.location?.type === 'hybrid' ? 'ไฮบริด' : 'ที่งาน'}
           </Badge>
@@ -175,7 +175,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1"
+              className="flex-1 border-input hover:bg-accent hover:text-accent-foreground"
               onClick={() => onEdit?.(event.id)}
             >
               <Edit className="w-4 h-4 mr-2" />
@@ -193,14 +193,16 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           </div>
         ) : (
           <div className="flex gap-2 w-full">
-            <Button asChild variant="outline" size="sm" className="flex-1">
+            <Button asChild variant="outline" size="sm" className="flex-1 border-input hover:bg-accent hover:text-accent-foreground">
               <Link to={`/events/${event.id}`}>
                 {t('events.viewDetails')}
               </Link>
             </Button>
             
+
             {realAvailableTickets > 0 && isUpcoming && (
               <Button asChild size="sm" className="flex-1 bg-gradient-primary">
+
                 <Link to={`/events/${event.id}/book`}>
                   {t('events.bookNow')}
                 </Link>
@@ -213,12 +215,12 @@ export default function EventCard({ event, variant = 'default', className, isAdm
         {event.tags && event.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {event.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
+              <Badge key={tag} variant="outline" className="text-xs border-border">
                 {tag}
               </Badge>
             ))}
             {event.tags.length > 3 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs border-border">
                 +{event.tags.length - 3}
               </Badge>
             )}

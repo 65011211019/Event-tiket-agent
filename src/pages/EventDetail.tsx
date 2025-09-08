@@ -21,18 +21,64 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { eventApi } from '@/lib/api';
-import { Event } from '@/types/event';
+import { Event, EventTicket, BookingRecord, BookingTicket } from '@/types/event';
 import { useLanguage } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
+
+// Helper function to determine if an object is a BookingRecord
+const isBookingRecord = (item: any): item is BookingRecord => {
+  return item && Array.isArray(item.tickets);
+};
+
+// Helper function to determine if an object is an EventTicket
+const isEventTicket = (item: any): item is EventTicket => {
+  return item && typeof item.ticketType === 'string';
+};
+
+// Helper function to extract ticket information from mixed data
+const extractTicketsFromData = (data: (BookingRecord | EventTicket)[]): EventTicket[] => {
+  const tickets: EventTicket[] = [];
+  
+  data.forEach(item => {
+    if (isBookingRecord(item)) {
+      // Convert BookingRecord to individual EventTickets
+      item.tickets.forEach((bookingTicket: BookingTicket) => {
+        const ticket: EventTicket = {
+          id: `${item.id}-${bookingTicket.type}`,
+          eventId: item.eventId,
+          ticketType: bookingTicket.type,
+          price: bookingTicket.price,
+          quantity: bookingTicket.quantity,
+          currency: item.currency || 'THB',
+          holder: item.holder || item.customerInfo || { name: '', email: '', phone: '' },
+          customerInfo: item.customerInfo || item.holder,
+          purchaseDate: new Date().toISOString(),
+          status: 'confirmed', // Assume confirmed for dashboard
+          totalAmount: item.totalAmount,
+          notes: item.notes
+        };
+        tickets.push(ticket);
+      });
+    } else if (isEventTicket(item)) {
+      // Already an EventTicket
+      tickets.push(item);
+    }
+  });
+  
+  return tickets;
+};
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [event, setEvent] = React.useState<Event | null>(null);
+  const [tickets, setTickets] = React.useState<(BookingRecord | EventTicket)[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+
   const [bookedTicketsCount, setBookedTicketsCount] = React.useState<number>(0);
+
 
   React.useEffect(() => {
     const loadEvent = async () => {
@@ -41,12 +87,20 @@ export default function EventDetail() {
       try {
         setIsLoading(true);
         setError(null);
-        const eventData = await eventApi.getEvent(id);
+        
+        // Fetch event and tickets in parallel
+        const [eventData, ticketsData] = await Promise.all([
+          eventApi.getEvent(id),
+          eventApi.getTickets()
+        ]);
+        
         setEvent(eventData);
+
         
         // Get booked tickets count for this event
         const bookedCount = await eventApi.getBookedTicketsCount(id);
         setBookedTicketsCount(bookedCount);
+
       } catch (err) {
         console.error('Failed to load event:', err);
         setError('ไม่พบอีเว้นท์ที่ต้องการ');
@@ -56,7 +110,51 @@ export default function EventDetail() {
     };
 
     loadEvent();
+    
+    // Set up polling for real-time updates
+    const interval = setInterval(async () => {
+      if (id) {
+        try {
+          const [updatedEvent, updatedTickets] = await Promise.all([
+            eventApi.getEvent(id),
+            eventApi.getTickets()
+          ]);
+          
+          if (updatedEvent) {
+            setEvent(updatedEvent);
+            setTickets(updatedTickets);
+            setLastUpdated(new Date());
+          }
+        } catch (err) {
+          console.error('Failed to refresh event data:', err);
+        }
+      }
+    }, 5000); // Poll every 5 seconds
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [id]);
+
+  // Calculate actual participants for this event
+  const getEventParticipants = () => {
+    if (!id || !event) return 0;
+    
+    // Extract individual tickets from mixed data (BookingRecords and EventTickets)
+    const allTickets = extractTicketsFromData(tickets);
+    
+    // Filter confirmed tickets for this specific event
+    const eventTickets = allTickets.filter(
+      ticket => ticket.eventId === id && ticket.status === 'confirmed'
+    );
+    
+    // Calculate total participants from ticket quantities
+    const totalParticipants = eventTickets.reduce((sum, ticket) => {
+      return sum + (ticket.quantity || 1);
+    }, 0);
+    
+    return totalParticipants;
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('th-TH', {
@@ -157,11 +255,11 @@ export default function EventDetail() {
   if (error || !event) {
     return (
       <div className="container py-8">
-        <Alert className="max-w-2xl mx-auto">
+        <Alert className="max-w-2xl mx-auto bg-destructive/10 border-destructive/20 text-destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <span>{error || 'ไม่พบอีเว้นท์ที่ต้องการ'}</span>
-            <Button variant="outline" size="sm" onClick={() => navigate('/events')}>
+            <Button variant="outline" size="sm" className="border-destructive/20 hover:bg-destructive/10 text-destructive">
               กลับไปหน้ารายการ
             </Button>
           </AlertDescription>
@@ -171,17 +269,19 @@ export default function EventDetail() {
   }
 
   const isUpcoming = event.schedule?.startDate ? new Date(event.schedule.startDate) > new Date() : false;
+
   
   // Calculate real available tickets: max capacity - booked tickets
   const realAvailableTickets = event.capacity?.max ? Math.max(0, event.capacity.max - bookedTicketsCount) : 0;
   const availabilityPercentage = event.capacity?.max ? (realAvailableTickets / event.capacity.max) * 100 : 0;
+
   const priceData = formatPrice(event.pricing || {});
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Back Button */}
       <div className="container py-4">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
+        <Button variant="ghost" className="hover:bg-accent" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           กลับ
         </Button>
@@ -227,7 +327,7 @@ export default function EventDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Info */}
-            <Card>
+            <Card className="bg-card text-card-foreground">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="flex items-center space-x-3">
@@ -262,11 +362,29 @@ export default function EventDetail() {
                   <div className="flex items-center space-x-3">
                     <Users className="h-5 w-5 text-primary" />
                     <div>
+
                       <div className="font-semibold">
                         {realAvailableTickets.toLocaleString()} ที่เหลือ
+
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        จาก {event.capacity?.max?.toLocaleString() || '0'} ที่นั่ง
+                        ผู้เข้าร่วม {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
+                      </div>
+                      {maxCapacity > 0 && (
+                        <div className="mt-1">
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                              style={{ width: `${((actualParticipants) / maxCapacity) * 100}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            ที่เหลือ {availableCapacity.toLocaleString()}/{maxCapacity.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString('th-TH')}
                       </div>
                     </div>
                   </div>
@@ -275,7 +393,7 @@ export default function EventDetail() {
             </Card>
 
             {/* Description */}
-            <Card>
+            <Card className="bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle>รายละเอียดอีเว้นท์</CardTitle>
               </CardHeader>
@@ -288,7 +406,7 @@ export default function EventDetail() {
 
             {/* Speakers */}
             {event.speakers && event.speakers.length > 0 && (
-              <Card>
+              <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle>วิทยากร</CardTitle>
                 </CardHeader>
@@ -318,7 +436,7 @@ export default function EventDetail() {
 
             {/* Additional Information */}
             {(event.requirements?.length || event.includes?.length || event.activities?.length || event.tracks?.length) && (
-              <Card>
+              <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle>ข้อมูลเพิ่มเติม</CardTitle>
                 </CardHeader>
@@ -350,7 +468,9 @@ export default function EventDetail() {
                       <h4 className="font-semibold mb-2">หัวข้อ</h4>
                       <div className="flex flex-wrap gap-2">
                         {event.tracks.map((track, index) => (
-                          <Badge key={index} variant="outline">{track}</Badge>
+                          <Badge key={index} variant="outline" className="border-border">
+                            {track}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -372,7 +492,9 @@ export default function EventDetail() {
                       <h4 className="font-semibold mb-2">ระยะทาง</h4>
                       <div className="flex flex-wrap gap-2">
                         {event.distances.map((distance, index) => (
-                          <Badge key={index} variant="outline">{distance}</Badge>
+                          <Badge key={index} variant="outline" className="border-border">
+                            {distance}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -383,14 +505,14 @@ export default function EventDetail() {
 
             {/* Tags */}
             {event.tags?.length > 0 && (
-              <Card>
+              <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle>แท็ก</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {event.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="bg-secondary text-secondary-foreground">
                         <Tag className="w-3 h-3 mr-1" />
                         {tag}
                       </Badge>
@@ -404,11 +526,11 @@ export default function EventDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Booking Card */}
-            <Card className="sticky top-24">
+            <Card className="sticky top-24 bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>จองตั๋ว</span>
-                  <Button variant="ghost" size="sm" onClick={handleShare}>
+                  <Button variant="ghost" size="sm" className="hover:bg-accent" onClick={handleShare}>
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </CardTitle>
@@ -432,21 +554,27 @@ export default function EventDetail() {
                   </div>
                 )}
 
-                <Separator />
+                <Separator className="bg-border" />
 
-                {/* Availability */}
+                {/* Availability with real-time updates */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>ที่เหลือ</span>
+                    <span>ผู้เข้าร่วม</span>
                     <span className="font-medium">
+
                       {realAvailableTickets.toLocaleString()} / {event.capacity?.max?.toLocaleString() || '0'}
+
                     </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
                     <div
-                      className="h-2 rounded-full bg-primary"
-                      style={{ width: `${100 - availabilityPercentage}%` }}
+                      className="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                      style={{ width: `${maxCapacity > 0 ? (actualParticipants / maxCapacity) * 100 : 0}%` }}
                     />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>ที่เหลือ: {availableCapacity.toLocaleString()}</span>
+                    <span>{availabilityPercentage.toFixed(0)}%</span>
                   </div>
                   {availabilityPercentage < 20 && availabilityPercentage > 0 && (
                     <div className="flex items-center text-destructive text-sm">
@@ -454,20 +582,25 @@ export default function EventDetail() {
                       เหลือไม่มาก!
                     </div>
                   )}
+                  <div className="text-xs text-muted-foreground text-center">
+                    อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString('th-TH')}
+                  </div>
                 </div>
 
                 {/* Booking Button */}
                 <div className="space-y-2">
+
                   {realAvailableTickets === 0 ? (
                     <Button disabled className="w-full">
+
                       ขายหมดแล้ว
                     </Button>
                   ) : !isUpcoming ? (
-                    <Button disabled className="w-full">
+                    <Button disabled className="w-full bg-muted text-muted-foreground">
                       อีเว้นท์สิ้นสุดแล้ว
                     </Button>
                   ) : (
-                    <Button asChild className="w-full bg-gradient-primary">
+                    <Button asChild className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90">
                       <Link to={`/events/${event.id}/book`}>
                         จองตั๋วเลย
                       </Link>
@@ -475,7 +608,7 @@ export default function EventDetail() {
                   )}
                   
                   {event.location?.onlineLink && (
-                    <Button variant="outline" className="w-full" asChild>
+                    <Button variant="outline" className="w-full border-input hover:bg-accent" asChild>
                       <a href={event.location.onlineLink} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
                         เข้าร่วมออนไลน์
@@ -487,7 +620,7 @@ export default function EventDetail() {
             </Card>
 
             {/* Organizer Card */}
-            <Card>
+            <Card className="bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle>ผู้จัดงาน</CardTitle>
               </CardHeader>
