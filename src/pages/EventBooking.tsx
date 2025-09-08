@@ -12,6 +12,7 @@ import { eventApi } from '@/lib/api';
 import { Event, BookingRequest } from '@/types/event';
 import { useAuth, useLanguage } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
+import PaymentForm from '@/components/payment/PaymentForm';
 
 interface TicketSelection {
   type: string;
@@ -32,6 +33,8 @@ export default function EventBooking() {
   const [ticketSelections, setTicketSelections] = React.useState<TicketSelection[]>([]);
   const [currentStep, setCurrentStep] = React.useState(1);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [paymentSuccess, setPaymentSuccess] = React.useState(false);
+  const [chargeId, setChargeId] = React.useState<string | null>(null);
 
   // Form data
   const [formData, setFormData] = React.useState({
@@ -183,6 +186,8 @@ export default function EventBooking() {
         return;
       }
       setCurrentStep(3);
+    } else if (currentStep === 3) {
+      setCurrentStep(4);
     }
   };
 
@@ -192,6 +197,68 @@ export default function EventBooking() {
     } else {
       navigate(-1);
     }
+  };
+
+  const handlePaymentSuccess = async (paymentChargeId: string) => {
+    console.log('🎉 Payment Success Handler Called');
+    console.log('Charge ID:', paymentChargeId);
+    console.log('User:', user);
+    console.log('Event:', event);
+    
+    setChargeId(paymentChargeId);
+    setPaymentSuccess(true);
+    
+    try {
+      const selectedTickets = getSelectedTickets();
+      console.log('Selected Tickets:', selectedTickets);
+      
+      const bookingRequest: BookingRequest = {
+        eventId: id!,
+        holder: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phone: formData.phone
+        },
+        tickets: selectedTickets.map(ticket => ({
+          type: ticket.type,
+          quantity: ticket.quantity,
+          price: ticket.price
+        })),
+        totalAmount: selectedTickets.reduce((sum, ticket) => sum + (ticket.price * ticket.quantity), 0),
+        currency: 'THB',
+        notes: `จองตั๋วงาน ${event?.title} ผ่านระบบออนไลน์ - Charge ID: ${paymentChargeId}`
+      };
+
+      console.log('📤 Creating booking request:', bookingRequest);
+      
+      const bookingResponse = await eventApi.createBooking(bookingRequest);
+      console.log('✅ Booking created successfully:', bookingResponse);
+      
+      toast({
+        title: "จองสำเร็จ!",
+        description: "การจองตั๋วของคุณเสร็จสิ้นแล้ว",
+      });
+      
+      // Navigate to tickets page
+      navigate('/my-tickets');
+      
+    } catch (error) {
+      console.error('❌ Booking creation failed:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถสร้างการจองได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('💥 Payment Error:', error);
+    toast({
+      title: "การชำระเงินล้มเหลว",
+      description: error,
+      variant: "destructive",
+    });
   };
 
   const handleSubmit = async () => {
@@ -292,7 +359,7 @@ export default function EventBooking() {
 
         {/* Progress */}
         <div className="flex items-center space-x-4">
-          {[1, 2, 3].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
               <div
                 className={`flex items-center justify-center w-8 h-8 rounded-full ${
@@ -307,8 +374,9 @@ export default function EventBooking() {
                 {step === 1 && 'เลือกตั๋ว'}
                 {step === 2 && 'กรอกข้อมูล'}
                 {step === 3 && 'ยืนยันการจอง'}
+                {step === 4 && 'ชำระเงิน'}
               </span>
-              {step < 3 && <div className="w-8 h-px bg-border mx-4" />}
+              {step < 4 && <div className="w-8 h-px bg-border mx-4" />}
             </div>
           ))}
         </div>
@@ -481,6 +549,36 @@ export default function EventBooking() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Payment Step */}
+            {currentStep === 4 && (
+              <div className="space-y-6">
+                {paymentSuccess ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-green-600">ชำระเงินสำเร็จ!</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">
+                        การชำระเงินของคุณเสร็จสิ้นแล้ว กำลังสร้างการจอง...
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <PaymentForm
+                    amount={getSelectedTickets().reduce((sum, ticket) => sum + (ticket.price * ticket.quantity), 0) * 100}
+                    currency="THB"
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentError={handlePaymentError}
+                    isLoading={isSubmitting}
+                    eventId={id!}
+                    customerName={`${formData.firstName} ${formData.lastName}`}
+                    customerEmail={formData.email}
+                    customerPhone={formData.phone}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* Sidebar - Order Summary */}
@@ -526,13 +624,13 @@ export default function EventBooking() {
 
                 {/* Action Button */}
                 <div className="space-y-2">
-                  {currentStep < 3 ? (
+                  {currentStep < 4 ? (
                     <Button 
                       onClick={handleNext}
                       className="w-full"
                       disabled={currentStep === 1 && getTotalTickets() === 0}
                     >
-                      {currentStep === 1 ? 'ต่อไป' : 'ยืนยันข้อมูล'}
+                      {currentStep === 1 ? 'ต่อไป' : currentStep === 2 ? 'ยืนยันข้อมูล' : 'ชำระเงิน'}
                     </Button>
                   ) : (
                     <Button
