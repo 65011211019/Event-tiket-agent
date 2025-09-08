@@ -21,17 +21,62 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { eventApi } from '@/lib/api';
-import { Event } from '@/types/event';
+import { Event, EventTicket, BookingRecord, BookingTicket } from '@/types/event';
 import { useLanguage } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
+
+// Helper function to determine if an object is a BookingRecord
+const isBookingRecord = (item: any): item is BookingRecord => {
+  return item && Array.isArray(item.tickets);
+};
+
+// Helper function to determine if an object is an EventTicket
+const isEventTicket = (item: any): item is EventTicket => {
+  return item && typeof item.ticketType === 'string';
+};
+
+// Helper function to extract ticket information from mixed data
+const extractTicketsFromData = (data: (BookingRecord | EventTicket)[]): EventTicket[] => {
+  const tickets: EventTicket[] = [];
+  
+  data.forEach(item => {
+    if (isBookingRecord(item)) {
+      // Convert BookingRecord to individual EventTickets
+      item.tickets.forEach((bookingTicket: BookingTicket) => {
+        const ticket: EventTicket = {
+          id: `${item.id}-${bookingTicket.type}`,
+          eventId: item.eventId,
+          ticketType: bookingTicket.type,
+          price: bookingTicket.price,
+          quantity: bookingTicket.quantity,
+          currency: item.currency || 'THB',
+          holder: item.holder || item.customerInfo || { name: '', email: '', phone: '' },
+          customerInfo: item.customerInfo || item.holder,
+          purchaseDate: new Date().toISOString(),
+          status: 'confirmed', // Assume confirmed for dashboard
+          totalAmount: item.totalAmount,
+          notes: item.notes
+        };
+        tickets.push(ticket);
+      });
+    } else if (isEventTicket(item)) {
+      // Already an EventTicket
+      tickets.push(item);
+    }
+  });
+  
+  return tickets;
+};
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [event, setEvent] = React.useState<Event | null>(null);
+  const [tickets, setTickets] = React.useState<(BookingRecord | EventTicket)[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = React.useState<Date>(new Date());
 
   React.useEffect(() => {
     const loadEvent = async () => {
@@ -40,8 +85,16 @@ export default function EventDetail() {
       try {
         setIsLoading(true);
         setError(null);
-        const eventData = await eventApi.getEvent(id);
+        
+        // Fetch event and tickets in parallel
+        const [eventData, ticketsData] = await Promise.all([
+          eventApi.getEvent(id),
+          eventApi.getTickets()
+        ]);
+        
         setEvent(eventData);
+        setTickets(ticketsData);
+        setLastUpdated(new Date());
       } catch (err) {
         console.error('Failed to load event:', err);
         setError('ไม่พบอีเว้นท์ที่ต้องการ');
@@ -51,7 +104,51 @@ export default function EventDetail() {
     };
 
     loadEvent();
+    
+    // Set up polling for real-time updates
+    const interval = setInterval(async () => {
+      if (id) {
+        try {
+          const [updatedEvent, updatedTickets] = await Promise.all([
+            eventApi.getEvent(id),
+            eventApi.getTickets()
+          ]);
+          
+          if (updatedEvent) {
+            setEvent(updatedEvent);
+            setTickets(updatedTickets);
+            setLastUpdated(new Date());
+          }
+        } catch (err) {
+          console.error('Failed to refresh event data:', err);
+        }
+      }
+    }, 5000); // Poll every 5 seconds
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [id]);
+
+  // Calculate actual participants for this event
+  const getEventParticipants = () => {
+    if (!id || !event) return 0;
+    
+    // Extract individual tickets from mixed data (BookingRecords and EventTickets)
+    const allTickets = extractTicketsFromData(tickets);
+    
+    // Filter confirmed tickets for this specific event
+    const eventTickets = allTickets.filter(
+      ticket => ticket.eventId === id && ticket.status === 'confirmed'
+    );
+    
+    // Calculate total participants from ticket quantities
+    const totalParticipants = eventTickets.reduce((sum, ticket) => {
+      return sum + (ticket.quantity || 1);
+    }, 0);
+    
+    return totalParticipants;
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('th-TH', {
@@ -166,7 +263,10 @@ export default function EventDetail() {
   }
 
   const isUpcoming = event.schedule?.startDate ? new Date(event.schedule.startDate) > new Date() : false;
-  const availabilityPercentage = event.capacity?.available && event.capacity?.max ? (event.capacity.available / event.capacity.max) * 100 : 0;
+  const actualParticipants = getEventParticipants();
+  const maxCapacity = event.capacity?.max || 0;
+  const availableCapacity = maxCapacity - actualParticipants;
+  const availabilityPercentage = maxCapacity > 0 ? (availableCapacity / maxCapacity) * 100 : 0;
   const priceData = formatPrice(event.pricing || {});
 
   return (
@@ -254,11 +354,27 @@ export default function EventDetail() {
                   <div className="flex items-center space-x-3">
                     <Users className="h-5 w-5 text-primary" />
                     <div>
-                      <div className="font-semibold">
-                        {event.capacity?.available?.toLocaleString() || '0'} ที่เหลือ
+                      <div className="font-semibold text-lg">
+                        {availableCapacity.toLocaleString()} <span className="text-base font-normal">ที่เหลือ</span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        จาก {event.capacity?.max?.toLocaleString() || '0'} ที่นั่ง
+                        ผู้เข้าร่วม {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
+                      </div>
+                      {maxCapacity > 0 && (
+                        <div className="mt-1">
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                              style={{ width: `${((actualParticipants) / maxCapacity) * 100}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            ที่เหลือ {availableCapacity.toLocaleString()}/{maxCapacity.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString('th-TH')}
                       </div>
                     </div>
                   </div>
@@ -426,19 +542,23 @@ export default function EventDetail() {
 
                 <Separator />
 
-                {/* Availability */}
+                {/* Availability with real-time updates */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>ที่เหลือ</span>
+                    <span>ผู้เข้าร่วม</span>
                     <span className="font-medium">
-                      {event.capacity?.available?.toLocaleString() || '0'} / {event.capacity?.max?.toLocaleString() || '0'}
+                      {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
                     </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
                     <div
-                      className="h-2 rounded-full bg-primary"
-                      style={{ width: `${100 - availabilityPercentage}%` }}
+                      className="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                      style={{ width: `${maxCapacity > 0 ? (actualParticipants / maxCapacity) * 100 : 0}%` }}
                     />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>ที่เหลือ: {availableCapacity.toLocaleString()}</span>
+                    <span>{availabilityPercentage.toFixed(0)}%</span>
                   </div>
                   {availabilityPercentage < 20 && availabilityPercentage > 0 && (
                     <div className="flex items-center text-destructive text-sm">
@@ -446,6 +566,9 @@ export default function EventDetail() {
                       เหลือไม่มาก!
                     </div>
                   )}
+                  <div className="text-xs text-muted-foreground text-center">
+                    อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString('th-TH')}
+                  </div>
                 </div>
 
                 {/* Booking Button */}

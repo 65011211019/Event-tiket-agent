@@ -9,30 +9,37 @@ interface ProtectedRouteProps {
   requireNonAdmin?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAuth = false, 
+export default function ProtectedRoute({
+  children,
+  requireAuth = false,
   requireAdmin = false,
-  requireNonAdmin = false 
-}) => {
-  const { user, isAdmin } = useAuth();
+  requireNonAdmin = false,
+}: ProtectedRouteProps) {
+  const { user, isLoading } = useAuth();
 
-  // If authentication is required but user is not logged in
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Redirect to login if auth is required but user is not logged in
   if (requireAuth && !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // If admin access is required but user is not admin
-  if (requireAdmin && (!user || !isAdmin)) {
+  // Redirect to home if admin access is required but user is not admin
+  if (requireAdmin && (!user || user.role !== 'admin')) {
     return <Navigate to="/" replace />;
   }
 
-  // If non-admin access is required but user is admin
-  if (requireNonAdmin && user && isAdmin) {
+  // Redirect to home if non-admin access is required but user is admin
+  if (requireNonAdmin && user && user.role === 'admin') {
     return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;
-};
-
-export default ProtectedRoute;
+}
