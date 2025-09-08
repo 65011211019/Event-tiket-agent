@@ -1,6 +1,6 @@
 import { Event, EventCategory, EventTicket, EventFilters, BookingRequest, BookingResponse, BookingRecord } from '@/types/event';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.DEV ? '/api' : 'http://54.169.154.143:3497';
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
