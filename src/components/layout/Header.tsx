@@ -104,14 +104,14 @@ export default function Header({ onSearch }: HeaderProps) {
         </nav>
 
         {/* Search */}
-        <div className="flex-1 max-w-sm mx-4">
-          <form onSubmit={handleSearch} className="relative">
+        <div className="flex-1 flex justify-center max-w-md mx-auto">
+          <form onSubmit={handleSearch} className="relative w-full max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t('general.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 w-full"
             />
           </form>
         </div>
