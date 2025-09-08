@@ -1,102 +1,167 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Mail, Phone, MapPin } from 'lucide-react';
+import { Ticket, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { useLanguage } from '@/contexts/AppContext';
 
 export default function Footer() {
   const { t } = useLanguage();
-  const currentYear = new Date().getFullYear();
+
+  const footerLinks = {
+    product: [
+      { name: 'ค้นหาอีเว้นท์', href: '/events' },
+      { name: 'ตั๋วของฉัน', href: '/my-tickets' },
+      { name: 'ศูนย์ช่วยเหลือ', href: '#' },
+    ],
+    company: [
+      { name: 'เกี่ยวกับเรา', href: '#' },
+      { name: 'บล็อก', href: '#' },
+      { name: 'ติดต่อเรา', href: '#' },
+    ],
+    legal: [
+      { name: 'ข้อกำหนดการใช้งาน', href: '#' },
+      { name: 'นโยบายความเป็นส่วนตัว', href: '#' },
+      { name: 'นโยบายคืนเงิน', href: '#' },
+    ],
+  };
+
+  const socialLinks = [
+    { icon: Facebook, href: '#', color: 'bg-blue-600 hover:bg-blue-700' },
+    { icon: Twitter, href: '#', color: 'bg-sky-500 hover:bg-sky-600' },
+    { icon: Instagram, href: '#', color: 'bg-pink-600 hover:bg-pink-700' },
+    { icon: Linkedin, href: '#', color: 'bg-blue-800 hover:bg-blue-900' },
+  ];
 
   return (
-    <footer className="border-t bg-card">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t bg-gradient-to-r from-blue-50 via-white to-purple-50 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
-                <Calendar className="h-5 w-5 text-white" />
+          <div className="lg:col-span-2">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
+                <Ticket className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 EventTix
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {t('footer.description') || 'แพลตฟอร์มจองตั๋วอีเว้นท์ออนไลน์ที่ดีที่สุดในประเทศไทย'}
+            <p className="text-muted-foreground mb-6 max-w-md">
+              แพลตฟอร์มจองตั๋วอีเว้นท์ออนไลน์ที่ง่ายและสะดวก ค้นหาและจองตั๋วสำหรับอีเว้นท์ที่คุณชื่นชอบได้ทันที
             </p>
-          </div>
-
-          {/* Quick Links */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold">{t('footer.quickLinks') || 'ลิงก์ด่วน'}</h4>
-            <div className="space-y-2">
-              <Link to="/events" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('nav.events')}
-              </Link>
-              <Link to="/categories" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('nav.categories')}
-              </Link>
-              <Link to="/help" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('nav.help')}
-              </Link>
-              <Link to="/about" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('footer.about') || 'เกี่ยวกับเรา'}
-              </Link>
-            </div>
-          </div>
-
-          {/* Support */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold">{t('footer.support') || 'ช่วยเหลือ'}</h4>
-            <div className="space-y-2">
-              <Link to="/contact" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('footer.contact') || 'ติดต่อเรา'}
-              </Link>
-              <Link to="/faq" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('footer.faq') || 'คำถามที่พบบ่อย'}
-              </Link>
-              <Link to="/terms" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('footer.terms') || 'ข้อกำหนดการใช้งาน'}
-              </Link>
-              <Link to="/privacy" className="block text-sm text-muted-foreground hover:text-primary">
-                {t('footer.privacy') || 'นโยบายความเป็นส่วนตัว'}
-              </Link>
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold">{t('footer.contact') || 'ติดต่อเรา'}</h4>
             <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <span>support@eventtix.com</span>
+              <div className="flex items-center text-sm text-muted-foreground hover:text-blue-600 transition-colors">
+                <Mail className="h-4 w-4 mr-3 text-blue-500" />
+                support@eventtix.com
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <span>+66 2 xxx xxxx</span>
+              <div className="flex items-center text-sm text-muted-foreground hover:text-blue-600 transition-colors">
+                <Phone className="h-4 w-4 mr-3 text-green-500" />
+                +66 2 123 4567
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>Bangkok, Thailand</span>
+              <div className="flex items-center text-sm text-muted-foreground hover:text-blue-600 transition-colors">
+                <MapPin className="h-4 w-4 mr-3 text-red-500" />
+                กรุงเทพมหานคร ประเทศไทย
               </div>
+            </div>
+            <div className="flex space-x-4 mt-6">
+              {socialLinks.map((social, index) => {
+                const Icon = social.icon;
+                return (
+                  <a
+                    key={index}
+                    href={social.href}
+                    className={`h-10 w-10 rounded-full flex items-center justify-center text-white transition-all duration-200 ${social.color}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Product Links */}
+          <div>
+            <h3 className="font-semibold mb-4 text-lg text-blue-700">ผลิตภัณฑ์</h3>
+            <ul className="space-y-3">
+              {footerLinks.product.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href} 
+                    className="text-sm text-muted-foreground hover:text-blue-600 transition-colors duration-200"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company Links */}
+          <div>
+            <h3 className="font-semibold mb-4 text-lg text-green-700">บริษัท</h3>
+            <ul className="space-y-3">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href} 
+                    className="text-sm text-muted-foreground hover:text-green-600 transition-colors duration-200"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal Links */}
+          <div>
+            <h3 className="font-semibold mb-4 text-lg text-purple-700">กฎหมาย</h3>
+            <ul className="space-y-3">
+              {footerLinks.legal.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href} 
+                    className="text-sm text-muted-foreground hover:text-purple-600 transition-colors duration-200"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="font-semibold mb-4 text-lg text-indigo-700">ข่าวสาร</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              สมัครรับข่าวสารและโปรโมชั่นพิเศษ
+            </p>
+            <div className="flex">
+              <input
+                type="email"
+                placeholder="อีเมลของคุณ"
+                className="flex-1 rounded-l-lg border-2 border-blue-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+              />
+              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-r-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md">
+                สมัคร
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-muted-foreground">
-              © {currentYear} EventTix. All rights reserved.
-            </p>
-            <div className="flex space-x-4 mt-4 md:mt-0">
-              <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">
-                {t('footer.terms') || 'ข้อกำหนด'}
-              </Link>
-              <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary">
-                {t('footer.privacy') || 'ความเป็นส่วนตัว'}
-              </Link>
-            </div>
+        <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm text-muted-foreground">
+            © 2024 EventTix. สงวนลิขสิทธิ์.
+          </p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            <Link to="#" className="text-muted-foreground hover:text-blue-600 transition-colors text-sm duration-200">
+              ข้อกำหนด
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-blue-600 transition-colors text-sm duration-200">
+              ความเป็นส่วนตัว
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-blue-600 transition-colors text-sm duration-200">
+              คุกกี้
+            </Link>
           </div>
         </div>
       </div>

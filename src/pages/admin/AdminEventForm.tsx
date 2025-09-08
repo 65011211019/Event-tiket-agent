@@ -18,6 +18,7 @@ export default function AdminEventForm() {
   const isEdit = !!id;
   const [isLoading, setIsLoading] = React.useState(isEdit);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [savedEvent, setSavedEvent] = React.useState<Event | null>(null); // Track the saved event
 
   const [formData, setFormData] = React.useState<{
     title: string;
@@ -161,20 +162,22 @@ export default function AdminEventForm() {
       setIsSaving(true);
       
       if (isEdit && id) {
-        await eventApi.updateEvent(id, formData);
+        const updatedEvent = await eventApi.updateEvent(id, formData);
+        setSavedEvent(updatedEvent);
         toast({
           title: "อัปเดตอีเว้นท์สำเร็จ",
           description: "ข้อมูลอีเว้นท์ได้รับการอัปเดตแล้ว",
         });
+        navigate('/admin/events');
       } else {
-        await eventApi.createEvent(formData);
+        const createdEvent = await eventApi.createEvent(formData);
+        setSavedEvent(createdEvent);
         toast({
           title: "สร้างอีเว้นท์สำเร็จ",
-          description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว",
+          description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว คุณสามารถดูตัวอย่างได้โดยคลิกปุ่ม \"ดูตัวอย่างหน้าหลัก\"",
         });
+        // Stay on the page to show the preview button
       }
-      
-      navigate('/admin/events');
     } catch (error) {
       toast({
         title: "เกิดข้อผิดพลาด",
@@ -184,6 +187,16 @@ export default function AdminEventForm() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handlePreview = () => {
+    if (savedEvent?.id) {
+      window.open(`/events/${savedEvent.id}`, '_blank');
+    }
+  };
+
+  const handleBackToList = () => {
+    navigate('/admin/events');
   };
 
   if (isLoading) {
@@ -201,7 +214,7 @@ export default function AdminEventForm() {
     <div className="container py-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate('/admin/events')}>
+          <Button variant="ghost" onClick={handleBackToList}>
             <ChevronLeft className="h-4 w-4 mr-2" />
             กลับ
           </Button>
@@ -631,12 +644,17 @@ export default function AdminEventForm() {
           </Card>
 
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={() => navigate('/admin/events')}>
-              ยกเลิก
+            <Button type="button" variant="outline" onClick={handleBackToList}>
+              กลับไปรายการ
             </Button>
+            {savedEvent && !isEdit && (
+              <Button type="button" variant="outline" onClick={handlePreview}>
+                ดูตัวอย่างหน้าหลัก
+              </Button>
+            )}
             <Button type="submit" disabled={isSaving}>
               <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'กำลังบันทึก...' : 'บันทึก'}
+              {isSaving ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดต' : 'สร้างอีเว้นท์')}
             </Button>
           </div>
         </form>
