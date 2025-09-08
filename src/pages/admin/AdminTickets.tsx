@@ -149,7 +149,7 @@ export default function AdminTickets() {
     return (
       <div className="container py-8">
         <div className="max-w-6xl mx-auto">
-          <Card className="border-destructive/20">
+          <Card className="border-destructive/20 bg-destructive/10 text-destructive">
             <CardHeader>
               <CardTitle className="text-destructive">เกิดข้อผิดพลาด</CardTitle>
             </CardHeader>
@@ -157,7 +157,7 @@ export default function AdminTickets() {
               <p className="text-destructive">{error}</p>
               <Button 
                 variant="outline" 
-                className="mt-4" 
+                className="mt-4 border-destructive/20 hover:bg-destructive/10 text-destructive"
                 onClick={() => window.location.reload()}
               >
                 ลองใหม่อีกครั้ง
@@ -188,7 +188,7 @@ export default function AdminTickets() {
               จัดการตั๋วที่ผู้ใช้จองไว้
             </p>
           </div>
-          <Button asChild className="bg-gradient-primary hover:shadow-lg transition-all">
+          <Button asChild className="bg-gradient-primary hover:shadow-lg transition-all text-primary-foreground">
             <Link to="/admin/ticket-types/create">
               สร้างประเภทตั๋วใหม่
             </Link>
@@ -197,7 +197,7 @@ export default function AdminTickets() {
 
         {/* Enhanced Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="hover-lift transition-all border-primary/10 shadow-sm hover:shadow-lg">
+          <Card className="hover-lift transition-all border border-border bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">ตั๋วทั้งหมด</CardTitle>
             </CardHeader>
@@ -208,7 +208,7 @@ export default function AdminTickets() {
             </CardContent>
           </Card>
           
-          <Card className="hover-lift transition-all border-success/10 shadow-sm hover:shadow-lg">
+          <Card className="hover-lift transition-all border border-success/20 bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">ยืนยันแล้ว</CardTitle>
             </CardHeader>
@@ -219,7 +219,7 @@ export default function AdminTickets() {
             </CardContent>
           </Card>
           
-          <Card className="hover-lift transition-all border-warning/10 shadow-sm hover:shadow-lg">
+          <Card className="hover-lift transition-all border border-warning/20 bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">รอดำเนินการ</CardTitle>
             </CardHeader>
@@ -230,7 +230,7 @@ export default function AdminTickets() {
             </CardContent>
           </Card>
           
-          <Card className="hover-lift transition-all border-destructive/10 shadow-sm hover:shadow-lg">
+          <Card className="hover-lift transition-all border border-destructive/20 bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">ยกเลิก</CardTitle>
             </CardHeader>
@@ -243,7 +243,7 @@ export default function AdminTickets() {
         </div>
 
         {/* Enhanced Tickets Table */}
-        <Card className="shadow-sm hover:shadow-lg transition-all">
+        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Ticket className="h-5 w-5 mr-2 text-primary" />
@@ -261,18 +261,18 @@ export default function AdminTickets() {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-md border border-border">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      <TableHead className="font-semibold">อีเว้นท์</TableHead>
-                      <TableHead className="font-semibold">ผู้จอง</TableHead>
-                      <TableHead className="font-semibold">ประเภทตั๋ว</TableHead>
-                      <TableHead className="font-semibold">จำนวน</TableHead>
-                      <TableHead className="font-semibold">ราคา</TableHead>
-                      <TableHead className="font-semibold">วันที่จอง</TableHead>
-                      <TableHead className="font-semibold">สถานะ</TableHead>
-                      <TableHead className="text-right font-semibold">การจัดการ</TableHead>
+                      <TableHead className="font-semibold text-foreground">อีเว้นท์</TableHead>
+                      <TableHead className="font-semibold text-foreground">ผู้จอง</TableHead>
+                      <TableHead className="font-semibold text-foreground">ประเภทตั๋ว</TableHead>
+                      <TableHead className="font-semibold text-foreground">จำนวน</TableHead>
+                      <TableHead className="font-semibold text-foreground">ราคา</TableHead>
+                      <TableHead className="font-semibold text-foreground">วันที่จอง</TableHead>
+                      <TableHead className="font-semibold text-foreground">สถานะ</TableHead>
+                      <TableHead className="text-right font-semibold text-foreground">การจัดการ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -298,7 +298,7 @@ export default function AdminTickets() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="border-border">
                             {ticket.ticketType}
                           </Badge>
                         </TableCell>
@@ -313,7 +313,7 @@ export default function AdminTickets() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="border-primary/20 hover:bg-primary/10"
+                              className="border-input hover:bg-accent"
                               onClick={() => handleShowQR(ticket)}
                             >
                               <QrCode className="h-4 w-4" />
@@ -321,7 +321,7 @@ export default function AdminTickets() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="border-primary/20 hover:bg-primary/10"
+                              className="border-input hover:bg-accent"
                               asChild
                             >
                               <Link to={`/events/${ticket.eventId}`}>

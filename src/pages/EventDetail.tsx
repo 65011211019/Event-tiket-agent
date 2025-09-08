@@ -249,11 +249,11 @@ export default function EventDetail() {
   if (error || !event) {
     return (
       <div className="container py-8">
-        <Alert className="max-w-2xl mx-auto">
+        <Alert className="max-w-2xl mx-auto bg-destructive/10 border-destructive/20 text-destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <span>{error || 'ไม่พบอีเว้นท์ที่ต้องการ'}</span>
-            <Button variant="outline" size="sm" onClick={() => navigate('/events')}>
+            <Button variant="outline" size="sm" className="border-destructive/20 hover:bg-destructive/10 text-destructive">
               กลับไปหน้ารายการ
             </Button>
           </AlertDescription>
@@ -270,10 +270,10 @@ export default function EventDetail() {
   const priceData = formatPrice(event.pricing || {});
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Back Button */}
       <div className="container py-4">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
+        <Button variant="ghost" className="hover:bg-accent" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           กลับ
         </Button>
@@ -319,7 +319,7 @@ export default function EventDetail() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Info */}
-            <Card>
+            <Card className="bg-card text-card-foreground">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="flex items-center space-x-3">
@@ -383,7 +383,7 @@ export default function EventDetail() {
             </Card>
 
             {/* Description */}
-            <Card>
+            <Card className="bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle>รายละเอียดอีเว้นท์</CardTitle>
               </CardHeader>
@@ -396,7 +396,7 @@ export default function EventDetail() {
 
             {/* Speakers */}
             {event.speakers && event.speakers.length > 0 && (
-              <Card>
+              <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle>วิทยากร</CardTitle>
                 </CardHeader>
@@ -426,7 +426,7 @@ export default function EventDetail() {
 
             {/* Additional Information */}
             {(event.requirements?.length || event.includes?.length || event.activities?.length || event.tracks?.length) && (
-              <Card>
+              <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle>ข้อมูลเพิ่มเติม</CardTitle>
                 </CardHeader>
@@ -458,7 +458,9 @@ export default function EventDetail() {
                       <h4 className="font-semibold mb-2">หัวข้อ</h4>
                       <div className="flex flex-wrap gap-2">
                         {event.tracks.map((track, index) => (
-                          <Badge key={index} variant="outline">{track}</Badge>
+                          <Badge key={index} variant="outline" className="border-border">
+                            {track}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -480,7 +482,9 @@ export default function EventDetail() {
                       <h4 className="font-semibold mb-2">ระยะทาง</h4>
                       <div className="flex flex-wrap gap-2">
                         {event.distances.map((distance, index) => (
-                          <Badge key={index} variant="outline">{distance}</Badge>
+                          <Badge key={index} variant="outline" className="border-border">
+                            {distance}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -491,14 +495,14 @@ export default function EventDetail() {
 
             {/* Tags */}
             {event.tags?.length > 0 && (
-              <Card>
+              <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle>แท็ก</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {event.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="bg-secondary text-secondary-foreground">
                         <Tag className="w-3 h-3 mr-1" />
                         {tag}
                       </Badge>
@@ -512,11 +516,11 @@ export default function EventDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Booking Card */}
-            <Card className="sticky top-24">
+            <Card className="sticky top-24 bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>จองตั๋ว</span>
-                  <Button variant="ghost" size="sm" onClick={handleShare}>
+                  <Button variant="ghost" size="sm" className="hover:bg-accent" onClick={handleShare}>
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </CardTitle>
@@ -540,7 +544,7 @@ export default function EventDetail() {
                   </div>
                 )}
 
-                <Separator />
+                <Separator className="bg-border" />
 
                 {/* Availability with real-time updates */}
                 <div className="space-y-2">
@@ -574,15 +578,15 @@ export default function EventDetail() {
                 {/* Booking Button */}
                 <div className="space-y-2">
                   {event.capacity?.available === 0 ? (
-                    <Button disabled className="w-full">
+                    <Button disabled className="w-full bg-muted text-muted-foreground">
                       ขายหมดแล้ว
                     </Button>
                   ) : !isUpcoming ? (
-                    <Button disabled className="w-full">
+                    <Button disabled className="w-full bg-muted text-muted-foreground">
                       อีเว้นท์สิ้นสุดแล้ว
                     </Button>
                   ) : (
-                    <Button asChild className="w-full bg-gradient-primary">
+                    <Button asChild className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90">
                       <Link to={`/events/${event.id}/book`}>
                         จองตั๋วเลย
                       </Link>
@@ -590,7 +594,7 @@ export default function EventDetail() {
                   )}
                   
                   {event.location?.onlineLink && (
-                    <Button variant="outline" className="w-full" asChild>
+                    <Button variant="outline" className="w-full border-input hover:bg-accent" asChild>
                       <a href={event.location.onlineLink} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
                         เข้าร่วมออนไลน์
@@ -602,7 +606,7 @@ export default function EventDetail() {
             </Card>
 
             {/* Organizer Card */}
-            <Card>
+            <Card className="bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle>ผู้จัดงาน</CardTitle>
               </CardHeader>

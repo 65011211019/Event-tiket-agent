@@ -7,11 +7,12 @@ import {
   LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/AppContext';
+import { useLanguage, useAuth } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
 
 export default function AdminSidebar() {
   const { t } = useLanguage();
+  const { logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -42,10 +43,8 @@ export default function AdminSidebar() {
   ];
 
   const handleLogout = () => {
-    // Remove token from localStorage
-    localStorage.removeItem('token');
-    // Redirect to login page
-    navigate('/login');
+    // Use the logout function from AuthContext like in Header.tsx
+    logout();
   };
 
   return (

@@ -94,7 +94,7 @@ const StatCard = ({ title, value, change, icon, isCurrency = false }: StatCardPr
   const isPositive = change >= 0;
   
   return (
-    <Card className="hover-lift transition-all duration-300 border-primary/10 shadow-sm hover:shadow-lg">
+    <Card className="hover-lift transition-all duration-300 border border-border bg-card text-card-foreground shadow-sm hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className="p-2 rounded-full bg-primary/10 text-primary">
@@ -334,7 +334,7 @@ export default function AdminDashboard() {
       {/* Charts Section with better spacing and styling */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Distribution */}
-        <Card className="shadow-sm hover:shadow-lg transition-all">
+        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center">
               <PieChart className="h-5 w-5 mr-2 text-primary" />
@@ -359,7 +359,11 @@ export default function AdminDashboard() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, 'จำนวนอีเว้นท์']} />
+                  <Tooltip 
+                    formatter={(value) => [value, 'จำนวนอีเว้นท์']} 
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
                 </RechartsPieChart>
               </ResponsiveContainer>
             </div>
@@ -367,7 +371,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Popular Ticket Types */}
-        <Card className="shadow-sm hover:shadow-lg transition-all">
+        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Ticket className="h-5 w-5 mr-2 text-primary" />
@@ -392,7 +396,11 @@ export default function AdminDashboard() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, 'จำนวนตั๋ว']} />
+                  <Tooltip 
+                    formatter={(value) => [value, 'จำนวนตั๋ว']} 
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
                 </RechartsPieChart>
               </ResponsiveContainer>
             </div>
@@ -403,7 +411,7 @@ export default function AdminDashboard() {
       {/* Additional Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Popular Ticket Types List */}
-        <Card className="shadow-sm hover:shadow-lg transition-all">
+        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>ประเภทตั๋วที่นิยม</CardTitle>
           </CardHeader>
@@ -426,7 +434,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Popular Categories List */}
-        <Card className="shadow-sm hover:shadow-lg transition-all">
+        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>หมวดหมู่อีเว้นท์ยอดนิยม</CardTitle>
           </CardHeader>
@@ -449,7 +457,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Event Statistics */}
-        <Card className="shadow-sm hover:shadow-lg transition-all">
+        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>สถิติอีเว้นท์</CardTitle>
           </CardHeader>
