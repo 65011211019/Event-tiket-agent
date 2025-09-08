@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Globe, Moon, Sun, User, LogOut, Settings, Calendar } from 'lucide-react';
+import { Search, Globe, Moon, Sun, User, LogOut, Settings, Calendar, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +21,7 @@ export default function Header({ onSearch }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -58,8 +59,8 @@ export default function Header({ onSearch }: HeaderProps) {
           </Link>
         )}
 
-        {/* Navigation */}
-        <nav className="hidden md:flex ml-8 space-x-6">
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex ml-8 space-x-6">
           {isAdmin ? (
             // Admin เห็นเฉพาะลิงก์ admin
             <Link
@@ -103,8 +104,8 @@ export default function Header({ onSearch }: HeaderProps) {
           )}
         </nav>
 
-        {/* Search */}
-        <div className="flex-1 flex justify-center max-w-md mx-auto">
+        {/* Search - Hidden on mobile, shown on tablet+ */}
+        <div className="hidden md:flex flex-1 justify-center max-w-md mx-auto">
           <form onSubmit={handleSearch} className="relative w-full max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -117,26 +118,28 @@ export default function Header({ onSearch }: HeaderProps) {
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center space-x-2">
-          {/* Language Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <Globe className="h-4 w-4" />
-                <span className="ml-1 text-xs font-medium">
-                  {language.toUpperCase()}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setLanguage('th')}>
-                ไทย (Thai)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('en')}>
-                English
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center space-x-1 md:space-x-2">
+          {/* Language Toggle - Hidden on small screens */}
+          <div className="hidden sm:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Globe className="h-4 w-4" />
+                  <span className="ml-1 text-xs font-medium hidden md:inline">
+                    {language.toUpperCase()}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('th')}>
+                  ไทย (Thai)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')}>
+                  English
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Theme Toggle */}
           <Button variant="ghost" size="sm" onClick={toggleTheme}>
@@ -153,7 +156,7 @@ export default function Header({ onSearch }: HeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
                   <User className="h-4 w-4" />
-                  <span className="ml-2 hidden sm:inline">{user.name}</span>
+                  <span className="ml-2 hidden lg:inline">{user.name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -193,12 +196,134 @@ export default function Header({ onSearch }: HeaderProps) {
               variant="outline"
               size="sm"
               onClick={() => navigate('/login')}
+              className="hidden sm:inline-flex"
             >
-              เข้าสู่ระบบ
+              <span className="hidden md:inline">เข้าสู่ระบบ</span>
+              <User className="h-4 w-4 md:hidden" />
             </Button>
           )}
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Menu className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden border-t bg-background/95 backdrop-blur">
+          <div className="container py-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="md:hidden">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t('general.search')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-full"
+                />
+              </form>
+            </div>
+
+            {/* Mobile Navigation */}
+            <nav className="space-y-2">
+              {isAdmin ? (
+                <Link
+                  to="/admin"
+                  className={`block px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
+                    location.pathname.startsWith('/admin') ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('nav.admin')}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/"
+                    className={`block px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
+                      isActive('/') ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('nav.home')}
+                  </Link>
+                  <Link
+                    to="/events"
+                    className={`block px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
+                      isActive('/events') ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('nav.events')}
+                  </Link>
+                  {user && (
+                    <Link
+                      to="/my-tickets"
+                      className={`block px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md ${
+                        isActive('/my-tickets') ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('nav.myTickets')}
+                    </Link>
+                  )}
+                </>
+              )}
+            </nav>
+
+            {/* Mobile Language Toggle */}
+            <div className="sm:hidden border-t pt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">ภาษา / Language</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Globe className="h-4 w-4 mr-2" />
+                      {language.toUpperCase()}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLanguage('th')}>
+                      ไทย (Thai)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('en')}>
+                      English
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            {/* Mobile Login Button */}
+            {!user && (
+              <div className="sm:hidden border-t pt-4">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    navigate('/login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  เข้าสู่ระบบ
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
