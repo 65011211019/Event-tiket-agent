@@ -301,33 +301,33 @@ export default function Home() {
             </div>
           )}
         </section>
-
-        {/* CTA Section */}
-        <section className="relative">
-          <Card className="border-0 bg-gradient-hero text-white overflow-hidden">
-            <div className="absolute inset-0 bg-black/20" />
-            <CardContent className="relative p-12 md:p-16 text-center space-y-6">
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold">
-                  พร้อมจัดอีเว้นท์ของคุณแล้วหรือยัง?
-                </h2>
-                <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                  เข้าร่วมเป็นผู้จัดอีเว้นท์กับเรา และเข้าถึงผู้เข้าร่วมงานหลักพันคน
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                  <Calendar className="w-5 h-5 mr-2" />
-                  สร้างอีเว้นท์
-                </Button>
-                <Button size="lg" variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10">
-                  เรียนรู้เพิ่มเติม
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
       </div>
+
+      {/* CTA Section - Full Width */}
+      <section className="relative">
+        <Card className="border-0 bg-gradient-hero text-white overflow-hidden rounded-none">
+          <div className="absolute inset-0 bg-black/20" />
+          <CardContent className="relative p-12 md:p-16 text-center space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold">
+                พร้อมจัดอีเว้นท์ของคุณแล้วหรือยัง?
+              </h2>
+              <p className="text-xl text-white/90 max-w-2xl mx-auto">
+                เข้าร่วมเป็นผู้จัดอีเว้นท์กับเรา และเข้าถึงผู้เข้าร่วมงานหลักพันคน
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90">
+                <Calendar className="w-5 h-5 mr-2" />
+                สร้างอีเว้นท์
+              </Button>
+              <Button size="lg" variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10">
+                เรียนรู้เพิ่มเติม
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
