@@ -136,13 +136,19 @@ export default function PaymentForm({
       return;
     }
 
+    // Check minimum amount (20 THB = 2000 satang)
+    if (amount < 20) {
+      onPaymentError('จำนวนเงินขั้นต่ำคือ 20 บาท');
+      return;
+    }
+
     console.log('✅ Form validation passed');
 
     setIsProcessing(true);
 
     try {
       const paymentRequest: PaymentRequest = {
-        amount: amount,
+        amount: amount * 100, // Convert to satang (1 THB = 100 satang)
         currency: currency,
         description: `Event Ticket Payment - ${eventId}`,
         metadata: {
@@ -219,7 +225,7 @@ export default function PaymentForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-payment-form>
           <div className="space-y-2">
             <Label htmlFor="cardName">ชื่อบนบัตร</Label>
             <Input
@@ -257,8 +263,8 @@ export default function PaymentForm({
                 id="expiryMonth"
                 value={formData.expiryMonth}
                 onChange={(e) => handleInputChange('expiryMonth', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md ${
-                  errors.expiryMonth ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md bg-background text-foreground ${
+                  errors.expiryMonth ? 'border-red-500' : 'border-input'
                 }`}
               >
                 <option value="">เลือกเดือน</option>
@@ -275,8 +281,8 @@ export default function PaymentForm({
                 id="expiryYear"
                 value={formData.expiryYear}
                 onChange={(e) => handleInputChange('expiryYear', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md ${
-                  errors.expiryYear ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md bg-background text-foreground ${
+                  errors.expiryYear ? 'border-red-500' : 'border-input'
                 }`}
               >
                 <option value="">เลือกปี</option>
