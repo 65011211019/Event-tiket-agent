@@ -204,6 +204,17 @@ export default function EventBooking() {
     console.log('Charge ID:', paymentChargeId);
     console.log('User:', user);
     console.log('Event:', event);
+    console.log('Event ID:', id);
+    
+    if (!id) {
+      console.error('❌ Event ID is missing');
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่พบรหัสอีเว้นท์ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setChargeId(paymentChargeId);
     setPaymentSuccess(true);
@@ -213,7 +224,7 @@ export default function EventBooking() {
       console.log('Selected Tickets:', selectedTickets);
       
       const bookingRequest: BookingRequest = {
-        eventId: id!,
+        eventId: id,
         holder: {
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
@@ -566,7 +577,7 @@ export default function EventBooking() {
                   </Card>
                 ) : (
                   <PaymentForm
-                    amount={getSelectedTickets().reduce((sum, ticket) => sum + (ticket.price * ticket.quantity), 0) * 100}
+                    amount={getSelectedTickets().reduce((sum, ticket) => sum + (ticket.price * ticket.quantity), 0)}
                     currency="THB"
                     onPaymentSuccess={handlePaymentSuccess}
                     onPaymentError={handlePaymentError}
@@ -634,12 +645,18 @@ export default function EventBooking() {
                     </Button>
                   ) : (
                     <Button
-                      onClick={handleSubmit}
+                      onClick={() => {
+                        // Trigger payment form submission
+                        const paymentForm = document.querySelector('form[data-payment-form]') as HTMLFormElement;
+                        if (paymentForm) {
+                          paymentForm.requestSubmit();
+                        }
+                      }}
                       className="w-full bg-gradient-primary"
                       disabled={isSubmitting}
                     >
                       <CreditCard className="w-4 h-4 mr-2" />
-                      {isSubmitting ? 'กำลังจอง...' : 'จองตั๋วเลย'}
+                      {isSubmitting ? 'กำลังจอง...' : 'ชำระเงิน'}
                     </Button>
                   )}
 
