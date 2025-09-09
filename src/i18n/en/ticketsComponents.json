@@ -1,0 +1,22 @@
+{
+  "qrCodeModal": {
+    "title": "Ticket QR Code",
+    "ticketId": "Ticket ID:",
+    "purchaseDate": "Purchase Date:",
+    "status": "Status:",
+    "statuses": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
+    },
+    "buttons": {
+      "download": "Download QR Code",
+      "close": "Close"
+    },
+    "instructions": {
+      "showAtCheckin": "Show this QR Code at the event check-in point",
+      "keepSafe": "Please keep the QR Code safe"
+    }
+  }
+}

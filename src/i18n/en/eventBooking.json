@@ -1,0 +1,74 @@
+{
+  "back": "Back",
+  "bookingTitle": "Book Tickets",
+  "eventNotFound": "Event not found",
+  "backToList": "Back to Events",
+  "selectTickets": "Select Tickets",
+  "enterDetails": "Enter Details",
+  "confirmBooking": "Confirm Booking",
+  "quickPayment": " (Quick Payment! 💳)",
+  "ticketSelection": {
+    "title": "Select Ticket Type",
+    "noSelection": "Please select the type and quantity of tickets you want",
+    "quantity": "Quantity",
+    "price": "Price"
+  },
+  "customerInfo": {
+    "title": "Customer Information",
+    "firstName": "First Name *",
+    "lastName": "Last Name *",
+    "email": "Email *",
+    "phone": "Phone Number",
+    "specialRequests": "Special Requests",
+    "specialRequestsPlaceholder": "Any special requirements or requests (if any)"
+  },
+  "confirmation": {
+    "title": "Confirm Booking",
+    "eventInfo": "Event Information",
+    "customerInfo": "Customer Information",
+    "selectedTickets": "Selected Tickets",
+    "terms": "This booking confirms that you accept the terms of use and refund policy"
+  },
+  "orderSummary": {
+    "title": "Order Summary",
+    "total": "Total",
+    "noTicketsSelected": "No tickets selected yet",
+    "processing": "Processing payment...",
+    "success": "Payment successful!",
+    "bookingSuccess": "Booking created successfully"
+  },
+  "buttons": {
+    "next": "Next",
+    "confirm": "Confirm Details",
+    "pay": "Pay Now",
+    "quickPay": "Pay Now! 💳",
+    "back": "Back",
+    "booking": "Booking...",
+    "processing": "Processing..."
+  },
+  "validation": {
+    "selectTickets": "Please select tickets",
+    "selectTicketsDesc": "Please select the type and quantity of tickets you want",
+    "fillDetails": "Please fill in all required information",
+    "fillDetailsDesc": "Please enter first name, last name, and email",
+    "loginRequired": "Please log in",
+    "loginRequiredDesc": "Please log in before booking tickets",
+    "bookingSuccess": "Booking successful!",
+    "bookingSuccessDesc": "Your tickets have been booked. You will receive a confirmation email soon",
+    "bookingError": "Booking failed",
+    "bookingErrorDesc": "Unable to book tickets. Please try again",
+    "paymentFailed": "Payment failed",
+    "paymentError": "Unable to process payment. Please try again",
+    "chargeIdMissing": "Event ID is missing. Please try again",
+    "bookingCreationFailed": "Unable to create booking. Please try again"
+  },
+  "aiMessage": {
+    "title": "AI brought you here!",
+    "description": "I've prepared your booking information and selected tickets. You can modify the quantity and proceed with payment"
+  },
+  "payment": {
+    "success": "Payment successful!",
+    "processing": "Your payment has been completed. Creating booking...",
+    "error": "Payment failed"
+  }
+}

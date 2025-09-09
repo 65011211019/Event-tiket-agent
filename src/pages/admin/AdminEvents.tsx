@@ -17,6 +17,7 @@ import { eventApi } from '@/lib/api';
 import { Event, EventTicket, BookingRecord, BookingTicket } from '@/types/event';
 import { ticketUpdateService } from '@/services/ticketService';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/AppContext';
 
 // Helper function to determine if an object is a BookingRecord
 const isBookingRecord = (item: any): item is BookingRecord => {
@@ -62,6 +63,7 @@ const extractTicketsFromData = (data: (BookingRecord | EventTicket)[]): EventTic
 };
 
 export default function AdminEvents() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [events, setEvents] = React.useState<Event[]>([]);
@@ -192,14 +194,21 @@ export default function AdminEvents() {
   });
 
   const handleDeleteEvent = async (eventId: string) => {
-    if (window.confirm('คุณแน่ใจหรือไม่ที่จะลบอีเว้นท์นี้?')) {
+    if (window.confirm(t('adminEvents.messages.deleteConfirm'))) {
       try {
         await eventApi.deleteEvent(eventId);
         setEvents(events.filter(event => event.id !== eventId));
-        alert('ลบอีเว้นท์เรียบร้อยแล้ว');
+        toast({
+          title: t('adminEvents.messages.deleteSuccess'),
+          description: t('adminEvents.messages.deleteSuccess'),
+        });
       } catch (error) {
         console.error('Failed to delete event:', error);
-        alert('เกิดข้อผิดพลาดในการลบอีเว้นท์');
+        toast({
+          title: t('adminEvents.messages.deleteError'),
+          description: t('adminEvents.messages.deleteError'),
+          variant: "destructive",
+        });
       }
     }
   };
@@ -207,20 +216,20 @@ export default function AdminEvents() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="status-active">เปิดใช้งาน</Badge>;
+        return <Badge className="status-active">{t('adminEvents.statuses.active')}</Badge>;
       case 'draft':
-        return <Badge variant="secondary">ฉบับร่าง</Badge>;
+        return <Badge variant="secondary">{t('adminEvents.statuses.draft')}</Badge>;
       case 'cancelled':
-        return <Badge variant="destructive">ยกเลิก</Badge>;
+        return <Badge variant="destructive">{t('adminEvents.statuses.cancelled')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'ไม่ระบุวันที่';
+    if (!dateStr) return t('adminEvents.noDate');
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'วันที่ไม่ถูกต้อง';
+    if (isNaN(date.getTime())) return t('adminEvents.invalidDate');
     return date.toLocaleDateString('th-TH', {
       day: 'numeric',
       month: 'short',
@@ -234,16 +243,16 @@ export default function AdminEvents() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            จัดการอีเว้นท์
+            {t('adminEvents.title')}
           </h1>
           <p className="text-muted-foreground mt-2">
-            สร้าง แก้ไข และจัดการอีเว้นท์ทั้งหมด
+            {t('adminEvents.subtitle')}
           </p>
         </div>
         <Button asChild className="bg-gradient-primary hover:shadow-lg transition-all text-primary-foreground">
           <Link to="/admin/events/create">
             <Plus className="h-4 w-4 mr-2" />
-            สร้างอีเว้นท์ใหม่
+            {t('adminEvents.createNewEvent')}
           </Link>
         </Button>
       </div>
@@ -255,7 +264,7 @@ export default function AdminEvents() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="ค้นหาอีเว้นท์..."
+                placeholder={t('adminEvents.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-background text-foreground border-input"
@@ -268,7 +277,7 @@ export default function AdminEvents() {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="all">ทุกหมวดหมู่</option>
+                <option value="all">{t('adminEvents.filters.allCategories')}</option>
                 {availableCategories.map(category => (
                   <option key={category} value={category}>
                     {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -283,10 +292,10 @@ export default function AdminEvents() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="all">ทุกสถานะ</option>
-                <option value="active">เปิดใช้งาน</option>
-                <option value="draft">ฉบับร่าง</option>
-                <option value="cancelled">ยกเลิก</option>
+                <option value="all">{t('adminEvents.filters.allStatuses')}</option>
+                <option value="active">{t('adminEvents.statuses.active')}</option>
+                <option value="draft">{t('adminEvents.statuses.draft')}</option>
+                <option value="cancelled">{t('adminEvents.statuses.cancelled')}</option>
               </select>
             </div>
             
@@ -296,10 +305,10 @@ export default function AdminEvents() {
                 onChange={(e) => setDateFilter(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="all">ทุกวันที่</option>
-                <option value="today">วันนี้</option>
-                <option value="week">สัปดาห์นี้</option>
-                <option value="month">เดือนนี้</option>
+                <option value="all">{t('adminEvents.filters.allDates')}</option>
+                <option value="today">{t('adminEvents.filters.today')}</option>
+                <option value="week">{t('adminEvents.filters.thisWeek')}</option>
+                <option value="month">{t('adminEvents.filters.thisMonth')}</option>
               </select>
             </div>
           </div>
@@ -315,7 +324,7 @@ export default function AdminEvents() {
               }}
               className="border-input hover:bg-accent hover:text-accent-foreground"
             >
-              ล้างตัวกรอง
+{t('adminEvents.filters.clearFilters')}
             </Button>
           </div>
         </CardContent>
@@ -326,7 +335,7 @@ export default function AdminEvents() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Calendar className="h-5 w-5 mr-2 text-primary" />
-            รายการอีเว้นท์
+            {t('adminEvents.table.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -342,12 +351,12 @@ export default function AdminEvents() {
                 <Calendar className="h-12 w-12 mx-auto opacity-50" />
               </div>
               <p className="text-muted-foreground">
-                ไม่พบอีเว้นท์
+                {t('adminEvents.emptyState.title')}
               </p>
               <Button asChild variant="outline" className="mt-4 border-input hover:bg-accent">
                 <Link to="/admin/events/create">
                   <Plus className="h-4 w-4 mr-2" />
-                  สร้างอีเว้นท์ใหม่
+                  {t('adminEvents.createNewEvent')}
                 </Link>
               </Button>
             </div>
@@ -356,12 +365,12 @@ export default function AdminEvents() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="font-semibold text-foreground">ชื่ออีเว้นท์</TableHead>
-                    <TableHead className="font-semibold text-foreground">หมวดหมู่</TableHead>
-                    <TableHead className="font-semibold text-foreground">วันที่</TableHead>
-                    <TableHead className="font-semibold text-foreground">สถานะ</TableHead>
-                    <TableHead className="font-semibold text-foreground">ผู้เข้าร่วม</TableHead>
-                    <TableHead className="text-right font-semibold text-foreground">การจัดการ</TableHead>
+                    <TableHead className="font-semibold text-foreground">{t('adminEvents.table.eventName')}</TableHead>
+                    <TableHead className="font-semibold text-foreground">{t('adminEvents.table.category')}</TableHead>
+                    <TableHead className="font-semibold text-foreground">{t('adminEvents.table.date')}</TableHead>
+                    <TableHead className="font-semibold text-foreground">{t('adminEvents.table.status')}</TableHead>
+                    <TableHead className="font-semibold text-foreground">{t('adminEvents.table.participants')}</TableHead>
+                    <TableHead className="text-right font-semibold text-foreground">{t('adminEvents.table.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -373,7 +382,7 @@ export default function AdminEvents() {
                       <TableCell>
                         <div className="font-medium">{event.title}</div>
                         <div className="text-sm text-muted-foreground">
-                          {event.organizer?.name || 'ไม่ระบุผู้จัด'}
+                          {event.organizer?.name || t('adminEvents.noOrganizer')}
                         </div>
                       </TableCell>
                       <TableCell>

@@ -1,0 +1,25 @@
+{
+  "title": "Admin Dashboard",
+  "subtitle": "Event management system overview",
+  "stats": {
+    "totalRevenue": "Total Revenue",
+    "ticketsSold": "Tickets Sold",
+    "totalEvents": "Total Events",
+    "avgPerEvent": "Average per Event",
+    "changeFromLastMonth": "from last month"
+  },
+  "charts": {
+    "categoryDistribution": "Event Category Distribution",
+    "popularTicketTypes": "Popular Ticket Types",
+    "popularCategories": "Popular Event Categories",
+    "eventStatistics": "Event Statistics"
+  },
+  "labels": {
+    "all": "All",
+    "active": "Active",
+    "usageRate": "Usage Rate",
+    "revenuePerEvent": "Revenue per Event",
+    "numberOfEvents": "Number of Events",
+    "numberOfTickets": "Number of Tickets"
+  }
+}

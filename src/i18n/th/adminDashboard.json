@@ -1,0 +1,25 @@
+{
+  "title": "แดชบอร์ดผู้ดูแลระบบ",
+  "subtitle": "ภาพรวมระบบจัดการอีเว้นท์",
+  "stats": {
+    "totalRevenue": "รายได้รวม",
+    "ticketsSold": "ตั๋วที่ขายแล้ว",
+    "totalEvents": "อีเว้นท์ทั้งหมด",
+    "avgPerEvent": "เฉลี่ยต่ออีเว้นท์",
+    "changeFromLastMonth": "จากเดือนที่แล้ว"
+  },
+  "charts": {
+    "categoryDistribution": "การกระจายประเภทอีเว้นท์",
+    "popularTicketTypes": "ประเภทตั๋วที่นิยม",
+    "popularCategories": "หมวดหมู่อีเว้นท์ยอดนิยม",
+    "eventStatistics": "สถิติอีเว้นท์"
+  },
+  "labels": {
+    "all": "ทั้งหมด",
+    "active": "เปิดใช้งาน",
+    "usageRate": "อัตราการใช้งาน",
+    "revenuePerEvent": "รายได้ต่ออีเว้นท์",
+    "numberOfEvents": "จำนวนอีเว้นท์",
+    "numberOfTickets": "จำนวนตั๋ว"
+  }
+}

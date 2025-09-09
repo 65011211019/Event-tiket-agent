@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import { useLanguage } from '@/contexts/AppContext';
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -21,21 +22,23 @@ interface EventMapProps {
   height?: string;
 }
 
-export default function EventMap({ 
-  coordinates, 
-  venue, 
-  address, 
-  zoom = 15, 
-  height = "400px" 
+export default function EventMap({
+  coordinates,
+  venue,
+  address,
+  zoom = 15,
+  height = "400px"
 }: EventMapProps) {
+  const { t } = useLanguage();
+
   // ตรวจสอบว่ามีพิกัดที่ถูกต้องหรือไม่
   if (!coordinates || coordinates.lat === 0 || coordinates.lng === 0) {
     return (
-      <div 
+      <div
         className="flex items-center justify-center bg-gray-100 rounded-lg border"
         style={{ height }}
       >
-        <p className="text-gray-500">ไม่มีข้อมูลตำแหน่ง</p>
+        <p className="text-gray-500">{t('mapsComponents.eventMap.noLocationData')}</p>
       </div>
     );
   }
@@ -59,7 +62,7 @@ export default function EventMap({
               {venue && <div className="font-semibold text-base">{venue}</div>}
               {address && <div className="text-sm text-gray-600">{address}</div>}
               <div className="text-xs text-gray-500 pt-2 border-t">
-                พิกัด: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                {t('mapsComponents.eventMap.coordinates')}: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
               </div>
             </div>
           </Popup>

@@ -26,17 +26,17 @@ export default function AdminSidebar() {
 
   const navItems = [
     {
-      title: 'แดชบอร์ด',
+      title: t('admin.dashboard'),
       href: '/admin',
       icon: LayoutDashboard,
     },
     {
-      title: 'อีเว้นท์',
+      title: t('admin.events'),
       href: '/admin/events',
       icon: Calendar,
     },
     {
-      title: 'ตั๋วทั้งหมด',
+      title: t('admin.tickets'),
       href: '/admin/tickets',
       icon: Ticket,
     },
@@ -87,7 +87,7 @@ export default function AdminSidebar() {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
-              ออกจากระบบ
+              {t('general.logout')}
             </Button>
           </div>
         </div>

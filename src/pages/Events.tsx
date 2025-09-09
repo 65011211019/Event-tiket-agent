@@ -274,7 +274,7 @@ export default function Events() {
   }, []);
   const extractCategoriesFromEvents = React.useCallback((events: Event[]) => {
     const categoryMap = new Map<string, { id: string; name: string; description: string; color: string }>();
-    
+
     events.forEach(event => {
       if (event.category && !categoryMap.has(event.category)) {
         // Create category object from event category
@@ -282,35 +282,18 @@ export default function Events() {
         categoryMap.set(event.category, {
           id: event.category,
           name: categoryName,
-          description: `งาน${categoryName}`,
+          description: t(`events.categoryDescriptions.${event.category.toLowerCase()}`) || `${categoryName} events`,
           color: getCategoryColor(event.category)
         });
       }
     });
-    
+
     return Array.from(categoryMap.values());
   }, []);
 
   // Helper function to get category display name
   const getCategoryDisplayName = (category: string): string => {
-    const categoryNames: Record<string, string> = {
-      'workshop': 'เวิร์กช็อป',
-      'seminar': 'สัมมนา',
-      'conference': 'การประชุม',
-      'music': 'ดนตรี',
-      'sports': 'กีฬา',
-      'technology': 'เทคโนโลยี',
-      'education': 'การศึกษา',
-      'food': 'อาหาร',
-      'art': 'ศิลปะ',
-      'business': 'ธุรกิจ',
-      'health': 'สุขภาพ',
-      'travel': 'ท่องเที่ยว',
-      'lifestyle': 'ไลฟ์สไตล์',
-      'entertainment': 'บันเทิง'
-    };
-    
-    return categoryNames[category.toLowerCase()] || category;
+    return t(`events.categories.${category.toLowerCase()}`) || category;
   };
 
   // Helper function to get category color
@@ -325,15 +308,7 @@ export default function Events() {
 
   // Helper function to get sort display name
   const getSortDisplayName = (sortBy: string): string => {
-    const sortNames: Record<string, string> = {
-      'newest': 'ล่าสุด',
-      'oldest': 'เก่าสุด',
-      'date-asc': 'วันที่เริ่มงาน (เร็วสุด)',
-      'date-desc': 'วันที่เริ่มงาน (ช้าสุด)',
-      'price-asc': 'ราคา (ต่ำ-สูง)',
-      'price-desc': 'ราคา (สูง-ต่ำ)'
-    };
-    return sortNames[sortBy] || sortBy;
+    return t(`events.sortOptions.${sortBy}`) || sortBy;
   };
 
   // Load all events and extract categories
@@ -365,13 +340,13 @@ export default function Events() {
       setBookedTicketsCounts(counts);
     } catch (err) {
       console.error('Failed to load events:', err);
-      setError('เกิดข้อผิดพลาดในการโหลดข้อมูลอีเว้นท์');
+      setError(t('events.error'));
       
       // Use fallback categories on error
       const fallbackCategories = [
-        { id: 'workshop', name: 'เวิร์กช็อป', description: 'งานเวิร์กช็อป', color: '#ff6b6b' },
-        { id: 'seminar', name: 'สัมมนา', description: 'งานสัมมนา', color: '#4ecdc4' },
-        { id: 'conference', name: 'การประชุม', description: 'งานการประชุม', color: '#45b7d1' }
+        { id: 'workshop', name: t('events.categories.workshop'), description: t('events.categoryDescriptions.workshop'), color: '#ff6b6b' },
+        { id: 'seminar', name: t('events.categories.seminar'), description: t('events.categoryDescriptions.seminar'), color: '#4ecdc4' },
+        { id: 'conference', name: t('events.categories.conference'), description: t('events.categoryDescriptions.conference'), color: '#45b7d1' }
       ];
       setCategories(fallbackCategories);
     } finally {
@@ -430,13 +405,13 @@ export default function Events() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">{t('events.title')}</h1>
         <p className="text-muted-foreground">
-          {filteredEvents.length > 0 ? 
+          {filteredEvents.length > 0 ?
             `พบ ${filteredEvents.length.toLocaleString()} อีเว้นท์${allEvents.length !== filteredEvents.length ? ` จากทั้งหมด ${allEvents.length.toLocaleString()} อีเว้นท์` : ''}` :
-            'ค้นหาและจองอีเว้นท์ที่คุณสนใจ'
+            t('events.subtitle')
           }
           {filters.sortBy && filters.sortBy !== 'newest' && (
             <span className="ml-2 text-sm text-primary">
-              • เรียงตาม: {getSortDisplayName(filters.sortBy)}
+              • เรียงตาม: {t(`events.sortOptions.${filters.sortBy}`)}
             </span>
           )}
         </p>
@@ -470,11 +445,11 @@ export default function Events() {
             <div className="space-y-2">
               <h3 className="text-xl font-semibold">{t('general.noResults')}</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                ไม่พบอีเว้นท์ที่ตรงกับเงื่อนไขการค้นหา ลองปรับเปลี่ยนตัวกรองหรือคำค้นหา
+                {t('events.noResultsDesc')}
               </p>
               {(filters.search || filters.categories?.length || filters.location || filters.dateRange || filters.priceRange || filters.sortBy) && (
                 <Button onClick={handleClearFilters} className="mt-4">
-                  ล้างตัวกรองทั้งหมด
+                  {t('events.clearFilters')}
                 </Button>
               )}
             </div>

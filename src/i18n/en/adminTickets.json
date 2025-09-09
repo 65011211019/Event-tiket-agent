@@ -1,0 +1,121 @@
+{
+  "title": "All Tickets",
+  "subtitle": "Manage tickets booked by users",
+  "stats": {
+    "totalTickets": "Total Tickets",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "cancelled": "Cancelled"
+  },
+  "ticketTypes": {
+    "title": "Ticket Types",
+    "loading": "Loading ticket types...",
+    "empty": "No ticket types available",
+    "price": "Price:",
+    "description": "Description:"
+  },
+  "ticketList": {
+    "title": "Ticket List",
+    "empty": "No tickets have been booked",
+    "searchPlaceholder": "Search by event name, booker name, email, or ticket type...",
+    "allStatuses": "All Statuses",
+    "allTicketTypes": "All Ticket Types",
+    "clearFilters": "Clear Filters"
+  },
+  "table": {
+    "event": "Event",
+    "booker": "Booker",
+    "ticketType": "Ticket Type",
+    "quantity": "Quantity",
+    "price": "Price",
+    "bookingDate": "Booking Date",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "statuses": {
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "cancelled": "Cancelled"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "items": "items",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "messages": {
+    "loadError": "Unable to load tickets, please try again",
+    "retry": "Try Again"
+  },
+  "noDate": "No date",
+  "invalidDate": "Invalid date",
+  "loadingTicketTypes": "Loading ticket types...",
+  "noTicketTypes": "No ticket types available",
+  "noTickets": "No tickets have been booked",
+  "errorOccurred": "Error Occurred",
+  "tryAgain": "Try Again",
+  "ticketTypeInfo": {
+    "general": {
+      "name": "General Ticket",
+      "description": "General ticket for regular participants"
+    },
+    "vip": {
+      "name": "VIP Ticket",
+      "description": "VIP ticket with special privileges"
+    },
+    "student": {
+      "name": "Student Ticket",
+      "description": "Ticket for students"
+    },
+    "earlyBird": {
+      "name": "Early Bird Ticket",
+      "description": "Special price ticket for early booking"
+    },
+    "group": {
+      "name": "Group Ticket",
+      "description": "Ticket for group booking"
+    },
+    "member": {
+      "name": "Member Ticket",
+      "description": "Ticket for members"
+    },
+    "free": {
+      "name": "Free Ticket",
+      "description": "Free ticket"
+    },
+    "adult": {
+      "name": "Adult Ticket",
+      "description": "Ticket for adults"
+    },
+    "child": {
+      "name": "Child Ticket",
+      "description": "Ticket for children"
+    },
+    "senior": {
+      "name": "Senior Ticket",
+      "description": "Ticket for seniors"
+    },
+    "fullMarathon": {
+      "name": "Full Marathon",
+      "description": "Ticket for full marathon"
+    },
+    "halfMarathon": {
+      "name": "Half Marathon",
+      "description": "Ticket for half marathon"
+    },
+    "miniMarathon": {
+      "name": "Mini Marathon",
+      "description": "Ticket for mini marathon"
+    },
+    "funRun": {
+      "name": "Fun Run",
+      "description": "Ticket for Fun Run"
+    },
+    "regular": {
+      "name": "Regular Ticket",
+      "description": "Regular ticket for participants"
+    }
+  }
+}

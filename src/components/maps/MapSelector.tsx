@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import { useLanguage } from '@/contexts/AppContext';
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -36,14 +37,16 @@ function LocationMarker({ coordinates, onCoordinatesChange }: MapSelectorProps) 
   ) : null;
 }
 
-export default function MapSelector({ 
-  coordinates, 
-  onCoordinatesChange, 
-  height = "300px" 
+export default function MapSelector({
+  coordinates,
+  onCoordinatesChange,
+  height = "300px"
 }: MapSelectorProps) {
+  const { t } = useLanguage();
+
   // Default center เป็นกรุงเทพฯ
-  const center: [number, number] = coordinates.lat !== 0 && coordinates.lng !== 0 
-    ? [coordinates.lat, coordinates.lng] 
+  const center: [number, number] = coordinates.lat !== 0 && coordinates.lng !== 0
+    ? [coordinates.lat, coordinates.lng]
     : [13.7563, 100.5018]; // พิกัดกรุงเทพฯ
 
   console.log('🗺️ MapSelector ใช้พิกัดปัจจุบัน:', coordinates);
@@ -72,17 +75,17 @@ export default function MapSelector({
       <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg border">
         <p className="font-medium mb-2 flex items-center">
           <span className="mr-2">💡</span>
-          <span>วิธีใช้งาน:</span>
+          <span>{t('mapsComponents.mapSelector.instructions.title')}</span>
         </p>
         <ul className="space-y-1 ml-6">
-          <li>• คลิกบนแผนที่เพื่อเลือกตำแหน่ง</li>
-          <li>• ลากแผนที่เพื่อค้นหาตำแหน่งที่ต้องการ</li>
-          <li>• ใช้ Scroll เพื่อ Zoom แผนที่</li>
+          <li>• {t('mapsComponents.mapSelector.instructions.clickToSelect')}</li>
+          <li>• {t('mapsComponents.mapSelector.instructions.dragToSearch')}</li>
+          <li>• {t('mapsComponents.mapSelector.instructions.scrollToZoom')}</li>
         </ul>
         {coordinates.lat !== 0 && coordinates.lng !== 0 && (
           <div className="mt-3 p-3 bg-primary/10 rounded-md border border-primary/20">
             <p className="text-sm font-medium text-primary mb-1">
-              📍 พิกัดที่เลือก:
+              📍 {t('mapsComponents.mapSelector.selectedCoordinates')}:
             </p>
             <p className="font-mono text-xs bg-background px-2 py-1 rounded border">
               {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}

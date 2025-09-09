@@ -1,0 +1,47 @@
+{
+  "title": "จัดการอีเว้นท์",
+  "subtitle": "สร้าง แก้ไข และจัดการอีเว้นท์ทั้งหมด",
+  "createNewEvent": "สร้างอีเว้นท์ใหม่",
+  "searchPlaceholder": "ค้นหาอีเว้นท์...",
+  "filters": {
+    "allCategories": "ทุกหมวดหมู่",
+    "allStatuses": "ทุกสถานะ",
+    "allDates": "ทุกวันที่",
+    "active": "เปิดใช้งาน",
+    "draft": "ฉบับร่าง",
+    "cancelled": "ยกเลิก",
+    "today": "วันนี้",
+    "thisWeek": "สัปดาห์นี้",
+    "thisMonth": "เดือนนี้",
+    "clearFilters": "ล้างตัวกรอง"
+  },
+  "table": {
+    "title": "รายการอีเว้นท์",
+    "eventName": "ชื่ออีเว้นท์",
+    "category": "หมวดหมู่",
+    "date": "วันที่",
+    "status": "สถานะ",
+    "participants": "ผู้เข้าร่วม",
+    "actions": "การจัดการ",
+    "organizerNotSpecified": "ไม่ระบุผู้จัด"
+  },
+  "statuses": {
+    "active": "เปิดใช้งาน",
+    "draft": "ฉบับร่าง",
+    "cancelled": "ยกเลิก"
+  },
+  "emptyState": {
+    "title": "ไม่พบอีเว้นท์",
+    "createButton": "สร้างอีเว้นท์ใหม่"
+  },
+  "messages": {
+    "deleteConfirm": "คุณแน่ใจหรือไม่ที่จะลบอีเว้นท์นี้?",
+    "deleteSuccess": "ลบอีเว้นท์เรียบร้อยแล้ว",
+    "deleteError": "เกิดข้อผิดพลาดในการลบอีเว้นท์"
+  },
+  "noDate": "ไม่มีวันที่",
+  "invalidDate": "วันที่ไม่ถูกต้อง",
+  "eventList": "รายการอีเว้นท์",
+  "noEvents": "ไม่พบอีเว้นท์",
+  "noOrganizer": "ไม่ระบุผู้จัด"
+}

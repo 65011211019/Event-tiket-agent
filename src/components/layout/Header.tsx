@@ -71,7 +71,7 @@ export default function Header({ onSearch }: HeaderProps) {
                   : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
-              {t('nav.admin')}
+              {t('header.navigation.admin')}
             </Link>
           ) : (
             // User ปกติเห็นลิงก์ทั่วไป
@@ -84,7 +84,7 @@ export default function Header({ onSearch }: HeaderProps) {
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
-                {t('nav.home')}
+                {t('header.navigation.home')}
               </Link>
               <Link
                 to="/events"
@@ -94,7 +94,7 @@ export default function Header({ onSearch }: HeaderProps) {
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
-                {t('nav.events')}
+                {t('header.navigation.events')}
               </Link>
               {user && (
                 <Link
@@ -105,7 +105,7 @@ export default function Header({ onSearch }: HeaderProps) {
                       : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
-                  {t('nav.myTickets')}
+                  {t('header.navigation.myTickets')}
                 </Link>
               )}
             </>
@@ -117,7 +117,7 @@ export default function Header({ onSearch }: HeaderProps) {
           <form onSubmit={handleSearch} className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t('general.search')}
+              placeholder={t('header.search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full rounded-full border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
@@ -140,10 +140,10 @@ export default function Header({ onSearch }: HeaderProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="rounded-xl shadow-lg bg-popover text-popover-foreground">
                 <DropdownMenuItem onClick={() => setLanguage('th')} className="rounded-md hover:bg-accent">
-                  ไทย (Thai)
+                  {t('header.language.thai')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLanguage('en')} className="rounded-md hover:bg-accent">
-                  English
+                  {t('header.language.english')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -177,25 +177,25 @@ export default function Header({ onSearch }: HeaderProps) {
                   // Admin เห็นเฉพาะรายการ admin
                   <DropdownMenuItem onClick={() => navigate('/admin')} className="rounded-md hover:bg-accent">
                     <Settings className="mr-2 h-4 w-4" />
-                    {t('nav.admin')}
+                    {t('header.navigation.admin')}
                   </DropdownMenuItem>
                 ) : (
                   // User ปกติเห็นรายการทั่วไป
                   <>
                     <DropdownMenuItem onClick={() => navigate('/my-tickets')} className="rounded-md hover:bg-accent">
                       <Calendar className="mr-2 h-4 w-4" />
-                      {t('nav.myTickets')}
+                      {t('header.navigation.myTickets')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-md hover:bg-accent">
                       <Settings className="mr-2 h-4 w-4" />
-                      {t('nav.settings')}
+                      {t('header.navigation.settings')}
                     </DropdownMenuItem>
                   </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="rounded-md text-destructive focus:text-destructive hover:bg-destructive/10">
                   <LogOut className="mr-2 h-4 w-4" />
-                  ออกจากระบบ
+                  {t('header.user.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -206,7 +206,7 @@ export default function Header({ onSearch }: HeaderProps) {
               onClick={() => navigate('/login')}
               className="hidden sm:inline-flex rounded-full bg-gradient-to-r from-primary to-primary-light text-primary-foreground hover:from-primary/90 hover:to-primary-light/90 border-0 shadow-md"
             >
-              <span className="hidden md:inline">เข้าสู่ระบบ</span>
+              <span className="hidden md:inline">{t('header.user.login')}</span>
               <User className="h-4 w-4 md:hidden" />
             </Button>
           )}
@@ -236,7 +236,7 @@ export default function Header({ onSearch }: HeaderProps) {
               <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t('general.search')}
+                  placeholder={t('header.search.placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-full rounded-full border focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -256,7 +256,7 @@ export default function Header({ onSearch }: HeaderProps) {
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {t('nav.admin')}
+                  {t('header.navigation.admin')}
                 </Link>
               ) : (
                 <>
@@ -269,7 +269,7 @@ export default function Header({ onSearch }: HeaderProps) {
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t('nav.home')}
+                    {t('header.navigation.home')}
                   </Link>
                   <Link
                     to="/events"
@@ -280,7 +280,7 @@ export default function Header({ onSearch }: HeaderProps) {
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t('nav.events')}
+                    {t('header.navigation.events')}
                   </Link>
                   {user && (
                     <Link
@@ -292,7 +292,7 @@ export default function Header({ onSearch }: HeaderProps) {
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {t('nav.myTickets')}
+                      {t('header.navigation.myTickets')}
                     </Link>
                   )}
                 </>
@@ -302,7 +302,7 @@ export default function Header({ onSearch }: HeaderProps) {
             {/* Mobile Language Toggle */}
             <div className="sm:hidden border-t pt-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">ภาษา / Language</span>
+                <span className="text-sm font-medium">{t('header.mobile.languageLabel')}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="rounded-full">
@@ -312,10 +312,10 @@ export default function Header({ onSearch }: HeaderProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-xl shadow-lg bg-popover text-popover-foreground">
                     <DropdownMenuItem onClick={() => setLanguage('th')} className="rounded-md hover:bg-accent">
-                      ไทย (Thai)
+                      {t('header.language.thai')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setLanguage('en')} className="rounded-md hover:bg-accent">
-                      English
+                      {t('header.language.english')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -333,7 +333,7 @@ export default function Header({ onSearch }: HeaderProps) {
                     setIsMobileMenuOpen(false);
                   }}
                 >
-                  เข้าสู่ระบบ
+                  {t('header.user.login')}
                 </Button>
               </div>
             )}

@@ -81,7 +81,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           {event.featured && (
             <Badge className="bg-primary text-primary-foreground">
               <Star className="w-3 h-3 mr-1" />
-              แนะนำ
+              {t('eventsComponents.eventCard.featured')}
             </Badge>
           )}
           <Badge className={cn("text-white", getCategoryClass(event.category))}>
@@ -92,8 +92,8 @@ export default function EventCard({ event, variant = 'default', className, isAdm
         {/* Location type */}
         <div className="absolute top-3 right-3">
           <Badge variant="secondary" className="bg-background/80 backdrop-blur text-foreground">
-            {event.location?.type === 'online' ? 'ออนไลน์' : 
-             event.location?.type === 'hybrid' ? 'ไฮบริด' : 'ที่งาน'}
+            {event.location?.type === 'online' ? t('eventsComponents.eventCard.online') :
+             event.location?.type === 'hybrid' ? t('eventsComponents.eventCard.hybrid') : t('eventsComponents.eventCard.onsite')}
           </Badge>
         </div>
 
@@ -102,7 +102,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           <div className="absolute bottom-3 left-3">
             <Badge variant="destructive" className="animate-pulse">
               <Clock className="w-3 h-3 mr-1" />
-              เหลือไม่มาก
+              {t('eventsComponents.eventCard.lowStock')}
             </Badge>
           </div>
         )}
@@ -110,7 +110,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
         {realAvailableTickets === 0 && (
           <div className="absolute bottom-3 left-3">
             <Badge variant="destructive">
-              ขายหมดแล้ว
+              {t('eventsComponents.eventCard.soldOut')}
             </Badge>
           </div>
         )}
@@ -133,7 +133,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           <div className="flex items-center text-sm text-muted-foreground">
             <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>
-              {event.schedule?.startDate ? formatDate(event.schedule.startDate) : 'ไม่ระบุวันที่'}
+              {event.schedule?.startDate ? formatDate(event.schedule.startDate) : t('eventsComponents.eventCard.unknownDate')}
               {event.schedule?.startDate !== event.schedule?.endDate && event.schedule?.endDate && 
                 ` - ${formatDate(event.schedule.endDate)}`}
             </span>
@@ -143,7 +143,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           <div className="flex items-center text-sm text-muted-foreground">
             <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
             <span className="line-clamp-1">
-              {event.location?.venue || 'ออนไลน์'}
+              {event.location?.venue || t('eventsComponents.eventCard.online')}
             </span>
           </div>
 
@@ -151,7 +151,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
           <div className="flex items-center text-sm text-muted-foreground">
             <Users className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>
-              {realAvailableTickets} / {event.capacity?.max || 0} ที่เหลือ
+              {realAvailableTickets} / {event.capacity?.max || 0} {t('eventsComponents.eventCard.spotsLeft')}
             </span>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
               onClick={() => onEdit?.(event.id)}
             >
               <Edit className="w-4 h-4 mr-2" />
-              แก้ไข
+              {t('eventsComponents.eventCard.edit')}
             </Button>
             <Button 
               variant="destructive" 
@@ -188,23 +188,23 @@ export default function EventCard({ event, variant = 'default', className, isAdm
               onClick={() => onDelete?.(event.id)}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              ลบ
+              {t('eventsComponents.eventCard.delete')}
             </Button>
           </div>
         ) : (
           <div className="flex gap-2 w-full">
             <Button asChild variant="outline" size="sm" className="flex-1 border-input hover:bg-accent hover:text-accent-foreground">
               <Link to={`/events/${event.id}`}>
-                {t('events.viewDetails')}
+                {t('eventsComponents.eventCard.viewDetails')}
               </Link>
             </Button>
-            
+
 
             {realAvailableTickets > 0 && isUpcoming && (
               <Button asChild size="sm" className="flex-1 bg-gradient-primary">
 
                 <Link to={`/events/${event.id}/booking`}>
-                  {t('events.bookNow')}
+                  {t('eventsComponents.eventCard.bookNow')}
                 </Link>
               </Button>
             )}

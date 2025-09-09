@@ -105,7 +105,7 @@ export default function AdminTickets() {
         setTickets(individualTickets);
       } catch (err) {
         console.error('Error fetching tickets:', err);
-        setError('ไม่สามารถโหลดตั๋วได้ กรุณาลองใหม่อีกครั้ง');
+        setError(t('adminTickets.messages.loadError'));
       } finally {
         setLoading(false);
       }
@@ -155,9 +155,9 @@ export default function AdminTickets() {
   }, [tickets]);
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'ไม่ระบุวันที่';
+    if (!dateStr) return t('adminTickets.noDate');
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return 'วันที่ไม่ถูกต้อง';
+    if (isNaN(date.getTime())) return t('adminTickets.invalidDate');
     return date.toLocaleDateString('th-TH', {
       day: 'numeric',
       month: 'short',
@@ -168,11 +168,11 @@ export default function AdminTickets() {
   const getTicketStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <Badge className="status-active">ยืนยันแล้ว</Badge>;
+        return <Badge className="status-active">{t('adminTickets.statuses.confirmed')}</Badge>;
       case 'pending':
-        return <Badge variant="secondary">รอดำเนินการ</Badge>;
+        return <Badge variant="secondary">{t('adminTickets.statuses.pending')}</Badge>;
       case 'cancelled':
-        return <Badge variant="destructive">ยกเลิก</Badge>;
+        return <Badge variant="destructive">{t('adminTickets.statuses.cancelled')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -212,7 +212,7 @@ export default function AdminTickets() {
         <div className="max-w-6xl mx-auto">
           <Card className="border-destructive/20 bg-destructive/10 text-destructive">
             <CardHeader>
-              <CardTitle className="text-destructive">เกิดข้อผิดพลาด</CardTitle>
+              <CardTitle className="text-destructive">{t('adminTickets.messages.errorOccurred')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-destructive">{error}</p>
@@ -221,7 +221,7 @@ export default function AdminTickets() {
                 className="mt-4 border-destructive/20 hover:bg-destructive/10 text-destructive"
                 onClick={() => window.location.reload()}
               >
-                ลองใหม่อีกครั้ง
+{t('adminTickets.messages.tryAgain')}
               </Button>
             </CardContent>
           </Card>
@@ -268,10 +268,10 @@ export default function AdminTickets() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              ตั๋วทั้งหมด
+              {t('adminTickets.title')}
             </h1>
             <p className="text-muted-foreground">
-              จัดการตั๋วที่ผู้ใช้จองไว้
+              {t('adminTickets.subtitle')}
             </p>
           </div>
         </div>
@@ -280,7 +280,7 @@ export default function AdminTickets() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="hover-lift transition-all border border-border bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">ตั๋วทั้งหมด</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminTickets.stats.totalTickets')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
@@ -291,7 +291,7 @@ export default function AdminTickets() {
           
           <Card className="hover-lift transition-all border border-success/20 bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">ยืนยันแล้ว</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminTickets.stats.confirmed')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-success">
@@ -302,7 +302,7 @@ export default function AdminTickets() {
           
           <Card className="hover-lift transition-all border border-warning/20 bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">รอดำเนินการ</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminTickets.stats.pending')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-warning">
@@ -313,7 +313,7 @@ export default function AdminTickets() {
           
           <Card className="hover-lift transition-all border border-destructive/20 bg-card text-card-foreground shadow-sm hover:shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">ยกเลิก</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('adminTickets.stats.cancelled')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">
@@ -323,57 +323,14 @@ export default function AdminTickets() {
           </Card>
         </div>
 
-        {/* Ticket Types Management - always show as small cards instead of table */}
-        <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Ticket className="h-5 w-5 mr-2 text-primary" />
-              ประเภทตั๋ว
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {ticketTypesLoading ? (
-              <div className="text-center py-8">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-                <p className="mt-2 text-muted-foreground">กำลังโหลดประเภทตั๋ว...</p>
-              </div>
-            ) : ticketTypes.length === 0 ? (
-              <div className="text-center py-8">
-                <Ticket className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-                <p className="mt-2 text-muted-foreground">ยังไม่มีประเภทตั๋ว</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {ticketTypes.map((ticketType) => (
-                  <Card key={ticketType.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-semibold">{ticketType.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">ราคา:</span>
-                          <span className="font-medium">฿{ticketType.price.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">คำอธิบาย:</span>
-                          <span className="text-sm text-right">{ticketType.description}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
 
         {/* Enhanced Tickets Table */}
         <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Ticket className="h-5 w-5 mr-2 text-primary" />
-              รายการตั๋ว
+              {t('adminTickets.ticketList.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -383,7 +340,7 @@ export default function AdminTickets() {
                   <Ticket className="h-12 w-12 mx-auto opacity-50" />
                 </div>
                 <p className="text-muted-foreground">
-                  ยังไม่มีตั๋วที่ถูกจอง
+                  {t('adminTickets.noTickets')}
                 </p>
               </div>
             ) : (
@@ -393,7 +350,7 @@ export default function AdminTickets() {
                   <div className="relative col-span-2">
                     <input
                       type="text"
-                      placeholder="ค้นหาตามชื่ออีเว้นท์, ชื่อผู้จอง, อีเมล, หรือประเภทตั๋ว..."
+                      placeholder={t('adminTickets.ticketList.searchPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -412,10 +369,10 @@ export default function AdminTickets() {
                       }}
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="all">ทุกสถานะ</option>
-                      <option value="confirmed">ยืนยันแล้ว</option>
-                      <option value="pending">รอดำเนินการ</option>
-                      <option value="cancelled">ยกเลิก</option>
+                      <option value="all">{t('adminTickets.ticketList.allStatuses')}</option>
+                      <option value="confirmed">{t('adminTickets.statuses.confirmed')}</option>
+                      <option value="pending">{t('adminTickets.statuses.pending')}</option>
+                      <option value="cancelled">{t('adminTickets.statuses.cancelled')}</option>
                     </select>
                   </div>
                   
@@ -428,7 +385,7 @@ export default function AdminTickets() {
                       }}
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="all">ทุกประเภทตั๋ว</option>
+                      <option value="all">{t('adminTickets.ticketList.allTicketTypes')}</option>
                       {[...new Set(tickets.map(ticket => ticket.ticketType))].map(type => (
                         <option key={type} value={type}>{type}</option>
                       ))}
@@ -448,7 +405,7 @@ export default function AdminTickets() {
                     }}
                     className="border-input hover:bg-accent hover:text-accent-foreground"
                   >
-                    ล้างตัวกรอง
+{t('adminTickets.ticketList.clearFilters')}
                   </Button>
                 </div>
                 
@@ -456,14 +413,14 @@ export default function AdminTickets() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
-                        <TableHead className="font-semibold text-foreground">อีเว้นท์</TableHead>
-                        <TableHead className="font-semibold text-foreground">ผู้จอง</TableHead>
-                        <TableHead className="font-semibold text-foreground">ประเภทตั๋ว</TableHead>
-                        <TableHead className="font-semibold text-foreground">จำนวน</TableHead>
-                        <TableHead className="font-semibold text-foreground">ราคา</TableHead>
-                        <TableHead className="font-semibold text-foreground">วันที่จอง</TableHead>
-                        <TableHead className="font-semibold text-foreground">สถานะ</TableHead>
-                        <TableHead className="text-right font-semibold text-foreground">การจัดการ</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.event')}</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.booker')}</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.ticketType')}</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.quantity')}</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.price')}</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.bookingDate')}</TableHead>
+                        <TableHead className="font-semibold text-foreground">{t('adminTickets.table.status')}</TableHead>
+                        <TableHead className="text-right font-semibold text-foreground">{t('adminTickets.table.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -533,7 +490,7 @@ export default function AdminTickets() {
                 {/* Pagination Controls */}
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
-                    แสดง {Math.min((currentPage - 1) * ticketsPerPage + 1, filteredTickets.length)} ถึง {Math.min(currentPage * ticketsPerPage, filteredTickets.length)} จาก {filteredTickets.length} รายการ
+                    {t('adminTickets.pagination.showing')} {Math.min((currentPage - 1) * ticketsPerPage + 1, filteredTickets.length)} {t('adminTickets.pagination.to')} {Math.min(currentPage * ticketsPerPage, filteredTickets.length)} {t('adminTickets.pagination.of')} {filteredTickets.length} {t('adminTickets.pagination.items')}
                   </div>
                   <div className="flex space-x-2">
                     <Button
@@ -542,7 +499,7 @@ export default function AdminTickets() {
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1 || filteredTickets.length === 0}
                     >
-                      ก่อนหน้า
+{t('adminTickets.pagination.previous')}
                     </Button>
                     <Button
                       variant="outline"
@@ -550,7 +507,7 @@ export default function AdminTickets() {
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredTickets.length / ticketsPerPage)))}
                       disabled={currentPage === Math.ceil(filteredTickets.length / ticketsPerPage) || filteredTickets.length === 0}
                     >
-                      ถัดไป
+{t('adminTickets.pagination.next')}
                     </Button>
                   </div>
                 </div>

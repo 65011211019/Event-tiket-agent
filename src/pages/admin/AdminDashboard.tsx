@@ -90,7 +90,7 @@ const extractTicketsFromData = (data: (BookingRecord | EventTicket)[]): EventTic
   return tickets;
 };
 
-const StatCard = ({ title, value, change, icon, isCurrency = false }: StatCardProps) => {
+const StatCard = ({ title, value, change, icon, isCurrency = false, t }: StatCardProps & { t: (key: string) => string }) => {
   const isPositive = change >= 0;
   
   return (
@@ -109,7 +109,7 @@ const StatCard = ({ title, value, change, icon, isCurrency = false }: StatCardPr
           ) : (
             <ArrowDownRight className="h-3 w-3 mr-1" />
           )}
-          {isPositive ? '+' : ''}{change}% จากเดือนที่แล้ว
+          {isPositive ? '+' : ''}{change}% {t('adminDashboard.stats.changeFromLastMonth')}
         </p>
       </CardContent>
     </Card>
@@ -309,26 +309,26 @@ export default function AdminDashboard() {
   // Stat cards data with icons - already in Thai
   const statCards: StatCardProps[] = [
     {
-      title: 'รายได้รวม',
+      title: t('adminDashboard.stats.totalRevenue'),
       value: `฿${stats.totalRevenue.toLocaleString()}`,
       change: 12,
       icon: <TrendingUp className="h-4 w-4" />,
       isCurrency: true
     },
     {
-      title: 'ตั๋วที่ขายแล้ว',
+      title: t('adminDashboard.stats.ticketsSold'),
       value: stats.totalTickets.toLocaleString(),
       change: 8,
       icon: <Ticket className="h-4 w-4" />
     },
     {
-      title: 'อีเว้นท์ทั้งหมด',
+      title: t('adminDashboard.stats.totalEvents'),
       value: stats.totalEvents.toString(),
       change: 3,
       icon: <Calendar className="h-4 w-4" />
     },
     {
-      title: 'เฉลี่ยต่ออีเว้นท์',
+      title: t('adminDashboard.stats.avgPerEvent'),
       value: stats.avgTicketsPerEvent.toString(),
       change: 5,
       icon: <Users className="h-4 w-4" />
@@ -368,10 +368,10 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            แดชบอร์ดผู้ดูแลระบบ
+            {t('adminDashboard.title')}
           </h1>
           <p className="text-muted-foreground mt-2">
-            ภาพรวมระบบจัดการอีเว้นท์
+            {t('adminDashboard.subtitle')}
           </p>
         </div>
       </div>
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
       {/* Stats Cards with enhanced styling */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <StatCard key={index} {...stat} />
+          <StatCard key={index} {...stat} t={t} />
         ))}
       </div>
 
@@ -390,7 +390,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <PieChart className="h-5 w-5 mr-2 text-primary" />
-              การกระจายประเภทอีเว้นท์
+              {t('adminDashboard.charts.categoryDistribution')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -412,7 +412,7 @@ export default function AdminDashboard() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value) => [value, 'จำนวนอีเว้นท์']} 
+                    formatter={(value) => [value, t('adminDashboard.labels.numberOfEvents')]} 
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
                   />
@@ -427,7 +427,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Ticket className="h-5 w-5 mr-2 text-primary" />
-              ประเภทตั๋วที่นิยม
+              {t('adminDashboard.charts.popularTicketTypes')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -449,7 +449,7 @@ export default function AdminDashboard() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value) => [value, 'จำนวนตั๋ว']} 
+                    formatter={(value) => [value, t('adminDashboard.labels.numberOfTickets')]} 
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}
                     labelStyle={{ color: 'hsl(var(--foreground))' }}
                   />
@@ -465,7 +465,7 @@ export default function AdminDashboard() {
         {/* Popular Ticket Types List */}
         <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
-            <CardTitle>ประเภทตั๋วที่นิยม</CardTitle>
+            <CardTitle>{t('adminDashboard.charts.popularTicketTypes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -488,7 +488,7 @@ export default function AdminDashboard() {
         {/* Popular Categories List */}
         <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
-            <CardTitle>หมวดหมู่อีเว้นท์ยอดนิยม</CardTitle>
+            <CardTitle>{t('adminDashboard.charts.popularCategories')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -511,7 +511,7 @@ export default function AdminDashboard() {
         {/* Event Statistics */}
         <Card className="shadow-sm hover:shadow-lg transition-all bg-card text-card-foreground">
           <CardHeader>
-            <CardTitle>สถิติอีเว้นท์</CardTitle>
+            <CardTitle>{t('adminDashboard.charts.eventStatistics')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -519,25 +519,25 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold text-primary">
                   {stats.totalEvents}
                 </div>
-                <div className="text-sm text-muted-foreground">ทั้งหมด</div>
+                <div className="text-sm text-muted-foreground">{t('adminDashboard.labels.all')}</div>
               </div>
               <div className="text-center p-4 bg-success/10 rounded-lg hover-lift">
                 <div className="text-2xl font-bold text-success">
                   {stats.activeEvents}
                 </div>
-                <div className="text-sm text-muted-foreground">เปิดใช้งาน</div>
+                <div className="text-sm text-muted-foreground">{t('adminDashboard.labels.active')}</div>
               </div>
               <div className="text-center p-4 bg-blue-500/10 rounded-lg hover-lift">
                 <div className="text-2xl font-bold text-blue-500">
                   {Math.round((stats.activeEvents / Math.max(stats.totalEvents, 1)) * 100)}%
                 </div>
-                <div className="text-sm text-muted-foreground">อัตราการใช้งาน</div>
+                <div className="text-sm text-muted-foreground">{t('adminDashboard.labels.usageRate')}</div>
               </div>
               <div className="text-center p-4 bg-purple-500/10 rounded-lg hover-lift">
                 <div className="text-2xl font-bold text-purple-500">
                   ฿{Math.round(stats.totalRevenue / Math.max(stats.totalEvents, 1)).toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">รายได้ต่ออีเว้นท์</div>
+                <div className="text-sm text-muted-foreground">{t('adminDashboard.labels.revenuePerEvent')}</div>
               </div>
             </div>
           </CardContent>

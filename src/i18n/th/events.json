@@ -1,0 +1,53 @@
+{
+  "title": "อีเว้นท์",
+  "subtitle": "ค้นหาและจองอีเว้นท์ที่คุณชื่นชอบ",
+  "loading": "กำลังโหลดอีเว้นท์...",
+  "error": "เกิดข้อผิดพลาดในการโหลดข้อมูลอีเว้นท์",
+  "noResults": "ไม่พบอีเว้นท์",
+  "noResultsDesc": "ไม่พบอีเว้นท์ที่ตรงกับเงื่อนไขการค้นหา ลองปรับเปลี่ยนตัวกรองหรือคำค้นหา",
+  "clearFilters": "ล้างตัวกรองทั้งหมด",
+  "resultsCount": "พบ {count} อีเว้นท์{total, select, undefined {} other { จากทั้งหมด {total} อีเว้นท์}}",
+  "sortBy": "เรียงตาม: {sort}",
+  "categories": {
+    "workshop": "เวิร์กช็อป",
+    "seminar": "สัมมนา",
+    "conference": "ประชุม",
+    "music": "ดนตรี",
+    "sports": "กีฬา",
+    "technology": "เทคโนโลยี",
+    "education": "การศึกษา",
+    "food": "อาหาร",
+    "art": "ศิลปะ",
+    "business": "ธุรกิจ",
+    "health": "สุขภาพ",
+    "travel": "การท่องเที่ยว",
+    "lifestyle": "ไลฟ์สไตล์",
+    "entertainment": "บันเทิง",
+    "networking": "การสร้างเครือข่าย"
+  },
+  "categoryDescriptions": {
+    "workshop": "งานเวิร์กช็อป",
+    "seminar": "งานสัมมนา",
+    "conference": "งานการประชุม",
+    "music": "งานดนตรี",
+    "sports": "งานกีฬา",
+    "technology": "งานเทคโนโลยี",
+    "education": "งานการศึกษา",
+    "food": "งานอาหาร",
+    "art": "งานศิลปะ",
+    "business": "งานธุรกิจ",
+    "health": "งานสุขภาพ",
+    "travel": "งานท่องเที่ยว",
+    "lifestyle": "งานไลฟ์สไตล์",
+    "entertainment": "งานบันเทิง",
+    "networking": "งานสร้างเครือข่าย"
+  },
+  "sortOptions": {
+    "newest": "ล่าสุด",
+    "oldest": "เก่าสุด",
+    "date-asc": "วันที่เริ่มงาน (เร็วสุด)",
+    "date-desc": "วันที่เริ่มงาน (ช้าสุด)",
+    "price-asc": "ราคา (ต่ำ-สูง)",
+    "price-desc": "ราคา (สูง-ต่ำ)"
+  }
+}

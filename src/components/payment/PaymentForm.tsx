@@ -8,6 +8,7 @@ import { createOmiseCharge } from '@/lib/omise';
 import { PaymentRequest } from '@/types/payment';
 import { PaymentFormData } from '@/types/payment';
 import { CreditCard, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/AppContext';
 
 interface PaymentFormProps {
   amount: number;
@@ -32,6 +33,8 @@ export default function PaymentForm({
   customerEmail,
   customerPhone
 }: PaymentFormProps) {
+  const { t } = useLanguage();
+
   const [formData, setFormData] = useState<PaymentFormData>({
     cardName: '',
     cardNumber: '',
@@ -53,41 +56,41 @@ export default function PaymentForm({
     const newErrors: Partial<PaymentFormData> = {};
 
     if (!formData.cardName.trim()) {
-      newErrors.cardName = 'ชื่อบนบัตรจำเป็น';
+      newErrors.cardName = t('paymentComponents.paymentForm.cardName.required');
     }
 
     if (!formData.cardNumber.trim()) {
-      newErrors.cardNumber = 'หมายเลขบัตรจำเป็น';
+      newErrors.cardNumber = t('paymentComponents.paymentForm.cardNumber.required');
     } else {
       const cleaned = formData.cardNumber.replace(/\s/g, '');
       if (!/^\d{13,19}$/.test(cleaned)) {
-        newErrors.cardNumber = 'หมายเลขบัตรไม่ถูกต้อง';
+        newErrors.cardNumber = t('paymentComponents.paymentForm.cardNumber.invalid');
       }
     }
 
     if (!formData.expiryMonth) {
-      newErrors.expiryMonth = 'เดือนหมดอายุจำเป็น';
+      newErrors.expiryMonth = t('paymentComponents.paymentForm.expiry.month.required');
     } else {
       const month = parseInt(formData.expiryMonth);
       if (month < 1 || month > 12) {
-        newErrors.expiryMonth = 'เดือนไม่ถูกต้อง';
+        newErrors.expiryMonth = t('paymentComponents.paymentForm.expiry.month.invalid');
       }
     }
 
     if (!formData.expiryYear) {
-      newErrors.expiryYear = 'ปีหมดอายุจำเป็น';
+      newErrors.expiryYear = t('paymentComponents.paymentForm.expiry.year.required');
     } else {
       const year = parseInt(formData.expiryYear);
       const currentYear = new Date().getFullYear();
       if (year < currentYear || year > currentYear + 10) {
-        newErrors.expiryYear = 'ปีไม่ถูกต้อง';
+        newErrors.expiryYear = t('paymentComponents.paymentForm.expiry.year.invalid');
       }
     }
 
     if (!formData.securityCode.trim()) {
-      newErrors.securityCode = 'รหัสความปลอดภัยจำเป็น';
+      newErrors.securityCode = t('paymentComponents.paymentForm.securityCode.required');
     } else if (!/^\d{3,4}$/.test(formData.securityCode)) {
-      newErrors.securityCode = 'รหัสความปลอดภัยไม่ถูกต้อง';
+      newErrors.securityCode = t('paymentComponents.paymentForm.securityCode.invalid');
     }
 
     setErrors(newErrors);
@@ -138,7 +141,7 @@ export default function PaymentForm({
 
     // Check minimum amount (20 THB = 2000 satang)
     if (amount < 20) {
-      onPaymentError('จำนวนเงินขั้นต่ำคือ 20 บาท');
+      onPaymentError(t('paymentComponents.paymentForm.errors.minAmount'));
       return;
     }
 
@@ -218,22 +221,22 @@ export default function PaymentForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="h-5 w-5" />
-          ชำระเงิน
+          {t('paymentComponents.paymentForm.title')}
         </CardTitle>
         <CardDescription>
-          จำนวนเงิน: {amount.toLocaleString()} {currency}
+          {t('paymentComponents.paymentForm.amount')}: {amount.toLocaleString()} {currency}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4" data-payment-form>
           <div className="space-y-2">
-            <Label htmlFor="cardName">ชื่อบนบัตร</Label>
+            <Label htmlFor="cardName">{t('paymentComponents.paymentForm.cardName.label')}</Label>
             <Input
               id="cardName"
               type="text"
               value={formData.cardName}
               onChange={(e) => handleInputChange('cardName', e.target.value)}
-              placeholder="ชื่อ-นามสกุล"
+              placeholder={t('paymentComponents.paymentForm.cardName.placeholder')}
               className={errors.cardName ? 'border-red-500' : ''}
             />
             {errors.cardName && (
@@ -242,13 +245,13 @@ export default function PaymentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cardNumber">หมายเลขบัตร</Label>
+            <Label htmlFor="cardNumber">{t('paymentComponents.paymentForm.cardNumber.label')}</Label>
             <Input
               id="cardNumber"
               type="text"
               value={formData.cardNumber}
               onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-              placeholder="1234 5678 9012 3456"
+              placeholder={t('paymentComponents.paymentForm.cardNumber.placeholder')}
               className={errors.cardNumber ? 'border-red-500' : ''}
             />
             {errors.cardNumber && (
@@ -258,7 +261,7 @@ export default function PaymentForm({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="expiryMonth">เดือน</Label>
+              <Label htmlFor="expiryMonth">{t('paymentComponents.paymentForm.expiry.month.label')}</Label>
               <select
                 id="expiryMonth"
                 value={formData.expiryMonth}
@@ -267,7 +270,7 @@ export default function PaymentForm({
                   errors.expiryMonth ? 'border-red-500' : 'border-input'
                 }`}
               >
-                <option value="">เลือกเดือน</option>
+                <option value="">{t('paymentComponents.paymentForm.expiry.month.placeholder')}</option>
                 {monthOptions}
               </select>
               {errors.expiryMonth && (
@@ -276,7 +279,7 @@ export default function PaymentForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expiryYear">ปี</Label>
+              <Label htmlFor="expiryYear">{t('paymentComponents.paymentForm.expiry.year.label')}</Label>
               <select
                 id="expiryYear"
                 value={formData.expiryYear}
@@ -285,7 +288,7 @@ export default function PaymentForm({
                   errors.expiryYear ? 'border-red-500' : 'border-input'
                 }`}
               >
-                <option value="">เลือกปี</option>
+                <option value="">{t('paymentComponents.paymentForm.expiry.year.placeholder')}</option>
                 {yearOptions}
               </select>
               {errors.expiryYear && (
@@ -295,13 +298,13 @@ export default function PaymentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="securityCode">รหัสความปลอดภัย (CVV)</Label>
+            <Label htmlFor="securityCode">{t('paymentComponents.paymentForm.securityCode.label')}</Label>
             <Input
               id="securityCode"
               type="text"
               value={formData.securityCode}
               onChange={(e) => handleInputChange('securityCode', e.target.value)}
-              placeholder="123"
+              placeholder={t('paymentComponents.paymentForm.securityCode.placeholder')}
               className={errors.securityCode ? 'border-red-500' : ''}
             />
             {errors.securityCode && (
@@ -311,7 +314,7 @@ export default function PaymentForm({
 
           <Alert>
             <AlertDescription>
-              <strong>หมายเหตุ:</strong> ระบบนี้ใช้บัตรทดสอบ ใช้หมายเลข 4242 4242 4242 4242
+              <strong>{t('paymentComponents.paymentForm.notes.title')}:</strong> {t('paymentComponents.paymentForm.notes.testCard')}
             </AlertDescription>
           </Alert>
 
@@ -323,10 +326,10 @@ export default function PaymentForm({
             {isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                กำลังประมวลผล...
+                {t('paymentComponents.paymentForm.buttons.processing')}
               </>
             ) : (
-              `ชำระเงิน ${amount.toLocaleString()} ${currency}`
+              `${t('paymentComponents.paymentForm.buttons.pay')} ${amount.toLocaleString()} ${currency}`
             )}
           </Button>
         </form>

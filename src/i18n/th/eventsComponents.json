@@ -1,0 +1,58 @@
+{
+  "categoryChips": {
+    "all": "ทั้งหมด"
+  },
+  "eventCard": {
+    "featured": "แนะนำ",
+    "online": "ออนไลน์",
+    "hybrid": "ไฮบริด",
+    "onsite": "ที่งาน",
+    "lowStock": "เหลือไม่มาก",
+    "soldOut": "ขายหมดแล้ว",
+    "unknownDate": "ไม่ระบุวันที่",
+    "unknownVenue": "ไม่ระบุสถานที่",
+    "free": "ฟรี",
+    "spotsLeft": "ที่เหลือ",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
+    "viewDetails": "ดูรายละเอียด",
+    "bookNow": "จองเลย"
+  },
+  "eventFilters": {
+    "searchPlaceholder": "ค้นหาอีเว้นท์...",
+    "allCategories": "ทุกหมวดหมู่",
+    "allFormats": "ทุกรูปแบบ",
+    "allDateRanges": "ทุกช่วงเวลา",
+    "allPriceRanges": "ทุกช่วงราคา",
+    "clearFilters": "ล้างตัวกรอง",
+    "search": "ค้นหา",
+    "sortBy": "เรียงตาม",
+    "locationTypes": {
+      "onsite": "ที่งาน",
+      "online": "ออนไลน์",
+      "hybrid": "ไฮบริด"
+    },
+    "dateRanges": {
+      "today": "วันนี้",
+      "week": "สัปดาห์นี้",
+      "month": "เดือนนี้",
+      "quarter": "ไตรมาสนี้",
+      "year": "ปีนี้"
+    },
+    "priceRanges": {
+      "free": "ฟรี",
+      "under1000": "ต่ำกว่า 1,000 บาท",
+      "1000-3000": "1,000 - 3,000 บาท",
+      "3000-6000": "3,000 - 6,000 บาท",
+      "over6000": "มากกว่า 6,000 บาท"
+    },
+    "sortOptions": {
+      "newest": "ล่าสุด",
+      "oldest": "เก่าสุด",
+      "dateAsc": "วันที่เริ่มงาน (เร็วสุด)",
+      "dateDesc": "วันที่เริ่มงาน (ช้าสุด)",
+      "priceAsc": "ราคา (ต่ำ-สูง)",
+      "priceDesc": "ราคา (สูง-ต่ำ)"
+    }
+  }
+}

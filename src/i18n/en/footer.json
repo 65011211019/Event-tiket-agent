@@ -1,0 +1,40 @@
+{
+  "brandDescription": "Easy and convenient online event ticket booking platform. Find and book tickets for your favorite events instantly.",
+  "contact": {
+    "email": "support@EventTicketAgent.com",
+    "phone": "+66 2 123 4567",
+    "address": "Bangkok, Thailand"
+  },
+  "links": {
+    "product": {
+      "title": "Product",
+      "searchEvents": "Search Events",
+      "myTickets": "My Tickets",
+      "helpCenter": "Help Center"
+    },
+    "company": {
+      "title": "Company",
+      "aboutUs": "About Us",
+      "blog": "Blog",
+      "contactUs": "Contact Us"
+    },
+    "legal": {
+      "title": "Legal",
+      "termsOfService": "Terms of Service",
+      "privacyPolicy": "Privacy Policy",
+      "refundPolicy": "Refund Policy"
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Subscribe to news and special promotions",
+      "emailPlaceholder": "Your email",
+      "subscribe": "Subscribe"
+    }
+  },
+  "copyright": "© 2024 EventTicketAgent. All rights reserved.",
+  "bottomLinks": {
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "cookies": "Cookies"
+  }
+}

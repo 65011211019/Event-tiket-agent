@@ -1,0 +1,58 @@
+{
+  "categoryChips": {
+    "all": "All"
+  },
+  "eventCard": {
+    "featured": "Featured",
+    "online": "Online",
+    "hybrid": "Hybrid",
+    "onsite": "On-site",
+    "lowStock": "Low Stock",
+    "soldOut": "Sold Out",
+    "unknownDate": "Date not specified",
+    "unknownVenue": "Venue not specified",
+    "free": "Free",
+    "spotsLeft": "spots left",
+    "edit": "Edit",
+    "delete": "Delete",
+    "viewDetails": "View Details",
+    "bookNow": "Book Now"
+  },
+  "eventFilters": {
+    "searchPlaceholder": "Search events...",
+    "allCategories": "All Categories",
+    "allFormats": "All Formats",
+    "allDateRanges": "All Date Ranges",
+    "allPriceRanges": "All Price Ranges",
+    "clearFilters": "Clear Filters",
+    "search": "Search",
+    "sortBy": "Sort by",
+    "locationTypes": {
+      "onsite": "On-site",
+      "online": "Online",
+      "hybrid": "Hybrid"
+    },
+    "dateRanges": {
+      "today": "Today",
+      "week": "This Week",
+      "month": "This Month",
+      "quarter": "This Quarter",
+      "year": "This Year"
+    },
+    "priceRanges": {
+      "free": "Free",
+      "under1000": "Under 1,000 THB",
+      "1000-3000": "1,000 - 3,000 THB",
+      "3000-6000": "3,000 - 6,000 THB",
+      "over6000": "Over 6,000 THB"
+    },
+    "sortOptions": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "dateAsc": "Event Date (Earliest)",
+      "dateDesc": "Event Date (Latest)",
+      "priceAsc": "Price (Low-High)",
+      "priceDesc": "Price (High-Low)"
+    }
+  }
+}

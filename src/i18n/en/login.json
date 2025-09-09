@@ -1,0 +1,29 @@
+{
+  "title": "Login",
+  "subtitle": "Please enter your credentials to access the system",
+  "email": "Email",
+  "emailPlaceholder": "your@email.com",
+  "password": "Password",
+  "passwordPlaceholder": "Password",
+  "loginButton": "Login",
+  "loggingIn": "Logging in...",
+  "welcome": {
+    "title": "EventTicketAgent",
+    "subtitle": "Event Ticket Management System",
+    "description": "Login to access the comprehensive event management platform"
+  },
+  "testAccounts": {
+    "title": "Test Accounts",
+    "admin": "Administrator",
+    "user": "Regular User",
+    "adminEmail": "admin@tiketagent.com",
+    "userEmail": "jason@gmail.com",
+    "password": "password123"
+  },
+  "validation": {
+    "loginSuccess": "Login successful",
+    "loginSuccessDesc": "Welcome!",
+    "loginFailed": "Login failed",
+    "loginFailedDesc": "Please check your email and password"
+  }
+}

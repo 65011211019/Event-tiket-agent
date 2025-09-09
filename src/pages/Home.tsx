@@ -70,27 +70,27 @@ export default function Home() {
   };
 
   const stats = [
-    { 
-      icon: Calendar, 
-      label: 'อีเว้นท์ทั้งหมด', 
+    {
+      icon: Calendar,
+      label: t('home.stats.totalEvents'),
       value: `${upcomingEvents.length + featuredEvents.length}+`,
       color: 'text-blue-600'
     },
-    { 
-      icon: Users, 
-      label: 'ผู้เข้าร่วม', 
+    {
+      icon: Users,
+      label: t('home.stats.participants'),
       value: '50,000+',
       color: 'text-green-600'
     },
-    { 
-      icon: Star, 
-      label: 'คะแนนรีวิว', 
+    {
+      icon: Star,
+      label: t('home.stats.rating'),
       value: '4.8/5',
       color: 'text-yellow-600'
     },
-    { 
-      icon: MapPin, 
-      label: 'เมืองที่ให้บริการ', 
+    {
+      icon: MapPin,
+      label: t('home.stats.cities'),
       value: '77',
       color: 'text-purple-600'
     },
@@ -110,21 +110,20 @@ export default function Home() {
               <div className="flex items-center justify-center mb-6">
                 <Badge className="bg-white/10 text-white border-white/20 backdrop-blur text-sm px-4 py-1">
                   <Sparkles className="w-4 h-4 mr-2" />
-                  แพลตฟอร์มอีเว้นท์อันดับ 1 ในไทย
+                  {t('home.hero.badge')}
                 </Badge>
               </div>
-              
+
               <h1 className="text-4xl md:text-6xl font-bold text-balance leading-tight text-white">
-                ค้นหาและจองอีเว้นท์
+                {t('home.hero.title')}
                 <br />
                 <span className="bg-gradient-to-r from-primary-light to-white bg-clip-text text-transparent">
-                  ที่คุณชื่นชอบ
+                  {t('home.hero.titleHighlight')}
                 </span>
               </h1>
-              
+
               <p className="text-xl md:text-2xl text-white/90 text-balance max-w-2xl mx-auto">
-                แพลตฟอร์มจองตั๋วอีเว้นท์ออนไลน์ที่ครบครันที่สุดในประเทศไทย
-                พร้อมอีเว้นท์คุณภาพจากผู้จัดมืออาชีพ
+                {t('home.hero.subtitle')}
               </p>
             </div>
 
@@ -134,7 +133,7 @@ export default function Home() {
                 value={searchQuery}
                 onChange={setSearchQuery}
                 onSubmit={handleSearch}
-                placeholder="ค้นหาอีเว้นท์, หมวดหมู่, หรือสถานที่..."
+                placeholder={t('home.hero.searchPlaceholder')}
                 size="lg"
                 className="bg-white/20 backdrop-blur rounded-2xl p-2 [&>div>input]:bg-white/90 [&>div>input]:text-gray-900 [&>div>input]:placeholder:text-gray-600"
               />
@@ -145,19 +144,19 @@ export default function Home() {
               <Link to="/events?featured=true">
                 <Button variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10 backdrop-blur">
                   <Star className="w-4 h-4 mr-2" />
-                  อีเว้นท์แนะนำ
+                  {t('home.hero.featuredEvents')}
                 </Button>
               </Link>
               <Link to="/events?dateRange=week">
                 <Button variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10 backdrop-blur">
                   <Calendar className="w-4 h-4 mr-2" />
-                  สัปดาห์นี้
+                  {t('home.hero.thisWeek')}
                 </Button>
               </Link>
               <Link to="/events?location=online">
                 <Button variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10 backdrop-blur">
                   <MapPin className="w-4 h-4 mr-2" />
-                  อีเว้นท์ออนไลน์
+                  {t('home.hero.onlineEvents')}
                 </Button>
               </Link>
             </div>
@@ -203,48 +202,47 @@ export default function Home() {
                       AI Assistant
                     </Badge>
                   </div>
-                  
+
                   <h2 className="text-3xl md:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    ผู้ช่วย AI สำหรับการจองตั๋ว
+                    {t('home.aiAgent.title')}
                   </h2>
-                  
+
                   <p className="text-lg text-muted-foreground leading-relaxed">
-                    ใช้ผู้ช่วย AI ที่ชาญฉลาดของเราเพื่อค้นหาและจองอีเว้นท์ได้อย่างง่ายดาย 
-                    เพียงแค่พิมพ์ "จองให้หน่อย" หรือชื่ออีเว้นท์ที่ต้องการ AI จะช่วยแนะนำและจัดการการจองให้คุณแบบครบวงจร
+                    {t('home.aiAgent.subtitle')}
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/50 border border-white/20">
                       <MessageCircle className="w-8 h-8 text-primary flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-sm">สนทนาธรรมชาติ</h4>
-                        <p className="text-xs text-muted-foreground">พูดคุยเหมือนกับคนจริง</p>
+                        <h4 className="font-semibold text-sm">{t('home.aiAgent.features.natural')}</h4>
+                        <p className="text-xs text-muted-foreground">{t('home.aiAgent.features.naturalDesc')}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/50 border border-white/20">
                       <Zap className="w-8 h-8 text-primary flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-sm">จองได้ทันที</h4>
-                        <p className="text-xs text-muted-foreground">ไม่ต้องค้นหาเอง</p>
+                        <h4 className="font-semibold text-sm">{t('home.aiAgent.features.instant')}</h4>
+                        <p className="text-xs text-muted-foreground">{t('home.aiAgent.features.instantDesc')}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/50 border border-white/20">
                       <Bot className="w-8 h-8 text-primary flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-sm">แนะนำส่วนตัว</h4>
-                        <p className="text-xs text-muted-foreground">เหมาะกับความชอบ</p>
+                        <h4 className="font-semibold text-sm">{t('home.aiAgent.features.personal')}</h4>
+                        <p className="text-xs text-muted-foreground">{t('home.aiAgent.features.personalDesc')}</p>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <span className="font-medium">ลองพิมพ์:</span>
-                      <Badge variant="outline" className="text-xs">"จองให้หน่อย"</Badge>
-                      <Badge variant="outline" className="text-xs">"จอง concert"</Badge>
-                      <Badge variant="outline" className="text-xs">"หาอีเว้นท์ tech"</Badge>
+                      <span className="font-medium">{t('home.aiAgent.tryThese')}:</span>
+                      <Badge variant="outline" className="text-xs">{t('home.aiAgent.example1')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('home.aiAgent.example2')}</Badge>
+                      <Badge variant="outline" className="text-xs">{t('home.aiAgent.example3')}</Badge>
                     </div>
                   </div>
                 </div>
@@ -268,12 +266,12 @@ export default function Home() {
             <div className="flex items-center justify-center mb-4">
               <Badge variant="outline" className="text-primary border-primary/20">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                หมวดหมู่ยอดนิยม
+                {t('home.categories.badge')}
               </Badge>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold">หมวดหมู่อีเว้นท์</h2>
+            <h2 className="text-3xl md:text-4xl font-bold">{t('home.categories.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              เลือกหมวดหมู่ที่คุณสนใจ จากอีเว้นท์คุณภาพที่คัดสรรมาเป็นพิเศษ
+              {t('home.categories.subtitle')}
             </p>
           </div>
 
@@ -318,17 +316,17 @@ export default function Home() {
               <div className="flex items-center mb-2">
                 <Badge variant="outline" className="text-primary border-primary/20">
                   <Star className="w-4 h-4 mr-2" />
-                  แนะนำพิเศษ
+                  {t('home.featured.badge')}
                 </Badge>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold">อีเว้นท์แนะนำ</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">{t('home.featured.title')}</h2>
               <p className="text-muted-foreground">
-                อีเว้นท์ยอดนิยมที่ไม่ควรพลาด คัดสรรโดยทีมงานเฉพาะ
+                {t('home.featured.subtitle')}
               </p>
             </div>
             <Button asChild variant="outline" className="hover:bg-primary hover:text-primary-foreground">
               <Link to="/events?featured=true">
-                ดูทั้งหมด
+                {t('home.featured.viewAll')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
@@ -349,7 +347,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              ไม่มีอีเว้นท์แนะนำในขณะนี้
+              {t('home.featured.noEvents')}
             </div>
           )}
         </section>
@@ -361,17 +359,17 @@ export default function Home() {
               <div className="flex items-center mb-2">
                 <Badge variant="outline" className="text-primary border-primary/20">
                   <Calendar className="w-4 h-4 mr-2" />
-                  เพิ่งเปิดจอง
+                  {t('home.upcoming.badge')}
                 </Badge>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold">อีเว้นท์ที่กำลังจะมาถึง</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">{t('home.upcoming.title')}</h2>
               <p className="text-muted-foreground">
-                อีเว้นท์ใหม่ล่าสุดที่เปิดให้จองแล้ว รีบจองก่อนหมด!
+                {t('home.upcoming.subtitle')}
               </p>
             </div>
             <Button asChild variant="outline" className="hover:bg-primary hover:text-primary-foreground">
               <Link to="/events">
-                ดูทั้งหมด
+                {t('home.upcoming.viewAll')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
@@ -391,7 +389,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              ไม่มีอีเว้นท์ใหม่ในขณะนี้
+              {t('home.upcoming.noEvents')}
             </div>
           )}
         </section>
@@ -404,15 +402,15 @@ export default function Home() {
           <CardContent className="relative p-12 md:p-16 text-center space-y-6">
             <div className="space-y-4">
               <h2 className="text-3xl md:text-4xl font-bold">
-                พร้อมจัดอีเว้นท์ของคุณแล้วหรือยัง?
+                {t('home.cta.title')}
               </h2>
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                เข้าร่วมเป็นผู้จัดอีเว้นท์กับเรา และเข้าถึงผู้เข้าร่วมงานหลักพันคน
+                {t('home.cta.subtitle')}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10">
-                เรียนรู้เพิ่มเติม
+                {t('home.cta.learnMore')}
               </Button>
             </div>
           </CardContent>

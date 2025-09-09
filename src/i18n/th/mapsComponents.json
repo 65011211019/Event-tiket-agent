@@ -1,0 +1,15 @@
+{
+  "eventMap": {
+    "noLocationData": "ไม่มีข้อมูลตำแหน่ง",
+    "coordinates": "พิกัด"
+  },
+  "mapSelector": {
+    "instructions": {
+      "title": "วิธีใช้งาน:",
+      "clickToSelect": "คลิกบนแผนที่เพื่อเลือกตำแหน่ง",
+      "dragToSearch": "ลากแผนที่เพื่อค้นหาตำแหน่งที่ต้องการ",
+      "scrollToZoom": "ใช้ Scroll เพื่อ Zoom แผนที่"
+    },
+    "selectedCoordinates": "พิกัดที่เลือก"
+  }
+}

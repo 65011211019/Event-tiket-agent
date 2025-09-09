@@ -1,0 +1,49 @@
+{
+  "paymentForm": {
+    "title": "Payment",
+    "amount": "Amount",
+    "cardName": {
+      "label": "Name on Card",
+      "placeholder": "Full Name",
+      "required": "Card name is required",
+      "invalid": "Card name is invalid"
+    },
+    "cardNumber": {
+      "label": "Card Number",
+      "placeholder": "1234 5678 9012 3456",
+      "required": "Card number is required",
+      "invalid": "Card number is invalid"
+    },
+    "expiry": {
+      "month": {
+        "label": "Month",
+        "placeholder": "Select month",
+        "required": "Expiry month is required",
+        "invalid": "Invalid month"
+      },
+      "year": {
+        "label": "Year",
+        "placeholder": "Select year",
+        "required": "Expiry year is required",
+        "invalid": "Invalid year"
+      }
+    },
+    "securityCode": {
+      "label": "Security Code (CVV)",
+      "placeholder": "123",
+      "required": "Security code is required",
+      "invalid": "Security code is invalid"
+    },
+    "buttons": {
+      "pay": "Pay",
+      "processing": "Processing..."
+    },
+    "errors": {
+      "minAmount": "Minimum amount is 20 THB"
+    },
+    "notes": {
+      "title": "Note:",
+      "testCard": "This system uses test cards. Use card number 4242 4242 4242 4242"
+    }
+  }
+}

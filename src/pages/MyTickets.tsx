@@ -30,14 +30,14 @@ export default function MyTickets() {
 
   // Sort options for tickets
   const sortOptions = [
-    { value: 'newest', label: 'ล่าสุด' },
-    { value: 'oldest', label: 'เก่าสุด' },
-    { value: 'event-date-asc', label: 'วันอีเวนต์ (เร็วสุด)' },
-    { value: 'event-date-desc', label: 'วันอีเวนต์ (ช้าสุด)' },
-    { value: 'price-asc', label: 'ราคา (ต่ำ-สูง)' },
-    { value: 'price-desc', label: 'ราคา (สูง-ต่ำ)' },
-    { value: 'name-asc', label: 'ชื่อ A-Z' },
-    { value: 'name-desc', label: 'ชื่อ Z-A' }
+    { value: 'newest', label: t('myTickets.filters.newest') },
+    { value: 'oldest', label: t('myTickets.filters.oldest') },
+    { value: 'event-date-asc', label: t('myTickets.filters.eventDateAsc') },
+    { value: 'event-date-desc', label: t('myTickets.filters.eventDateDesc') },
+    { value: 'price-asc', label: t('myTickets.filters.priceAsc') },
+    { value: 'price-desc', label: t('myTickets.filters.priceDesc') },
+    { value: 'name-asc', label: t('myTickets.filters.nameAsc') },
+    { value: 'name-desc', label: t('myTickets.filters.nameDesc') }
   ];
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export default function MyTickets() {
         setEvents(eventsMap);
       } catch (err) {
         console.error('Error fetching tickets:', err);
-        setError('ไม่สามารถโหลดตั๋วได้ กรุณาลองใหม่อีกครั้ง');
+        setError(t('myTickets.errorDesc'));
       } finally {
         setLoading(false);
       }
@@ -290,10 +290,10 @@ export default function MyTickets() {
     return (
       <div className="container py-8">
         <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">กรุณาเข้าสู่ระบบ</h1>
-          <p className="text-muted-foreground">เพื่อดูตั๋วของคุณ</p>
+          <h1 className="text-2xl font-bold">{t('myTickets.loginRequired')}</h1>
+          <p className="text-muted-foreground">{t('myTickets.loginRequiredDesc')}</p>
           <Button onClick={() => window.location.href = '/login'}>
-            เข้าสู่ระบบ
+            {t('myTickets.loginButton')}
           </Button>
         </div>
       </div>
@@ -305,7 +305,7 @@ export default function MyTickets() {
       <div className="container py-8">
         <div className="text-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <p className="text-muted-foreground">กำลังโหลดตั๋วของคุณ...</p>
+          <p className="text-muted-foreground">{t('myTickets.loading')}</p>
         </div>
       </div>
     );
@@ -315,10 +315,10 @@ export default function MyTickets() {
     return (
       <div className="container py-8">
         <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-destructive">เกิดข้อผิดพลาด</h1>
+          <h1 className="text-2xl font-bold text-destructive">{t('myTickets.error')}</h1>
           <p className="text-muted-foreground">{error}</p>
           <Button onClick={() => window.location.reload()}>
-            ลองใหม่อีกครั้ง
+            {t('myTickets.retry')}
           </Button>
         </div>
       </div>
@@ -328,12 +328,12 @@ export default function MyTickets() {
   return (
     <div className="container py-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">{t('tickets.myTickets')}</h1>
+        <h1 className="text-3xl font-bold">{t('myTickets.title')}</h1>
         <p className="text-muted-foreground mt-2">
-          ตั๋วทั้งหมดของคุณ ({filteredTickets.length} จาก {tickets.length} ตั๋ว)
+          {t('myTickets.subtitle')} ({filteredTickets.length} {t('myTickets.stats.filteredTickets')} {tickets.length} {t('myTickets.stats.totalTickets')})
           {sortBy !== 'newest' && (
             <span className="ml-2 text-sm text-primary">
-              • เรียงตาม: {sortOptions.find(option => option.value === sortBy)?.label}
+              • {t('myTickets.ticket.sortedBy')}: {sortOptions.find(option => option.value === sortBy)?.label}
             </span>
           )}
         </p>
@@ -347,7 +347,7 @@ export default function MyTickets() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="ค้นหาตั๋ว, ชื่อผู้ถือ, หรือ ID..."
+                placeholder={t('myTickets.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -359,13 +359,13 @@ export default function MyTickets() {
           <div className="min-w-[160px]">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="สถานะ" />
+                <SelectValue placeholder={t('myTickets.filters.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">ทุกสถานะ</SelectItem>
-                <SelectItem value="confirmed">ยืนยันแล้ว</SelectItem>
-                <SelectItem value="pending">รอดำเนินการ</SelectItem>
-                <SelectItem value="cancelled">ยกเลิก</SelectItem>
+                <SelectItem value="all">{t('myTickets.filters.all')}</SelectItem>
+                <SelectItem value="confirmed">{t('myTickets.filters.confirmed')}</SelectItem>
+                <SelectItem value="pending">{t('myTickets.filters.pending')}</SelectItem>
+                <SelectItem value="cancelled">{t('myTickets.filters.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -374,14 +374,14 @@ export default function MyTickets() {
           <div className="min-w-[160px]">
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="ช่วงเวลา" />
+                <SelectValue placeholder={t('myTickets.filters.dateRange')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">ทุกช่วงเวลา</SelectItem>
-                <SelectItem value="upcoming">กำลังจะมาถึง</SelectItem>
-                <SelectItem value="thisWeek">สัปดาห์นี้</SelectItem>
-                <SelectItem value="thisMonth">เดือนนี้</SelectItem>
-                <SelectItem value="past">ผ่านมาแล้ว</SelectItem>
+                <SelectItem value="all">{t('myTickets.filters.all')}</SelectItem>
+                <SelectItem value="upcoming">{t('myTickets.filters.upcoming')}</SelectItem>
+                <SelectItem value="thisWeek">{t('myTickets.filters.thisWeek')}</SelectItem>
+                <SelectItem value="thisMonth">{t('myTickets.filters.thisMonth')}</SelectItem>
+                <SelectItem value="past">{t('myTickets.filters.past')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -390,10 +390,10 @@ export default function MyTickets() {
           <div className="min-w-[160px]">
             <Select value={ticketTypeFilter} onValueChange={setTicketTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="ประเภทตั๋ว" />
+                <SelectValue placeholder={t('myTickets.filters.ticketType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">ทุกประเภท</SelectItem>
+                <SelectItem value="all">{t('myTickets.filters.all')}</SelectItem>
                 {uniqueTicketTypes.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
@@ -407,7 +407,7 @@ export default function MyTickets() {
           <div className="min-w-[180px]">
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger>
-                <SelectValue placeholder="เรียงตาม" />
+                <SelectValue placeholder={t('myTickets.filters.sortBy')} />
               </SelectTrigger>
               <SelectContent>
                 {sortOptions.map((option) => (
@@ -423,7 +423,7 @@ export default function MyTickets() {
           {hasActiveFilters && (
             <Button variant="outline" onClick={clearFilters} className="flex items-center gap-2">
               <X className="h-4 w-4" />
-              ล้างตัวกรอง
+              {t('myTickets.filters.clearFilters')}
             </Button>
           )}
         </div>
@@ -433,7 +433,7 @@ export default function MyTickets() {
           <div className="flex flex-wrap gap-2">
             {searchQuery && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                ค้นหา: "{searchQuery}"
+                {t('myTickets.ticket.search')}: "{searchQuery}"
                 <Button
                   variant="ghost"
                   size="sm"
@@ -444,12 +444,12 @@ export default function MyTickets() {
                 </Button>
               </Badge>
             )}
-            
+
             {statusFilter !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                สถานะ: {statusFilter === 'confirmed' ? 'ยืนยันแล้ว' : 
-                       statusFilter === 'pending' ? 'รอดำเนินการ' : 
-                       statusFilter === 'cancelled' ? 'ยกเลิก' : statusFilter}
+                {t('myTickets.ticket.status')}: {statusFilter === 'confirmed' ? t('myTickets.filters.confirmed') :
+                       statusFilter === 'pending' ? t('myTickets.filters.pending') :
+                       statusFilter === 'cancelled' ? t('myTickets.filters.cancelled') : statusFilter}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -463,10 +463,10 @@ export default function MyTickets() {
 
             {dateFilter !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                เวลา: {dateFilter === 'upcoming' ? 'กำลังจะมาถึง' :
-                      dateFilter === 'thisWeek' ? 'สัปดาห์นี้' :
-                      dateFilter === 'thisMonth' ? 'เดือนนี้' :
-                      dateFilter === 'past' ? 'ผ่านมาแล้ว' : dateFilter}
+                {t('myTickets.ticket.time')}: {dateFilter === 'upcoming' ? t('myTickets.filters.upcoming') :
+                      dateFilter === 'thisWeek' ? t('myTickets.filters.thisWeek') :
+                      dateFilter === 'thisMonth' ? t('myTickets.filters.thisMonth') :
+                      dateFilter === 'past' ? t('myTickets.filters.past') : dateFilter}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -480,7 +480,7 @@ export default function MyTickets() {
 
             {ticketTypeFilter !== 'all' && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                ประเภท: {ticketTypeFilter}
+                {t('myTickets.ticket.type')}: {ticketTypeFilter}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -494,7 +494,7 @@ export default function MyTickets() {
 
             {sortBy !== 'newest' && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                เรียงตาม: {sortOptions.find(option => option.value === sortBy)?.label}
+                {t('myTickets.ticket.sortedBy')}: {sortOptions.find(option => option.value === sortBy)?.label}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -513,19 +513,19 @@ export default function MyTickets() {
         tickets.length === 0 ? (
           <div className="text-center space-y-4 py-12">
             <Ticket className="h-16 w-16 mx-auto text-muted-foreground" />
-            <h2 className="text-xl font-semibold">ยังไม่มีตั๋ว</h2>
-            <p className="text-muted-foreground">คุณยังไม่ได้จองตั๋วใดๆ</p>
+            <h2 className="text-xl font-semibold">{t('myTickets.noTickets')}</h2>
+            <p className="text-muted-foreground">{t('myTickets.noTicketsDesc')}</p>
             <Button onClick={() => window.location.href = '/events'}>
-              เลือกดูอีเวนต์
+              {t('myTickets.browseEvents')}
             </Button>
           </div>
         ) : (
           <div className="text-center space-y-4 py-12">
             <Filter className="h-16 w-16 mx-auto text-muted-foreground" />
-            <h2 className="text-xl font-semibold">ไม่พบตั๋วที่ตรงกับเงื่อนไข</h2>
-            <p className="text-muted-foreground">ลองปรับเปลี่ยนตัวกรองหรือค้นหาใหม่</p>
+            <h2 className="text-xl font-semibold">{t('myTickets.noResults')}</h2>
+            <p className="text-muted-foreground">{t('myTickets.noResultsDesc')}</p>
             <Button onClick={clearFilters}>
-              ล้างตัวกรองทั้งหมด
+              {t('myTickets.clearFilters')}
             </Button>
           </div>
         )
@@ -535,15 +535,15 @@ export default function MyTickets() {
             <Card key={ticket.id} className="hover-lift">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{events[ticket.eventId]?.title || ticket.event?.title || 'ไม่ระบุชื่ออีเวนต์'}</CardTitle>
+                  <CardTitle className="text-lg">{events[ticket.eventId]?.title || ticket.event?.title || t('myTickets.ticket.unknownEvent')}</CardTitle>
                   <Badge className={`status-${ticket.status}`}>
-                    {ticket.status === 'confirmed' ? 'ยืนยันแล้ว' :
-                     ticket.status === 'pending' ? 'รอดำเนินการ' :
-                     ticket.status === 'cancelled' ? 'ยกเลิก' : ticket.status}
+                    {ticket.status === 'confirmed' ? t('myTickets.filters.confirmed') :
+                     ticket.status === 'pending' ? t('myTickets.filters.pending') :
+                     ticket.status === 'cancelled' ? t('myTickets.filters.cancelled') : ticket.status}
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  ผู้ถือตั๋ว: {ticket.holder?.name || ticket.customerInfo?.name || 'ไม่ระบุ'}
+                  {t('myTickets.ticket.holder')}: {ticket.holder?.name || ticket.customerInfo?.name || t('myTickets.ticket.unknownHolder')}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -551,14 +551,14 @@ export default function MyTickets() {
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-primary" />
                     <span className="text-sm">
-                      {events[ticket.eventId]?.schedule?.startDate ? 
-                        new Date(events[ticket.eventId].schedule.startDate).toLocaleDateString('th-TH') : 
-                        'ไม่ระบุวันที่'}
+                      {events[ticket.eventId]?.schedule?.startDate ?
+                        new Date(events[ticket.eventId].schedule.startDate).toLocaleDateString('th-TH') :
+                        t('myTickets.ticket.unknownDate')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-primary" />
-                    <span className="text-sm">{events[ticket.eventId]?.location?.venue || 'ไม่ระบุสถานที่'}</span>
+                    <span className="text-sm">{events[ticket.eventId]?.location?.venue || t('myTickets.ticket.unknownVenue')}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Ticket className="h-4 w-4 text-primary" />
@@ -567,25 +567,25 @@ export default function MyTickets() {
                     </span>
                   </div>
                 </div>
-                
+
                 {ticket.notes && (
                   <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
-                    หมายเหตุ: {ticket.notes}
+                    {t('myTickets.ticket.notes')}: {ticket.notes}
                   </div>
                 )}
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <QrCode className="h-4 w-4" />
                     <span className="text-sm font-mono">{ticket.id}</span>
                   </div>
-                  <Button 
-                     variant="outline" 
+                  <Button
+                     variant="outline"
                      size="sm"
                      disabled={ticket.status === 'cancelled'}
                      onClick={() => handleShowQR(ticket)}
                    >
-                     แสดง QR Code
+                     {t('myTickets.ticket.showQR')}
                    </Button>
                 </div>
               </CardContent>

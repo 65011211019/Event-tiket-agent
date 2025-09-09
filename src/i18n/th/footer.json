@@ -1,0 +1,40 @@
+{
+  "brandDescription": "แพลตฟอร์มจองตั๋วอีเว้นท์ออนไลน์ที่ง่ายและสะดวก ค้นหาและจองตั๋วสำหรับอีเว้นท์ที่คุณชื่นชอบได้ทันที",
+  "contact": {
+    "email": "support@EventTicketAgent.com",
+    "phone": "+66 2 123 4567",
+    "address": "กรุงเทพมหานคร ประเทศไทย"
+  },
+  "links": {
+    "product": {
+      "title": "ผลิตภัณฑ์",
+      "searchEvents": "ค้นหาอีเว้นท์",
+      "myTickets": "ตั๋วของฉัน",
+      "helpCenter": "ศูนย์ช่วยเหลือ"
+    },
+    "company": {
+      "title": "บริษัท",
+      "aboutUs": "เกี่ยวกับเรา",
+      "blog": "บล็อก",
+      "contactUs": "ติดต่อเรา"
+    },
+    "legal": {
+      "title": "กฎหมาย",
+      "termsOfService": "ข้อกำหนดการใช้งาน",
+      "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+      "refundPolicy": "นโยบายคืนเงิน"
+    },
+    "newsletter": {
+      "title": "ข่าวสาร",
+      "description": "สมัครรับข่าวสารและโปรโมชั่นพิเศษ",
+      "emailPlaceholder": "อีเมลของคุณ",
+      "subscribe": "สมัคร"
+    }
+  },
+  "copyright": "© 2024 EventTicketAgent. สงวนลิขสิทธิ์.",
+  "bottomLinks": {
+    "terms": "ข้อกำหนด",
+    "privacy": "ความเป็นส่วนตัว",
+    "cookies": "คุกกี้"
+  }
+}

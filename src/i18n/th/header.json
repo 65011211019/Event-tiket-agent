@@ -1,0 +1,23 @@
+{
+  "navigation": {
+    "home": "หน้าแรก",
+    "events": "อีเว้นท์",
+    "myTickets": "ตั๋วของฉัน",
+    "admin": "ผู้ดูแลระบบ",
+    "settings": "การตั้งค่า"
+  },
+  "search": {
+    "placeholder": "ค้นหา"
+  },
+  "language": {
+    "thai": "ไทย (Thai)",
+    "english": "English"
+  },
+  "user": {
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ"
+  },
+  "mobile": {
+    "languageLabel": "ภาษา / Language"
+  }
+}
