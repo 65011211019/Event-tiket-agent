@@ -24,6 +24,7 @@ import { eventApi } from '@/lib/api';
 import { Event, EventTicket, BookingRecord, BookingTicket } from '@/types/event';
 import { useLanguage } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
+import EventMap from '@/components/maps/EventMap';
 
 // Helper function to determine if an object is a BookingRecord
 const isBookingRecord = (item: any): item is BookingRecord => {
@@ -253,16 +254,18 @@ export default function EventDetail() {
 
   if (error || !event) {
     return (
-      <div className="container py-8">
-        <Alert className="max-w-2xl mx-auto bg-destructive/10 border-destructive/20 text-destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>{error || 'ไม่พบอีเว้นท์ที่ต้องการ'}</span>
-            <Button variant="outline" size="sm" className="border-destructive/20 hover:bg-destructive/10 text-destructive">
-              กลับไปหน้ารายการ
-            </Button>
-          </AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-background">
+        <div className="container py-8 pt-20">
+          <Alert className="max-w-2xl mx-auto bg-destructive/10 border-destructive/20 text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error || 'ไม่พบอีเว้นท์ที่ต้องการ'}</span>
+              <Button variant="outline" size="sm" className="border-destructive/20 hover:bg-destructive/10 text-destructive">
+                กลับไปหน้ารายการ
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
       </div>
     );
   }
@@ -283,7 +286,7 @@ export default function EventDetail() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Back Button */}
-      <div className="container py-4">
+      <div className="container py-4 pt-20">
         <Button variant="ghost" className="hover:bg-accent" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           กลับ
@@ -359,6 +362,11 @@ export default function EventDetail() {
                           {event.location.address}
                         </div>
                       )}
+                      {event.location?.type && (
+                        <div className="text-xs text-muted-foreground">
+                          {getLocationTypeLabel(event.location.type)}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -394,6 +402,67 @@ export default function EventDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Map Section - Separate from quick info */}
+            {event.location?.coordinates && 
+             event.location.coordinates.lat !== 0 && 
+             event.location.coordinates.lng !== 0 && (
+              <Card className="bg-card text-card-foreground">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    🗺️ ตำแหน่งที่ตั้ง
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* แสดงข้อมูลสถานที่และที่อยู่ */}
+                  <div className="space-y-2">
+                    {event.location.venue && (
+                      <div>
+                        <h4 className="font-semibold text-lg">{event.location.venue}</h4>
+                      </div>
+                    )}
+                    {event.location.address && (
+                      <div className="text-muted-foreground">
+                        📍 {event.location.address}
+                      </div>
+                    )}
+                    <div className="text-sm text-muted-foreground">
+                      พิกัด: {event.location.coordinates.lat.toFixed(6)}, {event.location.coordinates.lng.toFixed(6)}
+                    </div>
+                    
+                    {/* ปุ่มเปิด Google Maps */}
+                    <div className="pt-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-primary/20 hover:bg-primary/10 text-primary"
+                        onClick={() => {
+                          const { lat, lng } = event.location.coordinates;
+                          const googleMapsUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=16`;
+                          window.open(googleMapsUrl, '_blank');
+                        }}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        เปิดใน Google Maps
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      คลิกที่ marker เพื่อดูรายละเอียด
+                    </p>
+                    <EventMap
+                      coordinates={event.location.coordinates}
+                      venue={event.location.venue}
+                      address={event.location.address}
+                      height="350px"
+                      zoom={16}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Description */}
             <Card className="bg-card text-card-foreground">
