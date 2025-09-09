@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { eventApi } from '@/lib/api';
+import { uploadToCloudinary } from '@/lib/cloudinary'; // Import the Cloudinary utility
 import { Event, EventLocation } from '@/types/event';
 import { toast } from '@/hooks/use-toast';
 
@@ -19,6 +20,11 @@ export default function AdminEventForm() {
   const [isLoading, setIsLoading] = React.useState(isEdit);
   const [isSaving, setIsSaving] = React.useState(false);
   const [savedEvent, setSavedEvent] = React.useState<Event | null>(null); // Track the saved event
+  const [previewImages, setPreviewImages] = React.useState<{banner: string, thumbnail: string}>({banner: '', thumbnail: ''});
+  const bannerFileRef = React.useRef<File | null>(null);
+  const thumbnailFileRef = React.useRef<File | null>(null);
+  const bannerInputRef = React.useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = React.useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = React.useState<{
     title: string;
@@ -140,6 +146,11 @@ export default function AdminEventForm() {
             },
             tags: event.tags || []
           });
+          
+          // Clear file refs and preview images when loading existing event
+          bannerFileRef.current = null;
+          thumbnailFileRef.current = null;
+          setPreviewImages({banner: '', thumbnail: ''});
         } catch (error) {
           console.error('Failed to load event:', error);
           toast({
@@ -155,14 +166,118 @@ export default function AdminEventForm() {
     }
   }, [isEdit, id]);
 
+  // Handle image file selection (store file temporarily, don't upload yet)
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>, imageType: 'banner' | 'thumbnail') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Store the actual file in a ref for later upload
+    if (imageType === 'banner') {
+      bannerFileRef.current = file;
+    } else if (imageType === 'thumbnail') {
+      thumbnailFileRef.current = file;
+    }
+    
+    // Show preview of selected image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPreviewImages({
+        ...previewImages,
+        [imageType]: e.target?.result as string
+      });
+    };
+    reader.readAsDataURL(file);
+    
+    toast({
+      title: "เลือกรูปภาพแล้ว",
+      description: `รูปภาพ ${imageType === 'banner' ? 'แบนเนอร์' : 'ย่อ'} ถูกเลือกแล้ว ระบบจะอัปโหลดเมื่อบันทึกอีเว้นท์`,
+    });
+  };
+
+  // Handle removing an image before upload
+  const handleRemoveImage = (imageType: 'banner' | 'thumbnail') => {
+    // Clear the file ref
+    if (imageType === 'banner') {
+      bannerFileRef.current = null;
+    } else if (imageType === 'thumbnail') {
+      thumbnailFileRef.current = null;
+    }
+    
+    // Clear preview
+    setPreviewImages({
+      ...previewImages,
+      [imageType]: ''
+    });
+    
+    // Also clear the URL from formData if it exists
+    setFormData({
+      ...formData,
+      images: {
+        ...formData.images,
+        [imageType]: ''
+      }
+    });
+    
+    // Clear the file input field
+    if (imageType === 'banner' && bannerInputRef.current) {
+      bannerInputRef.current.value = '';
+    } else if (imageType === 'thumbnail' && thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = '';
+    }
+    
+    toast({
+      title: "ลบรูปภาพสำเร็จ",
+      description: `รูปภาพ ${imageType === 'banner' ? 'แบนเนอร์' : 'ย่อ'} ได้ถูกลบแล้ว`,
+    });
+  };
+
+  // Upload images to Cloudinary
+  const uploadImagesToCloudinary = async () => {
+    // Start with existing image URLs
+    const uploadedImages = { ...formData.images };
+    
+    try {
+      // Upload banner image if selected
+      if (bannerFileRef.current) {
+        const bannerUrl = await uploadToCloudinary(bannerFileRef.current);
+        uploadedImages.banner = bannerUrl;
+      }
+      
+      // Upload thumbnail image if selected
+      if (thumbnailFileRef.current) {
+        const thumbnailUrl = await uploadToCloudinary(thumbnailFileRef.current);
+        uploadedImages.thumbnail = thumbnailUrl;
+      }
+      
+      return uploadedImages;
+    } catch (error) {
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถอัปโหลดรูปภาพได้",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  // Modify handleSubmit to upload images when saving event
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       setIsSaving(true);
       
+      // Upload images to Cloudinary first
+      const imagesWithUrls = await uploadImagesToCloudinary();
+      
+      // Update formData with image URLs
+      const formDataWithImages = {
+        ...formData,
+        images: imagesWithUrls
+      };
+      
       if (isEdit && id) {
-        const updatedEvent = await eventApi.updateEvent(id, formData);
+        const updatedEvent = await eventApi.updateEvent(id, formDataWithImages);
         setSavedEvent(updatedEvent);
         toast({
           title: "อัปเดตอีเว้นท์สำเร็จ",
@@ -170,13 +285,21 @@ export default function AdminEventForm() {
         });
         navigate('/admin/events');
       } else {
-        const createdEvent = await eventApi.createEvent(formData);
+        const createdEvent = await eventApi.createEvent(formDataWithImages);
         setSavedEvent(createdEvent);
         toast({
           title: "สร้างอีเว้นท์สำเร็จ",
-          description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว คุณสามารถดูตัวอย่างได้โดยคลิกปุ่ม \"ดูตัวอย่างหน้าหลัก\"",
+          description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว",
         });
-        // Stay on the page to show the preview button
+        // Navigate back to events list after successful creation
+        navigate('/admin/events', { 
+          state: { 
+            alert: {
+              title: "สร้างอีเว้นท์สำเร็จ",
+              description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว"
+            }
+          } 
+        });
       }
     } catch (error) {
       toast({
@@ -594,30 +717,108 @@ export default function AdminEventForm() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="bannerImage">รูปแบนเนอร์</Label>
-                <Input
-                  id="bannerImage"
-                  type="url"
-                  value={formData.images.banner}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    images: { ...formData.images, banner: e.target.value }
-                  })}
-                  placeholder="https://example.com/banner.jpg"
-                />
+                <div className="flex items-center space-x-4">
+                  <Input
+                    id="bannerImage"
+                    type="url"
+                    value={formData.images.banner}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      images: { ...formData.images, banner: e.target.value }
+                    })}
+                    placeholder="https://example.com/banner.jpg"
+                    className="flex-1"
+                  />
+                  <Input
+                    ref={bannerInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageSelect(e, 'banner')}
+                    className="w-1/3"
+                  />
+                  {(previewImages.banner || formData.images.banner) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleRemoveImage('banner')}
+                      className="h-10 w-10"
+                    >
+                      <span className="text-lg">✕</span>
+                    </Button>
+                  )}
+                </div>
+                {(previewImages.banner || formData.images.banner) && (
+                  <div className="mt-2 relative">
+                    <img 
+                      src={previewImages.banner || formData.images.banner} 
+                      alt="Banner preview" 
+                      className="h-32 w-full object-cover rounded-md border"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleRemoveImage('banner')}
+                      className="absolute top-2 right-2 h-8 w-8 bg-white/80 hover:bg-white"
+                    >
+                      <span className="text-lg">✕</span>
+                    </Button>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="thumbnailImage">รูปย่อ</Label>
-                <Input
-                  id="thumbnailImage"
-                  type="url"
-                  value={formData.images.thumbnail}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    images: { ...formData.images, thumbnail: e.target.value }
-                  })}
-                  placeholder="https://example.com/thumbnail.jpg"
-                />
+                <div className="flex items-center space-x-4">
+                  <Input
+                    id="thumbnailImage"
+                    type="url"
+                    value={formData.images.thumbnail}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      images: { ...formData.images, thumbnail: e.target.value }
+                    })}
+                    placeholder="https://example.com/thumbnail.jpg"
+                    className="flex-1"
+                  />
+                  <Input
+                    ref={thumbnailInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageSelect(e, 'thumbnail')}
+                    className="w-1/3"
+                  />
+                  {(previewImages.thumbnail || formData.images.thumbnail) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleRemoveImage('thumbnail')}
+                      className="h-10 w-10"
+                    >
+                      <span className="text-lg">✕</span>
+                    </Button>
+                  )}
+                </div>
+                {(previewImages.thumbnail || formData.images.thumbnail) && (
+                  <div className="mt-2 relative">
+                    <img 
+                      src={previewImages.thumbnail || formData.images.thumbnail} 
+                      alt="Thumbnail preview" 
+                      className="h-20 w-20 object-cover rounded-md border"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleRemoveImage('thumbnail')}
+                      className="absolute top-1 right-1 h-6 w-6 bg-white/80 hover:bg-white"
+                    >
+                      <span className="text-sm">✕</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
