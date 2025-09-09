@@ -203,7 +203,7 @@ export default function EventCard({ event, variant = 'default', className, isAdm
             {realAvailableTickets > 0 && isUpcoming && (
               <Button asChild size="sm" className="flex-1 bg-gradient-primary">
 
-                <Link to={`/events/${event.id}/book`}>
+                <Link to={`/events/${event.id}/booking`}>
                   {t('events.bookNow')}
                 </Link>
               </Button>

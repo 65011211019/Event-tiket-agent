@@ -64,7 +64,7 @@ const App = () => (
                     <EventDetail />
                   </Layout>
                 } />
-                <Route path="/events/:id/book" element={
+                <Route path="/events/:id/booking" element={
                   <Layout>
                     <EventBooking />
                   </Layout>
