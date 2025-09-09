@@ -33,6 +33,47 @@ const reinitializeModel = () => {
   model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 };
 
+// Store conversation context for better event tracking
+const conversationMemory: { [key: string]: any } = {};
+
+// Function to update conversation context with booking awareness
+const updateConversationContext = (userId: string, context: any) => {
+  if (!userId) return;
+  
+  const currentTime = new Date().toISOString();
+  const existingContext = conversationMemory[userId] || {};
+  
+  // Merge new context with existing, preserving important booking state
+  conversationMemory[userId] = {
+    ...existingContext,
+    ...context,
+    lastUpdated: currentTime,
+    // Track booking-related activity
+    lastAction: context.action || existingContext.lastAction,
+    lastEventMentioned: context.eventName || context.lastEventMentioned || existingContext.lastEventMentioned,
+    recentBookingIntent: context.recentBookingIntent || 
+                        (context.action === 'booking_inquiry' || context.action === 'event_selection') ||
+                        existingContext.recentBookingIntent,
+    // Auto-expire booking intent after 5 minutes of inactivity
+    bookingIntentExpiry: context.recentBookingIntent ? 
+                        new Date(Date.now() + 5 * 60 * 1000).toISOString() :
+                        existingContext.bookingIntentExpiry
+  };
+  
+  // Clean up expired booking intent
+  if (conversationMemory[userId].bookingIntentExpiry && 
+      new Date() > new Date(conversationMemory[userId].bookingIntentExpiry)) {
+    conversationMemory[userId].recentBookingIntent = false;
+    delete conversationMemory[userId].bookingIntentExpiry;
+  }
+};
+
+// Function to get conversation context
+const getConversationContext = (userId: string) => {
+  if (!userId) return {};
+  return conversationMemory[userId] || {};
+};
+
 // Function to get API key status
 export const getApiKeyStatus = () => {
   return {
@@ -51,19 +92,18 @@ export const manualRotateApiKey = () => {
 };
 
 // Enhanced action types to support automatic navigation
-export const parseUserInput = (input: string): { type: string; payload?: any } => {
+export const parseUserInput = (input: string, conversationContext?: any): { type: string; payload?: any } => {
   const lowerInput = input.toLowerCase().trim();
   
-  // Booking confirmation and general agreement responses - ENHANCED
+  // Check if there's an active booking context from recent conversation
+  const hasActiveBookingContext = conversationContext?.recentBookingIntent || 
+                                  conversationContext?.lastEventMentioned ||
+                                  conversationContext?.lastAction === 'booking_inquiry';
+  
+  // Explicit booking confirmation with context validation
   if (lowerInput.includes('จองบัตร') || 
       lowerInput.includes('จองตั๋ว') ||
-      lowerInput.includes('ตกลง') || 
-      lowerInput.includes('โอเค') || 
-      lowerInput.includes('ok') ||
-      lowerInput.includes('ใช่') ||
-      lowerInput.includes('yes') ||
-      lowerInput.includes('ยืนยัน') ||
-      lowerInput.includes('ไปเลย') ||
+      lowerInput.includes('ยืนยันการจอง') ||
       (lowerInput.includes('จอง') && 
        (lowerInput.includes('ราคาปกติ') || lowerInput.includes('early bird') ||
         lowerInput.includes('นักเรียน') || lowerInput.includes('vip') ||
@@ -81,6 +121,20 @@ export const parseUserInput = (input: string): { type: string; payload?: any } =
     
     return { type: 'confirm_booking', payload: { ticketType, originalQuery: input } };
   }
+  
+  // Contextual agreement responses - only trigger booking if there's active booking context
+  if ((lowerInput.includes('ตกลง') || 
+      lowerInput.includes('โอเค') || 
+      lowerInput.includes('ok') ||
+      lowerInput.includes('ใช่') ||
+      lowerInput.includes('yes') ||
+      lowerInput.includes('ยืนยัน')) && hasActiveBookingContext) {
+    
+    // Only proceed with booking confirmation if context suggests booking
+    return { type: 'confirm_booking', payload: { ticketType: 'regular', originalQuery: input } };
+  }
+  
+  // General navigation confirmation (for non-booking contexts)
   if (lowerInput.includes('ไปเลย') || lowerInput.includes('ตกลง') || lowerInput.includes('ใช่') || 
       lowerInput.includes('yes') || lowerInput.includes('ok') || lowerInput.includes('โอเค') ||
       lowerInput === 'ไป' || lowerInput === 'go') {
@@ -154,7 +208,12 @@ export const parseUserInput = (input: string): { type: string; payload?: any } =
     return { type: 'ai_booking_request', payload: { eventName: mentionedEvent, originalQuery: input } };
   }
   
-  // Specific booking choices - NEW
+  // Show more events in booking - NEW
+  if (lowerInput.includes('ดูอีเว้นท์เพิ่ม') || lowerInput.includes('ดูเพิ่มเติม') || 
+      lowerInput.includes('show more') || lowerInput.includes('ดูต่อไป') ||
+      lowerInput.includes('อีเว้นท์ต่อไป') || lowerInput.includes('เพิ่มเติม')) {
+    return { type: 'show_more_events', payload: { originalQuery: input } };
+  }
   if (lowerInput.includes('จอง') && 
       (lowerInput.includes('digital marketing') || lowerInput.includes('tech conference') ||
        lowerInput.includes('jazz') || lowerInput.includes('marathon') ||
@@ -220,7 +279,20 @@ export const generateAIResponse = async (userInput: string, context?: any): Prom
 
   while (attemptCount < maxAttempts) {
     try {
-      const action = parseUserInput(userInput);
+      // Get conversation context if available
+      const userConversationContext = context?.conversationContext || {};
+      
+      // Get stored conversation memory for the user
+      const userId = context?.currentUser?.id;
+      const userMemory = userId ? getConversationContext(userId) : {};
+      
+      // Merge contexts
+      const combinedConversationContext = {
+        ...userConversationContext,
+        ...userMemory
+      };
+      
+      const action = parseUserInput(userInput, combinedConversationContext);
       
       // Force refresh for critical queries to ensure real-time data
       const forceRefresh = userInput.includes('ล่าสุด') || 
@@ -236,7 +308,8 @@ export const generateAIResponse = async (userInput: string, context?: any): Prom
       const enhancedContext = {
         ...context,
         isRealTimeQuery: forceRefresh,
-        lastDataRefresh: new Date().toISOString()
+        lastDataRefresh: new Date().toISOString(),
+        conversationContext: combinedConversationContext
       };
       
       // Handle specific actions
@@ -246,7 +319,36 @@ export const generateAIResponse = async (userInput: string, context?: any): Prom
       
       // For general queries, use dynamic system knowledge instead of hardcoded prompts
       const systemKnowledge = getSystemContext(enhancedContext, true); // Include event details
-      const conversationContext = enhancedContext?.conversationContext || 'เริ่มต้นการสนทนา';
+      
+      // Handle conversation context properly for both string and object types
+      let conversationContextText = 'เริ่มต้นการสนทนา';
+      const contextData = enhancedContext?.conversationContext;
+      
+      if (typeof contextData === 'string') {
+        conversationContextText = contextData;
+      } else if (typeof contextData === 'object' && contextData) {
+        // Extract meaningful conversation context from object
+        const contextParts = [];
+        if (contextData.lastEventMentioned) {
+          contextParts.push(`กำลังสนใจอีเว้นท์: ${contextData.lastEventMentioned}`);
+        }
+        if (contextData.recentBookingIntent) {
+          contextParts.push('มีความต้องการจองตั๋ว');
+        }
+        if (contextData.lastAction) {
+          const actionMap = {
+            'booking_inquiry': 'สอบถามการจอง',
+            'event_selection': 'เลือกอีเว้นท์',
+            'event_info': 'ดูข้อมูลอีเว้นท์'
+          };
+          const actionText = actionMap[contextData.lastAction as keyof typeof actionMap] || contextData.lastAction;
+          contextParts.push(`กิจกรรมล่าสุด: ${actionText}`);
+        }
+        
+        if (contextParts.length > 0) {
+          conversationContextText = contextParts.join(', ');
+        }
+      }
       
       // Include real-time data status in the prompt
       const dataFreshnessInfo = forceRefresh 
@@ -260,7 +362,7 @@ ${systemKnowledge}
 
 สถานะข้อมูล: ${dataFreshnessInfo}
 
-บริบทการสนทนา: ${conversationContext}
+บริบทการสนทนา: ${conversationContextText}
 
 ผู้ใช้ถาม: "${userInput}"
 
@@ -481,607 +583,7 @@ const generateContextualSuggestions = (context?: any): string[] => {
   return suggestions.slice(0, 4); // Return max 4 suggestions
 };
 
-// Execute specific actions with dynamic knowledge
-const executeSpecificAction = async (action: any, context?: any): Promise<AIResponse> => {
-  try {
-    const { type, payload } = action;
-    const memory = context?.memory;
-    
-    switch (type) {
-      case 'confirm_navigation':
-        return await handleNavigationConfirmation(context);
-        
-      case 'auto_navigate_booking':
-      case 'auto_navigate_detail':
-      case 'auto_navigate':
-        return await handleAutoNavigation(type, payload, context);
-        
-      case 'force_realtime_update':
-        return await handleRealTimeUpdate(context);
-        
-      case 'ai_booking_request':
-        return await handleAIBookingRequest(payload, context);
-        
-      case 'specific_event_booking':
-        return await handleSpecificEventBooking(payload, context);
-        
-      case 'confirm_booking':
-        return await handleBookingConfirmation(payload, context);
-          
-      case 'get_events':
-        // Check if we have cached events data
-        let events;
-        const cachedEvents = memory?.events;
-        const lastFetch = memory?.lastFetchTime?.events;
-        const cacheAge = lastFetch ? Date.now() - lastFetch.getTime() : Infinity;
-        
-        // Use cache if it's less than 5 minutes old
-        if (cachedEvents && cachedEvents.length > 0 && cacheAge < 300000) {
-          events = { events: cachedEvents };
-        } else {
-          // Fetch fresh data
-          events = await aiApi.getAllEvents(payload?.filters);
-        }
-        
-        const eventCount = events.events?.length || 0;
-        
-        // Generate natural response based on actual data
-        let message;
-        if (eventCount === 0) {
-          message = 'ขณะนี้ยังไม่มีอีเว้นท์ในระบบค่ะ แต่เร็วๆ นี้อาจจะมีอีเว้นท์ใหม่ๆ เข้ามา ติดตามได้เลยค่ะ';
-        } else {
-          const upcomingCount = events.events?.filter(
-            event => new Date(event.schedule?.startDate || 0) > new Date()
-          ).length || 0;
-          
-          message = `ตอนนี้มีอีเว้นท์ทั้งหมด ${eventCount} รายการค่ะ`;
-          if (upcomingCount > 0) {
-            message += ` มีอีเว้นท์ที่กำลังจะมาถึง ${upcomingCount} รายการ`;
-          }
-          message += ' สามารถดูรายละเอียดได้ด้านล่างเลยค่ะ ✨';
-        }
-        
-        return {
-          message,
-          data: events.events,
-          suggestions: eventCount > 0 
-            ? ['ดูรายละเอียด', 'ค้นหาอีเว้นท์', 'อีเว้นท์แนะนำ']
-            : ['รออีเว้นท์ใหม่', 'ติดตามข่าวสาร', 'ติดต่อสอบถาม']
-        };
-        
-      case 'search_events':
-        // Check cache for search results
-        let searchResults;
-        const cacheKey = `${payload.query}_${JSON.stringify(payload.filters || {})}`;
-        const cachedSearch = memory?.searchResults?.[cacheKey];
-        
-        if (cachedSearch) {
-          const now = new Date();
-          const expiryTime = new Date(cachedSearch.timestamp.getTime() + cachedSearch.ttl);
-          
-          if (now < expiryTime) {
-            searchResults = { events: cachedSearch.results };
-          } else {
-            // Cache expired, fetch fresh data
-            searchResults = await aiApi.searchEvents(payload.query, payload.filters);
-            // Note: Cache update should be handled by the calling context
-          }
-        } else {
-          // No cache, fetch fresh data
-          searchResults = await aiApi.searchEvents(payload.query, payload.filters);
-          // Note: Cache update should be handled by the calling context
-        }
-        
-        const searchCount = searchResults.events?.length || 0;
-        
-        // Return simple message with search results for EventPreview component
-        return {
-          message: `พบอีเว้นท์ที่ตรงกับ "${payload.query}" จำนวน ${searchCount} รายการค่ะ 🔍 ดูรายละเอียดด้านล่างได้เลยค่ะ`,
-          data: searchResults.events,
-          suggestions: ['ดูรายละเอียด', 'จองตั๋ว', 'ค้นหาอื่น']
-        };
-        
-      case 'recommend_events':
-        // Use cached events data to recommend interesting events
-        let recommendEvents;
-        const cachedEventsForRecommend = memory?.events;
-        
-        if (cachedEventsForRecommend && cachedEventsForRecommend.length > 0) {
-          // Use cached data
-          recommendEvents = { events: cachedEventsForRecommend };
-        } else {
-          // Fetch fresh data if no cache
-          recommendEvents = await aiApi.getAllEvents();
-        }
-        
-        // Select interesting events (featured, upcoming, or popular)
-        const interestingEvents = recommendEvents.events?.filter(event => 
-          event.featured || 
-          event.capacity?.available > 0 ||
-          new Date(event.schedule?.startDate) > new Date()
-        ).slice(0, 3) || [];
-        
-        const recommendCount = interestingEvents.length;
-        
-        return {
-          message: `นี่คืออีเว้นท์น่าสนใจที่แนะนำให้คุณ ${recommendCount} รายการค่ะ ✨ เลือกดูรายละเอียดที่สนใจได้เลยค่ะ`,
-          data: interestingEvents,
-          suggestions: ['ดูรายละเอียด', 'จองตั๋ว', 'ดูอีเว้นท์ทั้งหมด']
-        };
-        
-      case 'get_tickets':
-        const tickets = await aiApi.getUserTickets(payload?.userId);
-        const ticketCount = tickets.length;
-        
-        const ticketsPrompt = `
-สร้างข้อความตอบกลับเป็นภาษาไทยสำหรับการแสดงตั๋วของผู้ใช้
-จำนวนตั๋ว: ${ticketCount} ใบ
-ให้ข้อความที่เป็นมิตรและมีประโยชน์
-`;
-        
-        const ticketsResult = await model.generateContent(ticketsPrompt);
-        const ticketsMessage = await ticketsResult.response.text();
-        
-        return {
-          message: ticketsMessage,
-          data: tickets,
-          suggestions: ['ดูรายละเอียดตั๋ว', 'ตรวจสอบตั๋ว', 'จองตั๋วใหม่']
-        };
-        
-      case 'get_stats':
-        const stats = await aiApi.getSystemStats();
-        
-        const statsPrompt = `
-สร้างข้อความตอบกลับเป็นภาษาไทยสำหรับการแสดงสถิติระบบ
-ให้สรุปข้อมูลสถิติอย่างเข้าใจง่าย
-`;
-        
-        const statsResult = await model.generateContent(statsPrompt);
-        const statsMessage = await statsResult.response.text();
-        
-        return {
-          message: statsMessage,
-          data: stats,
-          suggestions: ['ดูรายละเอียด', 'ส่งออกรายงาน', 'ตั้งค่าการแจ้งเตือน']
-        };
-        
-      case 'global_search':
-        const globalResults = await aiApi.globalSearch(payload.query);
-        
-        const globalPrompt = `
-สร้างข้อความตอบกลับเป็นภาษาไทยสำหรับผลการค้นหาทั่วไป
-คำค้นหา: "${payload.query}"
-ให้ข้อความที่เป็นมิตรและช่วยเหลือ
-`;
-        
-        const globalResult = await model.generateContent(globalPrompt);
-        const globalMessage = await globalResult.response.text();
-        
-        return {
-          message: globalMessage,
-          data: globalResults,
-          suggestions: ['ดูเพิ่มเติม', 'กรองผลลัพธ์', 'ค้นหาใหม่']
-        };
-        
-      default:
-        return {
-          message: `ขออภัย ไม่เข้าใจคำขอ "${type}" ค่ะ ลองถามด้วยคำอื่นได้ไหมคะ`,
-          suggestions: ['ช่วยเหลือ', 'ดูคำสั่งที่ใช้ได้', 'ติดต่อผู้ดูแล']
-        };
-    }
-  } catch (error) {
-    console.error('Execute specific action error:', error);
-    return {
-      message: `เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : 'ไม่ทราบสาเหตุ'} กรุณาลองใหม่อีกครั้งค่ะ`,
-      suggestions: ['ลองใหม่', 'ช่วยเหลือ', 'รายงานปัญหา']
-    };
-  }
-};
-
-// Handle booking confirmation and proceed to booking page - ENHANCED
-const handleBookingConfirmation = async (payload: any, context?: any): Promise<AIResponse> => {
-  try {
-    console.log('✅ Processing booking confirmation...', payload);
-    
-    const { ticketType, originalQuery } = payload || {};
-    
-    // Check if user is authenticated
-    if (!context?.currentUser?.id) {
-      return {
-        message: '🔐 คุณต้องเข้าสู่ระบบก่อนจองตั๋วค่ะ 😊\n\nการจองตั๋วต้องมีบัญชีผู้ใช้เพื่อความปลอดภัยและการจัดการการชำระเงิน ✨',
-        suggestions: ['เข้าสู่ระบบ', 'สมัครสมาชิก', 'ดูอีเว้นท์ก่อน'],
-        action: {
-          type: 'navigate',
-          payload: { url: '/login' }
-        }
-      };
-    }
-    
-    // Try to get event info from different context sources
-    let eventInfo = null;
-    let selectedTicketType = ticketType;
-    
-    // First check for stored ticket options in context
-    const ticketOptions = context?.ticketOptions;
-    if (ticketOptions?.event) {
-      eventInfo = ticketOptions.event;
-    }
-    
-    // If no ticket options, try to get from booking choices
-    if (!eventInfo && context?.bookingChoices?.events?.length > 0) {
-      // For now, take the first event - in a real scenario, we'd need better event selection logic
-      eventInfo = context.bookingChoices.events[0];
-    }
-    
-    // If still no event, try to find "หมอลำ" event specifically from the conversation context
-    if (!eventInfo) {
-      console.log('กำลังค้นหาอีเว้นท์ "หมอลำ" จากบันทึกการสนทนา...');
-      
-      try {
-        const events = await aiApi.getAllEvents();
-        const allEvents = events.events || [];
-        
-        // Look for "หมอลำ" event
-        eventInfo = allEvents.find(event => 
-          event && event.title && 
-          (event.title.toLowerCase().includes('หมอลำ') ||
-           'หมอลำ'.includes(event.title.toLowerCase()))
-        );
-        
-        // Default to regular ticket if not specified
-        if (!selectedTicketType && eventInfo) {
-          selectedTicketType = 'regular';
-        }
-      } catch (error) {
-        console.error('Error finding หมอลำ event:', error);
-      }
-    }
-
-    if (!eventInfo) {
-      return {
-        message: '😔 ขออภัยค่ะ ดิฉันไม่พบข้อมูลอีเว้นท์ที่คุณต้องการจอง\n\nกรุณาบอกชื่ออีเว้นท์ที่ต้องการจองก่อนไหมคะ 😊',
-        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'หมอลำ', 'ช่วยเหลือ']
-      };
-    }
-    
-    // Find selected ticket type info
-    let selectedTicket = null;
-    if (selectedTicketType && eventInfo?.pricing) {
-      // Map ticket type to pricing info
-      const priceMap = {
-        regular: 'ราคาปกติ',
-        earlyBird: 'บัตรนกผู้จองล่วงหน้า (Early Bird)',
-        student: 'บัตรนักเรียน/นักศึกษา',
-        vip: 'บัตร VIP',
-        premium: 'บัตร Premium',
-        general: 'บัตรทั่วไป',
-        group: 'บัตรกลุ่ม'
-      };
-      
-      const price = eventInfo.pricing[selectedTicketType];
-      if (price !== undefined) {
-        selectedTicket = {
-          type: selectedTicketType,
-          label: priceMap[selectedTicketType as keyof typeof priceMap] || selectedTicketType,
-          price: price
-        };
-      }
-    }
-    
-    // Generate confirmation message
-    let message = `✅ เยี่ยมเลย! กำลังพาคุณไปหน้าชำระเงินเลยค่ะ 🎉💳\n\n`;
-    message += `🎫 **${eventInfo.title}**\n`;
-    
-    if (selectedTicket) {
-      message += `🎫 ประเภทตั๋ว: ${selectedTicket.label}\n`;
-      message += `💰 ราคา: ${selectedTicket.price.toLocaleString()} บาท\n\n`;
-    }
-    
-    message += `ดิฉันจะพาคุณไปยังหน้าชำระเงินโดยตรง พร้อมข้อมูลที่คุณเลือกไว้แล้ว 🚀\n\nคุณจะสามารถ:\n• เลือกจำนวนตั๋วที่ต้องการ\n• กรอกข้อมูลการชำระเงิน\n• ชำระเงินทันที 💳`;
-    
-    return {
-      message,
-      data: [eventInfo],
-      suggestions: ['ไปจองเลย', 'ดูรายละเอียดก่อน', 'เลือกอีเว้นท์อื่น'],
-      action: {
-        type: 'navigate',
-        payload: {
-          url: `/events/${eventInfo.id}/booking?payment=true&ticket=${selectedTicketType}`,
-          eventId: eventInfo.id,
-          preselectedTicketType: selectedTicketType
-        }
-      }
-    };
-    
-  } catch (error) {
-    console.error('Booking confirmation error:', error);
-    return {
-      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการยืนยันการจอง กรุณาลองใหม่อีกครั้งค่ะ',
-      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
-    };
-  }
-};
-
-// Handle specific event booking with ticket options - NEW FUNCTION
-const handleSpecificEventBooking = async (payload: any, context?: any): Promise<AIResponse> => {
-  try {
-    console.log('🎫 Processing specific event booking...', payload);
-    
-    const { eventName, originalQuery } = payload || {};
-    
-    // Find the specific event
-    const events = await aiApi.getAllEvents();
-    const allEvents = events.events || [];
-    
-    const targetEvent = allEvents.find(event => 
-      event && event.title && 
-      (event.title.toLowerCase().includes(eventName.toLowerCase()) ||
-       eventName.toLowerCase().includes(event.title.toLowerCase()))
-    );
-    
-    if (!targetEvent) {
-      return {
-        message: `😔 ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการจอง หรืออาจอีเว้นท์นี้ไม่มีแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
-        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
-      };
-    }
-    
-    // Check if event is available for booking
-    const eventDate = new Date(targetEvent.schedule?.startDate || 0);
-    const now = new Date();
-    
-    if (eventDate <= now) {
-      return {
-        message: `😔 ขออภัยค่ะ อีเว้นท์ "${targetEvent.title}" ได้จัดขึ้นแล้วหรือกำลังจะมาถึง ไม่สามารถจองได้แล้ว\n\nลองหาอีเว้นท์อื่นๆ ที่ยังจองได้ไหมคะ? 😊`,
-        suggestions: ['อีเว้นท์ที่กำลังจะมาถึง', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
-      };
-    }
-    
-    if ((targetEvent.capacity?.available || 0) <= 0) {
-      return {
-        message: `😔 ขออภัยค่ะ อีเว้นท์ "${targetEvent.title}" มีที่นั่งเต็มแล้ว ไม่สามารถจองเพิ่มได้\n\nลองหาอีเว้นท์อื่นๆ ที่ยังมีที่ว่างไหมคะ? 😊`,
-        suggestions: ['อีเว้นท์ที่มีที่ว่าง', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
-      };
-    }
-    
-    // Get ticket options from event pricing
-    const ticketOptions = [];
-    const pricing = targetEvent.pricing || {};
-    
-    // Map pricing to ticket options with Thai labels
-    const priceMap = {
-      earlyBird: 'บัตรนกผู้จองล่วงหน้า (Early Bird)',
-      regular: 'บัตรราคาปกติ',
-      student: 'บัตรนักเรียน/นักศึกษา',
-      group: 'บัตรกลุ่ม',
-      vip: 'บัตร VIP',
-      premium: 'บัตร Premium',
-      general: 'บัตรทั่วไป',
-      fullMarathon: 'มาราธอนเต็มระยะทาง',
-      halfMarathon: 'ฮาฟมาราธอน',
-      miniMarathon: 'มินิมาราธอน',
-      funRun: 'Fun Run',
-      adult: 'ผู้ใหญ่',
-      child: 'เด็ก',
-      senior: 'ผู้สูงอายุ',
-      member: 'สมาชิก',
-      free: 'ฟรี'
-    };
-    
-    Object.entries(pricing).forEach(([type, price]) => {
-      if (typeof price === 'number' && price >= 0 && priceMap[type as keyof typeof priceMap]) {
-        ticketOptions.push({
-          type,
-          label: priceMap[type as keyof typeof priceMap],
-          price
-        });
-      }
-    });
-    
-    // Sort by price
-    ticketOptions.sort((a, b) => a.price - b.price);
-    
-    if (ticketOptions.length === 0) {
-      return {
-        message: `😔 ขออภัยค่ะ ไม่มีข้อมูลราคาตั๋วสำหรับอีเว้นท์นี้ กรุณาติดต่อผู้จัดงานโดยตรง`,
-        suggestions: ['ดูรายละเอียด', 'ติดต่อผู้จัดงาน', 'กลับไปหน้าหลัก']
-      };
-    }
-    
-    // Generate message with ticket choices
-    const formattedEventDate = new Date(targetEvent.schedule?.startDate || 0);
-    const formattedDate = formattedEventDate.toLocaleDateString('th-TH', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    
-    let message = `🎉 พบอีเว้นท์แล้ว! ดิฉันพร้อมจะช่วยคุณจอง 🚀\n\n`;
-    message += `🎫 **${targetEvent.title}**\n`;
-    message += `📅 ${formattedDate}\n`;
-    message += `📍 ${targetEvent.location?.venue || 'ออนไลน์'}\n`;
-    message += `🎫 เหลือ ${targetEvent.capacity?.available || 0} ที่นั่ง\n\n`;
-    
-    message += `🎫 **ประเภทตั๋ว:**\n`;
-    ticketOptions.forEach((option, index) => {
-      message += `${index + 1}. ${option.label} - **${option.price.toLocaleString()} บาท**\n`;
-    });
-    
-    message += `\nคุณต้องการตั๋วประเภทไหนคะ? 🤔\n\nกดปุ่มด้านล่างเพื่อเลือกและดำเนินการจองค่ะ ✨`;
-    
-    // Generate booking suggestions for each ticket type
-    const bookingSuggestions = ticketOptions.map(option => 
-      `จอง ${option.label}`
-    );
-    
-    // Add general options
-    bookingSuggestions.push('ดูรายละเอียดก่อน');
-    
-    return {
-      message,
-      data: [targetEvent],
-      suggestions: bookingSuggestions.slice(0, 4),
-      action: {
-        type: 'show_ticket_options',
-        payload: {
-          event: targetEvent,
-          ticketOptions,
-          eventId: targetEvent.id
-        }
-      }
-    };
-    
-  } catch (error) {
-    console.error('Specific event booking error:', error);
-    return {
-      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการค้นหาข้อมูลตั๋ว กรุณาลองใหม่อีกครั้งค่ะ',
-      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
-    };
-  }
-};
-
-// Handle AI booking requests with choices - NEW FUNCTION
-const handleAIBookingRequest = async (payload: any, context?: any): Promise<AIResponse> => {
-  try {
-    console.log('🤖 Processing AI booking request...', payload);
-    
-    const { eventName, originalQuery } = payload || {};
-    
-    // Get available events
-    const events = await aiApi.getAllEvents();
-    const allEvents = events.events || [];
-    
-    // Filter events based on query or show upcoming events
-    let candidateEvents = allEvents.filter(event => {
-      if (!event || !event.title) return false;
-      
-      // Filter by event name if mentioned
-      if (eventName) {
-        return event.title.toLowerCase().includes(eventName.toLowerCase()) ||
-               eventName.toLowerCase().includes(event.title.toLowerCase());
-      }
-      
-      // Show upcoming events with available seats
-      const eventDate = new Date(event.schedule?.startDate || 0);
-      const now = new Date();
-      return eventDate > now && 
-             event.status === 'active' && 
-             (event.capacity?.available || 0) > 0;
-    });
-    
-    // Limit to 5 most relevant events
-    candidateEvents = candidateEvents.slice(0, 5);
-    
-    if (candidateEvents.length === 0) {
-      return {
-        message: `😔 ขออภัยค่ะ ${eventName ? `ไม่พบอีเว้นท์ "${eventName}"` : 'ไม่มีอีเว้นท์ที่พร้อมจองในขณะนี้'} หรืออาจมีที่นั่งเต็มแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
-        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
-      };
-    }
-    
-    // Generate message with event choices
-    let message = `🎉 เยี่ยมเลยค่ะ! ดิฉันพร้อมจะช่วยคุณจองตั๋ว 🚀\n\n`;
-    
-    if (eventName) {
-      message += `พบอีเว้นท์ที่ตรงกับ "${eventName}" แล้ว ${candidateEvents.length} รายการ:\n\n`;
-    } else {
-      message += `มีอีเว้นท์ที่น่าสนใจ ${candidateEvents.length} รายการให้เลือก:\n\n`;
-    }
-    
-    // Add event choices with booking buttons
-    candidateEvents.forEach((event, index) => {
-      const candidateEventDate = new Date(event.schedule?.startDate || 0);
-      const formattedDate = candidateEventDate.toLocaleDateString('th-TH', {
-        day: 'numeric',
-        month: 'short', 
-        year: 'numeric'
-      });
-      
-      const lowestPrice = Math.min(
-        ...(Object.values(event.pricing || {}).filter(p => typeof p === 'number' && p > 0) as number[])
-      );
-      
-      message += `🎫 **${event.title}**\n`;
-      message += `📅 ${formattedDate}\n`;
-      message += `📍 ${event.location?.venue || 'ออนไลน์'}\n`;
-      message += `💰 เริ่มต้น ${lowestPrice.toLocaleString()} บาท\n`;
-      message += `🎫 เหลือ ${event.capacity?.available || 0} ที่นั่ง\n\n`;
-    });
-    
-    message += `คุณต้องการให้ดิฉันจองอีเว้นท์ไหนคะ? 🤔\n\nกดปุ่มด้านล่างเพื่อเลือกอีเว้นท์ที่ต้องการค่ะ ✨`;
-    
-    // Generate booking suggestions with event names
-    const bookingSuggestions = candidateEvents.map(event => 
-      `จอง ${event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title}`
-    );
-    
-    // Add general suggestions
-    bookingSuggestions.push('ดูรายละเอียดก่อน');
-    bookingSuggestions.push('ยกเลิก');
-    
-    return {
-      message,
-      data: candidateEvents,
-      suggestions: bookingSuggestions.slice(0, 4), // Limit to 4 suggestions
-      action: {
-        type: 'show_booking_choices',
-        payload: {
-          events: candidateEvents,
-          originalQuery
-        }
-      }
-    };
-    
-  } catch (error) {
-    console.error('AI booking request error:', error);
-    return {
-      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการค้นหาอีเว้นท์ กรุณาลองใหม่อีกครั้งค่ะ',
-      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
-    };
-  }
-};
-
-// Handle real-time data update requests - NEW FUNCTION
-const handleRealTimeUpdate = async (context?: any): Promise<AIResponse> => {
-  try {
-    console.log('🔄 Processing real-time update request...');
-    
-    // Force update AI knowledge with real-time data
-    await updateAIKnowledge(context, true); // Force refresh
-    
-    // Get latest statistics
-    const stats = await aiApi.getSystemStats();
-    const events = await aiApi.getAllEvents();
-    
-    const eventCount = events.events?.length || 0;
-    const activeEvents = events.events?.filter(
-      event => new Date(event.schedule?.startDate || 0) > new Date()
-    ).length || 0;
-    
-    const message = `✅ อัปเดตข้อมูลแบบ real-time เรียบร้อยแล้วค่ะ! 🚀
-
-📊 ข้อมูลล่าสุด (เมื่อสักครู่ที่ผ่านมา):
-• อีเว้นท์ทั้งหมด: ${eventCount} รายการ
-• อีเว้นท์ที่กำลังจะมาถึง: ${activeEvents} รายการ
-• ตั๋วที่จองแล้ว: ${stats.totalTickets} ใบ
-• รายได้รวม: ${stats.totalRevenue.toLocaleString()} บาท
-
-ตอนนี้คุณสามารถมั่นใจได้ว่าข้อมูลที่แสดงเป็นข้อมูลล่าสุดจากฐานข้อมูล 💾`;
-    
-    return {
-      message,
-      data: events.events?.slice(0, 3), // Show latest 3 events
-      suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ดูสถิติระบบ', 'ค้นหาอีเว้นท์']
-    };
-  } catch (error) {
-    console.error('Real-time update error:', error);
-    return {
-      message: 'ขออภัยค่ะ เกิดข้อผิดพลาดในการอัปเดตข้อมูล 😔 กรุณาลองใหม่อีกครั้งค่ะ',
-      suggestions: ['ลองใหม่', 'ดูข้อมูลที่มี', 'รายงานปัญหา']
-    };
-  }
-};
+// Handler function declarations (must be declared before executeSpecificAction)
 
 // Store pending navigation data in localStorage to persist across navigation
 const setPendingNavigation = (data: { url: string; eventId: string; eventTitle: string } | null) => {
@@ -1191,16 +693,6 @@ const handleAutoNavigation = async (type: string, payload: any, context?: any): 
           message = `พบอีเว้นท์ "${targetEvent.title}" แล้วค่ะ! 🎉\n\nคุณต้องการให้ดิฉันพาไปยังหน้านี้เลยไหมคะ? 🎯`;
       }
       
-      // Execute navigation action
-      const navigationAction = {
-        type: 'navigate' as const,
-        payload: { 
-          url: navigationUrl,
-          eventId: targetEvent.id,
-          eventTitle: targetEvent.title
-        }
-      };
-      
       // Store pending navigation for confirmation
       setPendingNavigation({
         url: navigationUrl,
@@ -1228,14 +720,809 @@ const handleAutoNavigation = async (type: string, payload: any, context?: any): 
     
   } catch (error) {
     console.error('Auto navigation error:', error);
-    console.error('Error details:', {
-      type,
-      payload,
-      contextKeys: context ? Object.keys(context) : 'no context'
-    });
     return {
       message: 'ขออภัยค่ะ เกิดข้อผิดพลาดในการนำทาง กรุณาลองใหม่อีกครั้งหรือไปยังหน้าอีเว้นท์ด้วยตนเองค่ะ 😅',
       suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ลองใหม่', 'ติดต่อผู้ดูแล']
+    };
+  }
+};
+
+// Execute specific actions with dynamic knowledge
+const executeSpecificAction = async (action: any, context?: any): Promise<AIResponse> => {
+  try {
+    const { type, payload } = action;
+    const memory = context?.memory;
+
+    switch (type) {
+      case 'confirm_navigation':
+        return await handleNavigationConfirmation(context);
+
+      case 'auto_navigate_booking':
+      case 'auto_navigate_detail':
+      case 'auto_navigate':
+        return await handleAutoNavigation(type, payload, context);
+
+      case 'force_realtime_update':
+        return await handleRealTimeUpdate(context);
+
+      case 'ai_booking_request':
+        return await handleAIBookingRequest(payload, context);
+
+      case 'show_more_events':
+        return await handleShowMoreEvents(payload, context);
+
+      case 'specific_event_booking':
+        return await handleSpecificEventBooking(payload, context);
+
+      case 'confirm_booking':
+        return await handleBookingConfirmation(payload, context);
+
+      case 'get_events':
+        // Check if we have cached events data
+        let events;
+        const cachedEvents = memory?.events;
+        const lastFetch = memory?.lastFetchTime?.events;
+        const cacheAge = lastFetch ? Date.now() - lastFetch.getTime() : Infinity;
+
+        // Use cache if it's less than 5 minutes old
+        if (cachedEvents && cachedEvents.length > 0 && cacheAge < 300000) {
+          events = { events: cachedEvents };
+        } else {
+          // Fetch fresh data
+          events = await aiApi.getAllEvents(payload?.filters);
+        }
+
+        const eventCount = events.events?.length || 0;
+
+        // Generate natural response based on actual data
+        let message;
+        if (eventCount === 0) {
+          message = 'ขณะนี้ยังไม่มีอีเว้นท์ในระบบค่ะ แต่เร็วๆ นี้อาจจะมีอีเว้นท์ใหม่ๆ เข้ามา ติดตามได้เลยค่ะ';
+        } else {
+          const upcomingCount = events.events?.filter(
+            event => new Date(event.schedule?.startDate || 0) > new Date()
+          ).length || 0;
+
+          message = `ตอนนี้มีอีเว้นท์ทั้งหมด ${eventCount} รายการค่ะ`;
+          if (upcomingCount > 0) {
+            message += ` มีอีเว้นท์ที่กำลังจะมาถึง ${upcomingCount} รายการ`;
+          }
+          message += ' สามารถดูรายละเอียดได้ด้านล่างเลยค่ะ ✨';
+        }
+
+        return {
+          message,
+          data: events.events,
+          suggestions: eventCount > 0
+            ? ['ดูรายละเอียด', 'ค้นหาอีเว้นท์', 'อีเว้นท์แนะนำ']
+            : ['รออีเว้นท์ใหม่', 'ติดตามข่าวสาร', 'ติดต่อสอบถาม']
+        };
+
+      case 'search_events':
+        // Check cache for search results
+        let searchResults;
+        const cacheKey = `${payload.query}_${JSON.stringify(payload.filters || {})}`;
+        const cachedSearch = memory?.searchResults?.[cacheKey];
+
+        if (cachedSearch) {
+          const now = new Date();
+          const expiryTime = new Date(cachedSearch.timestamp.getTime() + cachedSearch.ttl);
+
+          if (now < expiryTime) {
+            searchResults = { events: cachedSearch.results };
+          } else {
+            // Cache expired, fetch fresh data
+            searchResults = await aiApi.searchEvents(payload.query, payload.filters);
+            // Note: Cache update should be handled by the calling context
+          }
+        } else {
+          // No cache, fetch fresh data
+          searchResults = await aiApi.searchEvents(payload.query, payload.filters);
+          // Note: Cache update should be handled by the calling context
+        }
+
+        const searchCount = searchResults.events?.length || 0;
+
+        // Return simple message with search results for EventPreview component
+        return {
+          message: `พบอีเว้นท์ที่ตรงกับ "${payload.query}" จำนวน ${searchCount} รายการค่ะ 🔍 ดูรายละเอียดด้านล่างได้เลยค่ะ`,
+          data: searchResults.events,
+          suggestions: ['ดูรายละเอียด', 'จองตั๋ว', 'ค้นหาอื่น']
+        };
+
+      case 'recommend_events':
+        // Use cached events data to recommend interesting events
+        let recommendEvents;
+        const cachedEventsForRecommend = memory?.events;
+
+        if (cachedEventsForRecommend && cachedEventsForRecommend.length > 0) {
+          // Use cached data
+          recommendEvents = { events: cachedEventsForRecommend };
+        } else {
+          // Fetch fresh data if no cache
+          recommendEvents = await aiApi.getAllEvents();
+        }
+
+        // Select interesting events (featured, upcoming, or popular)
+        const interestingEvents = recommendEvents.events?.filter(event =>
+          event.featured ||
+          event.capacity?.available > 0 ||
+          new Date(event.schedule?.startDate) > new Date()
+        ).slice(0, 3) || [];
+
+        const recommendCount = interestingEvents.length;
+
+        return {
+          message: `นี่คืออีเว้นท์น่าสนใจที่แนะนำให้คุณ ${recommendCount} รายการค่ะ ✨ เลือกดูรายละเอียดที่สนใจได้เลยค่ะ`,
+          data: interestingEvents,
+          suggestions: ['ดูรายละเอียด', 'จองตั๋ว', 'ดูอีเว้นท์ทั้งหมด']
+        };
+
+      case 'get_tickets':
+        const tickets = await aiApi.getUserTickets(payload?.userId);
+        const ticketCount = tickets.length;
+
+        const ticketsPrompt = `
+สร้างข้อความตอบกลับเป็นภาษาไทยสำหรับการแสดงตั๋วของผู้ใช้
+จำนวนตั๋ว: ${ticketCount} ใบ
+ให้ข้อความที่เป็นมิตรและมีประโยชน์
+`;
+
+        const ticketsResult = await model.generateContent(ticketsPrompt);
+        const ticketsMessage = await ticketsResult.response.text();
+
+        return {
+          message: ticketsMessage,
+          data: tickets,
+          suggestions: ['ดูรายละเอียดตั๋ว', 'ตรวจสอบตั๋ว', 'จองตั๋วใหม่']
+        };
+
+      case 'get_stats':
+        const stats = await aiApi.getSystemStats();
+
+        const statsPrompt = `
+สร้างข้อความตอบกลับเป็นภาษาไทยสำหรับการแสดงสถิติระบบ
+ให้สรุปข้อมูลสถิติอย่างเข้าใจง่าย
+`;
+
+        const statsResult = await model.generateContent(statsPrompt);
+        const statsMessage = await statsResult.response.text();
+
+        return {
+          message: statsMessage,
+          data: stats,
+          suggestions: ['ดูรายละเอียด', 'ส่งออกรายงาน', 'ตั้งค่าการแจ้งเตือน']
+        };
+
+      case 'global_search':
+        const globalResults = await aiApi.globalSearch(payload.query);
+
+        const globalPrompt = `
+สร้างข้อความตอบกลับเป็นภาษาไทยสำหรับผลการค้นหาทั่วไป
+คำค้นหา: "${payload.query}"
+ให้ข้อความที่เป็นมิตรและช่วยเหลือ
+`;
+
+        const globalResult = await model.generateContent(globalPrompt);
+        const globalMessage = await globalResult.response.text();
+
+        return {
+          message: globalMessage,
+          data: globalResults,
+          suggestions: ['ดูเพิ่มเติม', 'กรองผลลัพธ์', 'ค้นหาใหม่']
+        };
+
+      default:
+        return {
+          message: `ขออภัย ไม่เข้าใจคำขอ "${type}" ค่ะ ลองถามด้วยคำอื่นได้ไหมคะ`,
+          suggestions: ['ช่วยเหลือ', 'ดูคำสั่งที่ใช้ได้', 'ติดต่อผู้ดูแล']
+        };
+    }
+  } catch (error) {
+    console.error('Execute specific action error:', error);
+    return {
+      message: `เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : 'ไม่ทราบสาเหตุ'} กรุณาลองใหม่อีกครั้งค่ะ`,
+      suggestions: ['ลองใหม่', 'ช่วยเหลือ', 'รายงานปัญหา']
+    };
+  }
+};
+
+// Handle real-time update requests
+const handleRealTimeUpdate = async (context?: any): Promise<AIResponse> => {
+  try {
+    // Force refresh of AI knowledge
+    await updateAIKnowledge(context, true);
+
+    return {
+      message: '✅ ข้อมูลได้รับการอัปเดตเรียบร้อยแล้วค่ะ! ตอนนี้คุณจะได้ข้อมูลล่าสุดจากระบบ 🔄\n\nสามารถถามคำถามหรือค้นหาข้อมูลใหม่ได้เลยค่ะ ✨',
+      suggestions: ['ดูอีเว้นท์ล่าสุด', 'ข้อมูลสถิติ', 'ดูอีเว้นท์ทั้งหมด']
+    };
+  } catch (error) {
+    console.error('Real-time update error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการอัปเดตข้อมูล กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูข้อมูลปัจจุบัน', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle "show more events" requests
+const handleShowMoreEvents = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('🔄 Processing show more events request...', payload);
+
+    const userId = context?.currentUser?.id;
+    const userContext = userId ? getConversationContext(userId) : {};
+
+    // Get the last booking request context
+    const lastRequest = userContext?.lastBookingRequest;
+    if (!lastRequest) {
+      return {
+        message: '😔 ขออภัยค่ะ ดิฉันไม่พบประวัติการค้นหาอีเว้นท์ก่อนหน้า\n\nลองพิมพ์ "จองให้หน่อย" ใหม่เพื่อค้นหาอีเว้นท์ค่ะ 😊',
+        suggestions: ['จองให้หน่อย', 'ดูอีเว้นท์ทั้งหมด', 'ค้นหาอีเว้นท์']
+      };
+    }
+
+    // Get all available events
+    const events = await aiApi.getAllEvents();
+    const allEvents = events.events || [];
+
+    // Filter events using the same criteria as original request
+    const eventName = lastRequest.eventName;
+    let candidateEvents = allEvents.filter(event => {
+      if (!event || !event.title) return false;
+
+      if (eventName) {
+        return event.title.toLowerCase().includes(eventName.toLowerCase()) ||
+               eventName.toLowerCase().includes(event.title.toLowerCase());
+      }
+
+      const eventDate = new Date(event.schedule?.startDate || 0);
+      const now = new Date();
+      return eventDate > now &&
+             event.status === 'active' &&
+             (event.capacity?.available || 0) > 0;
+    });
+
+    // Show events starting from index 5 (next 5 events)
+    const showFromIndex = 5;
+    const nextBatch = candidateEvents.slice(showFromIndex, showFromIndex + 5);
+
+    if (nextBatch.length === 0) {
+      return {
+        message: '😊 นั่นคืออีเว้นท์ทั้งหมดที่มีแล้วค่ะ\n\nหากต้องการดูอีเว้นท์อื่นๆ สามารถดูอีเว้นท์ทั้งหมดหรือค้นหาด้วยคำอื่นได้ค่ะ ✨',
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ค้นหาอีเว้นท์', 'จองให้หน่อย']
+      };
+    }
+
+    // Generate message and suggestions
+    let message = `🔄 นี่คืออีเว้นท์เพิ่มเติม ${nextBatch.length} รายการค่ะ! \n\n`;
+
+    nextBatch.forEach((event) => {
+      const eventDate = new Date(event.schedule?.startDate || 0);
+      const formattedDate = eventDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+      const lowestPrice = Math.min(...(Object.values(event.pricing || {}).filter(p => typeof p === 'number' && p > 0) as number[]));
+
+      message += `🎫 **${event.title}**\n📅 ${formattedDate}\n📍 ${event.location?.venue || 'ออนไลน์'}\n💰 เริ่มต้น ${lowestPrice.toLocaleString()} บาท\n\n`;
+    });
+
+    const suggestions = nextBatch.map(event => `จอง ${event.title.length > 15 ? event.title.substring(0, 15) + '...' : event.title}`);
+    const hasMoreEvents = candidateEvents.length > showFromIndex + 5;
+    if (hasMoreEvents) suggestions.push('🔄 ดูอีเว้นท์เพิ่มอีก');
+    suggestions.push('ดูอีเว้นท์ทั้งหมด');
+
+    return {
+      message,
+      data: nextBatch,
+      suggestions: suggestions.slice(0, 4),
+      action: { type: 'show_booking_choices', payload: { events: nextBatch, originalQuery: lastRequest.originalQuery || 'จองให้หน่อย' } }
+    };
+
+  } catch (error) {
+    console.error('Show more events error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle specific event booking with ticket options
+const handleSpecificEventBooking = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('🎫 Processing specific event booking...', payload);
+
+    const { eventName, originalQuery } = payload || {};
+    const userId = context?.currentUser?.id;
+
+    // Find the specific event
+    const events = await aiApi.getAllEvents();
+    const allEvents = events.events || [];
+
+    const targetEvent = allEvents.find(event =>
+      event && event.title &&
+      (event.title.toLowerCase().includes(eventName.toLowerCase()) ||
+       eventName.toLowerCase().includes(event.title.toLowerCase()))
+    );
+
+    if (!targetEvent) {
+      return {
+        message: `😔 ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการจอง หรืออาจอีเว้นท์นี้ไม่มีแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+
+    // Store conversation context for specific event booking
+    if (userId) {
+      updateConversationContext(userId, {
+        lastBookingRequest: {
+          query: originalQuery,
+          eventName: eventName,
+          candidateEvents: [{ id: targetEvent.id, title: targetEvent.title }],
+          timestamp: new Date().toISOString()
+        },
+        recentBookingIntent: true,
+        lastAction: 'event_selection',
+        lastEventMentioned: targetEvent.title
+      });
+    }
+
+    // Check if event is available for booking
+    const eventDate = new Date(targetEvent.schedule?.startDate || 0);
+    const now = new Date();
+
+    if (eventDate <= now) {
+      return {
+        message: `😔 ขออภัยค่ะ อีเว้นท์ "${targetEvent.title}" ได้จัดขึ้นแล้วหรือกำลังจะมาถึง ไม่สามารถจองได้แล้ว\n\nลองหาอีเว้นท์อื่นๆ ที่ยังจองได้ไหมคะ? 😊`,
+        suggestions: ['อีเว้นท์ที่กำลังจะมาถึง', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+
+    if ((targetEvent.capacity?.available || 0) <= 0) {
+      return {
+        message: `😔 ขออภัยค่ะ อีเว้นท์ "${targetEvent.title}" มีที่นั่งเต็มแล้ว ไม่สามารถจองเพิ่มได้\n\nลองหาอีเว้นท์อื่นๆ ที่ยังมีที่ว่างไหมคะ? 😊`,
+        suggestions: ['อีเว้นท์ที่มีที่ว่าง', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+
+    // Get ticket options from event pricing
+    const ticketOptions = [];
+    const pricing = targetEvent.pricing || {};
+
+    // Map pricing to ticket options with Thai labels
+    const priceMap = {
+      earlyBird: 'บัตรนกผู้จองล่วงหน้า (Early Bird)',
+      regular: 'บัตรราคาปกติ',
+      student: 'บัตรนักเรียน/นักศึกษา',
+      group: 'บัตรกลุ่ม',
+      vip: 'บัตร VIP',
+      premium: 'บัตร Premium',
+      general: 'บัตรทั่วไป',
+      fullMarathon: 'มาราธอนเต็มระยะทาง',
+      halfMarathon: 'ฮาฟมาราธอน',
+      miniMarathon: 'มินิมาราธอน',
+      funRun: 'Fun Run',
+      adult: 'ผู้ใหญ่',
+      child: 'เด็ก',
+      senior: 'ผู้สูงอายุ',
+      member: 'สมาชิก',
+      free: 'ฟรี'
+    };
+
+    Object.entries(pricing).forEach(([type, price]) => {
+      if (typeof price === 'number' && price >= 0 && priceMap[type as keyof typeof priceMap]) {
+        ticketOptions.push({
+          type,
+          label: priceMap[type as keyof typeof priceMap],
+          price
+        });
+      }
+    });
+
+    // Sort by price
+    ticketOptions.sort((a, b) => a.price - b.price);
+
+    if (ticketOptions.length === 0) {
+      return {
+        message: `😔 ขออภัยค่ะ ไม่มีข้อมูลราคาตั๋วสำหรับอีเว้นท์นี้ กรุณาติดต่อผู้จัดงานโดยตรง`,
+        suggestions: ['ดูรายละเอียด', 'ติดต่อผู้จัดงาน', 'กลับไปหน้าหลัก']
+      };
+    }
+
+    // Generate message with ticket choices
+    const formattedEventDate = new Date(targetEvent.schedule?.startDate || 0);
+    const formattedDate = formattedEventDate.toLocaleDateString('th-TH', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    let message = `🎉 พบอีเว้นท์แล้ว! ดิฉันพร้อมจะช่วยคุณจอง 🚀\n\n`;
+    message += `🎫 **${targetEvent.title}**\n`;
+    message += `📅 ${formattedDate}\n`;
+    message += `📍 ${targetEvent.location?.venue || 'ออนไลน์'}\n`;
+    message += `🎫 เหลือ ${targetEvent.capacity?.available || 0} ที่นั่ง\n\n`;
+
+    message += `🎫 **ประเภทตั๋ว:**\n`;
+    ticketOptions.forEach((option, index) => {
+      message += `${index + 1}. ${option.label} - **${option.price.toLocaleString()} บาท**\n`;
+    });
+
+    message += `\nคุณต้องการตั๋วประเภทไหนคะ? 🤔\n\nกดปุ่มด้านล่างเพื่อเลือกและดำเนินการจองค่ะ ✨`;
+
+    // Generate booking suggestions for each ticket type
+    const bookingSuggestions = ticketOptions.map(option =>
+      `จอง ${option.label}`
+    );
+
+    // Add general options
+    bookingSuggestions.push('ดูรายละเอียดก่อน');
+
+    return {
+      message,
+      data: [targetEvent],
+      suggestions: bookingSuggestions.slice(0, 4),
+      action: {
+        type: 'show_ticket_options',
+        payload: {
+          event: targetEvent,
+          ticketOptions,
+          eventId: targetEvent.id
+        }
+      }
+    };
+
+  } catch (error) {
+    console.error('Specific event booking error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการค้นหาข้อมูลตั๋ว กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle AI booking requests with choices
+const handleAIBookingRequest = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('🤖 Processing AI booking request...', payload);
+
+    const { eventName, originalQuery } = payload || {};
+    const userId = context?.currentUser?.id;
+
+    // Get available events
+    const events = await aiApi.getAllEvents();
+    const allEvents = events.events || [];
+
+    // Filter events based on query or show upcoming events
+    let candidateEvents = allEvents.filter(event => {
+      if (!event || !event.title) return false;
+
+      // Filter by event name if mentioned
+      if (eventName) {
+        return event.title.toLowerCase().includes(eventName.toLowerCase()) ||
+               eventName.toLowerCase().includes(event.title.toLowerCase());
+      }
+
+      // Show upcoming events with available seats
+      const eventDate = new Date(event.schedule?.startDate || 0);
+      const now = new Date();
+      return eventDate > now &&
+             event.status === 'active' &&
+             (event.capacity?.available || 0) > 0;
+    });
+
+    // Store conversation context for better tracking
+    if (userId && candidateEvents.length > 0) {
+      updateConversationContext(userId, {
+        lastBookingRequest: {
+          query: originalQuery,
+          eventName: eventName,
+          candidateEvents: candidateEvents.map(e => ({ id: e.id, title: e.title })),
+          timestamp: new Date().toISOString()
+        },
+        recentBookingIntent: true,
+        lastAction: 'booking_inquiry',
+        lastEventMentioned: eventName || candidateEvents[0]?.title
+      });
+    }
+
+    // Limit to 5 most relevant events
+    candidateEvents = candidateEvents.slice(0, 5);
+
+    // Check if there are more events available
+    const totalAvailableEvents = allEvents.filter(event => {
+      if (!event || !event.title) return false;
+
+      if (eventName) {
+        return event.title.toLowerCase().includes(eventName.toLowerCase()) ||
+               eventName.toLowerCase().includes(event.title.toLowerCase());
+      }
+
+      const eventDate = new Date(event.schedule?.startDate || 0);
+      const now = new Date();
+      return eventDate > now &&
+             event.status === 'active' &&
+             (event.capacity?.available || 0) > 0;
+    }).length;
+
+    const hasMoreEvents = totalAvailableEvents > 5;
+
+    if (candidateEvents.length === 0) {
+      return {
+        message: `😔 ขออภัยค่ะ ${eventName ? `ไม่พบอีเว้นท์ "${eventName}"` : 'ไม่มีอีเว้นท์ที่พร้อมจองในขณะนี้'} หรืออาจมีที่นั่งเต็มแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+
+    // Generate message with event choices
+    let message = `🎉 เยี่ยมเลยค่ะ! ดิฉันพร้อมจะช่วยคุณจองตั๋ว 🚀\n\n`;
+
+    if (eventName) {
+      message += `พบอีเว้นท์ที่ตรงกับ "${eventName}" แล้ว ${candidateEvents.length} รายการ:\n\n`;
+    } else {
+      message += `มีอีเว้นท์ที่น่าสนใจ ${candidateEvents.length} รายการให้เลือก:\n\n`;
+    }
+
+    // Add event choices with booking buttons
+    candidateEvents.forEach((event, index) => {
+      const candidateEventDate = new Date(event.schedule?.startDate || 0);
+      const formattedDate = candidateEventDate.toLocaleDateString('th-TH', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+
+      const lowestPrice = Math.min(
+        ...(Object.values(event.pricing || {}).filter(p => typeof p === 'number' && p > 0) as number[])
+      );
+
+      message += `🎫 **${event.title}**\n`;
+      message += `📅 ${formattedDate}\n`;
+      message += `📍 ${event.location?.venue || 'ออนไลน์'}\n`;
+      message += `💰 เริ่มต้น ${lowestPrice.toLocaleString()} บาท\n`;
+      message += `🎫 เหลือ ${event.capacity?.available || 0} ที่นั่ง\n\n`;
+    });
+
+    message += `คุณต้องการให้ดิฉันจองอีเว้นท์ไหนคะ? 🤔\n\nกดปุ่มด้านล่างเพื่อเลือกอีเว้นท์ที่ต้องการค่ะ ✨`;
+
+    // Generate booking suggestions with event names
+    const bookingSuggestions = candidateEvents.map(event =>
+      `จอง ${event.title.length > 15 ? event.title.substring(0, 15) + '...' : event.title}`
+    );
+
+    // Add "show more" option if there are more events
+    if (hasMoreEvents) {
+      bookingSuggestions.push('🔄 ดูอีเว้นท์เพิ่มเติม');
+    }
+
+    // Add general suggestions
+    bookingSuggestions.push('ดูรายละเอียดก่อน');
+    bookingSuggestions.push('ยกเลิก');
+
+    return {
+      message,
+      data: candidateEvents,
+      suggestions: bookingSuggestions.slice(0, 4), // Limit to 4 suggestions
+      action: {
+        type: 'show_booking_choices',
+        payload: {
+          events: candidateEvents,
+          originalQuery
+        }
+      }
+    };
+
+  } catch (error) {
+    console.error('AI booking request error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการค้นหาอีเว้นท์ กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle booking confirmation and proceed to booking page
+const handleBookingConfirmation = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('✅ Processing booking confirmation...', payload);
+
+    const { ticketType, originalQuery } = payload || {};
+    const userId = context?.currentUser?.id;
+
+    // Check if user is authenticated
+    if (!userId) {
+      return {
+        message: '🔐 คุณต้องเข้าสู่ระบบก่อนจองตั๋วค่ะ 😊\n\nการจองตั๋วต้องมีบัญชีผู้ใช้เพื่อความปลอดภัยและการจัดการการชำระเงิน ✨',
+        suggestions: ['เข้าสู่ระบบ', 'สมัครสมาชิก', 'ดูอีเว้นท์ก่อน'],
+        action: {
+          type: 'navigate',
+          payload: { url: '/login' }
+        }
+      };
+    }
+
+    // Get conversation context to find the specific event user was interested in
+    const userContext = getConversationContext(userId);
+
+    // Try to get event info from different context sources
+    let eventInfo = null;
+    let selectedTicketType = ticketType;
+
+    // First check for stored ticket options in context
+    const ticketOptions = context?.ticketOptions;
+    if (ticketOptions?.event) {
+      eventInfo = ticketOptions.event;
+    }
+
+    // If no ticket options, try to get from booking choices
+    if (!eventInfo && context?.bookingChoices?.events?.length > 0) {
+      // For now, take the first event - in a real scenario, we'd need better event selection logic
+      eventInfo = context.bookingChoices.events[0];
+    }
+
+    // If still no event, check conversation context for recent booking requests
+    if (!eventInfo && userContext?.lastBookingRequest) {
+      const lastRequest = userContext.lastBookingRequest;
+      const events = await aiApi.getAllEvents();
+      const allEvents = events.events || [];
+
+      // First try to find event from the last booking request
+      if (lastRequest.candidateEvents?.length > 0) {
+        const candidateId = lastRequest.candidateEvents[0].id;
+        eventInfo = allEvents.find(event => event.id === candidateId);
+      }
+
+      // If still no match, try to match by event name from last request
+      if (!eventInfo && lastRequest.eventName) {
+        eventInfo = allEvents.find(event => {
+          if (!event || !event.title) return false;
+          const eventTitle = event.title.toLowerCase();
+          const searchName = lastRequest.eventName.toLowerCase();
+          return eventTitle.includes(searchName) || searchName.includes(eventTitle);
+        });
+      }
+    }
+
+    // If still no event, try to find the event from conversation context or recent selections
+    if (!eventInfo) {
+      console.log('🔍 กำลังค้นหาอีเว้นท์จากบริบทการสนทนา...');
+
+      try {
+        const events = await aiApi.getAllEvents();
+        const allEvents = events.events || [];
+
+        // Try to find the event mentioned in the original query or conversation context
+        let searchTerms = [];
+
+        // Extract potential event names from conversation context
+        if (context?.conversationContext) {
+          // Handle both string and object types for conversationContext
+          let contextText = '';
+          if (typeof context.conversationContext === 'string') {
+            contextText = context.conversationContext.toLowerCase();
+          } else if (typeof context.conversationContext === 'object') {
+            // Extract text from conversation object properties
+            const contextObj = context.conversationContext;
+            const textSources = [
+              contextObj.lastEventMentioned,
+              contextObj.lastBookingRequest?.eventName,
+              contextObj.lastBookingRequest?.query
+            ].filter(Boolean);
+            contextText = textSources.join(' ').toLowerCase();
+          }
+
+          if (contextText) {
+            // Look for event names mentioned in context
+            const eventKeywords = ['football', 'league', 'wayu', 'หมอลำ', 'digital', 'marketing', 'tech', 'conference', 'jazz', 'marathon'];
+            searchTerms = eventKeywords.filter(keyword => contextText.includes(keyword));
+          }
+        }
+
+        // Add terms from original query if available
+        if (originalQuery) {
+          const queryText = originalQuery.toLowerCase();
+          searchTerms.push(...queryText.split(' ').filter(term => term.length > 2));
+        }
+
+        // Find matching event
+        if (searchTerms.length > 0) {
+          eventInfo = allEvents.find(event => {
+            if (!event || !event.title) return false;
+            const eventTitle = event.title.toLowerCase();
+            return searchTerms.some(term =>
+              eventTitle.includes(term) || term.includes(eventTitle)
+            );
+          });
+        }
+
+        // If still no match, check if there's a recently viewed or popular event
+        if (!eventInfo && allEvents.length > 0) {
+          // Sort by availability and recent activity
+          const availableEvents = allEvents.filter(event =>
+            event && event.title &&
+            (event.capacity?.available || 0) > 0 &&
+            new Date(event.schedule?.startDate || 0) > new Date()
+          );
+
+          if (availableEvents.length > 0) {
+            // Take the first available event as fallback
+            eventInfo = availableEvents[0];
+            console.log(`⚠️ ไม่พบอีเว้นท์ที่ระบุ ใช้ ${eventInfo.title} เป็นทางเลือก`);
+          }
+        }
+
+        // Default to regular ticket if not specified
+        if (!selectedTicketType && eventInfo) {
+          selectedTicketType = 'regular';
+        }
+      } catch (error) {
+        console.error('Error finding event from context:', error);
+      }
+    }
+
+    if (!eventInfo) {
+      const eventHint = userContext?.lastBookingRequest?.eventName || 'อีเว้นท์ที่คุณสนใจ';
+      return {
+        message: `😔 ขออภัยค่ะ ดิฉันไม่พบข้อมูลอีเว้นท์ที่คุณต้องการจอง\n\nคุณหมายถึง "${eventHint}" ใช่ไหมคะ? หรือต้องการบอกชื่ออีเว้นท์ที่ต้องการจองก่อนไหมคะ 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', eventHint !== 'อีเว้นท์ที่คุณสนใจ' ? `จอง ${eventHint}` : 'จองให้หน่อย', 'ช่วยเหลือ']
+      };
+    }
+
+    // Find selected ticket type info
+    let selectedTicket = null;
+    if (selectedTicketType && eventInfo?.pricing) {
+      // Map ticket type to pricing info
+      const priceMap = {
+        regular: 'ราคาปกติ',
+        earlyBird: 'บัตรนกผู้จองล่วงหน้า (Early Bird)',
+        student: 'บัตรนักเรียน/นักศึกษา',
+        vip: 'บัตร VIP',
+        premium: 'บัตร Premium',
+        general: 'บัตรทั่วไป',
+        group: 'บัตรกลุ่ม'
+      };
+
+      const price = eventInfo.pricing[selectedTicketType];
+      if (price !== undefined) {
+        selectedTicket = {
+          type: selectedTicketType,
+          label: priceMap[selectedTicketType as keyof typeof priceMap] || selectedTicketType,
+          price: price
+        };
+      }
+    }
+
+    // Generate confirmation message
+    let message = `✅ เยี่ยมเลย! กำลังพาคุณไปหน้าชำระเงินเลยค่ะ 🎉💳\n\n`;
+    message += `🎫 **${eventInfo.title}**\n`;
+
+    if (selectedTicket) {
+      message += `🎫 ประเภทตั๋ว: ${selectedTicket.label}\n`;
+      message += `💰 ราคา: ${selectedTicket.price.toLocaleString()} บาท\n\n`;
+    }
+
+    message += `ดิฉันจะพาคุณไปยังหน้าชำระเงินโดยตรง พร้อมข้อมูลที่คุณเลือกไว้แล้ว 🚀\n\nคุณจะสามารถ:\n• เลือกจำนวนตั๋วที่ต้องการ\n• กรอกข้อมูลการชำระเงิน\n• ชำระเงินทันที 💳`;
+
+    return {
+      message,
+      data: [eventInfo],
+      suggestions: ['ไปจองเลย', 'ดูรายละเอียดก่อน', 'เลือกอีเว้นท์อื่น'],
+      action: {
+        type: 'navigate',
+        payload: {
+          url: `/events/${eventInfo.id}/booking?payment=true&ticket=${selectedTicketType}`,
+          eventId: eventInfo.id,
+          preselectedTicketType: selectedTicketType
+        }
+      }
+    };
+
+  } catch (error) {
+    console.error('Booking confirmation error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการยืนยันการจอง กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
     };
   }
 };
