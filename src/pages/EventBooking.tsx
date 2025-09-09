@@ -394,7 +394,7 @@ export default function EventBooking() {
                 {step === 1 && t('eventBooking.selectTickets')}
                 {step === 2 && t('eventBooking.enterDetails')}
                 {step === 3 && t('eventBooking.confirmBooking')}
-                {step === 4 && t('eventBooking.payment')}
+                {step === 4 && 'Payment'}
                 {skipToPayment && step === 4 && t('eventBooking.quickPayment')}
               </span>
               {step < 4 && <div className="w-8 h-px bg-border mx-4" />}
