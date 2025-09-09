@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Minus, Plus, CreditCard, User, Mail, Phone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,19 +24,24 @@ interface TicketSelection {
 export default function EventBooking() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useLanguage();
+  
+  // Check URL parameters for direct payment flow
+  const skipToPayment = searchParams.get('payment') === 'true';
+  const preselectedTicketType = searchParams.get('ticket');
   
   const [event, setEvent] = React.useState<Event | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [ticketSelections, setTicketSelections] = React.useState<TicketSelection[]>([]);
-  const [currentStep, setCurrentStep] = React.useState(1);
+  const [currentStep, setCurrentStep] = React.useState(skipToPayment ? 4 : 1);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [paymentSuccess, setPaymentSuccess] = React.useState(false);
   const [chargeId, setChargeId] = React.useState<string | null>(null);
 
-  // Form data
+  // Form data - Pre-fill for direct payment flow
   const [formData, setFormData] = React.useState({
     firstName: user?.name?.split(' ')[0] || '',
     lastName: user?.name?.split(' ').slice(1).join(' ') || '',
@@ -85,12 +90,16 @@ export default function EventBooking() {
         // Initialize ticket selections
         const prices = Object.entries(eventData.pricing)
           .filter(([key, value]) => key !== 'currency' && typeof value === 'number')
-          .map(([key, value]) => ({
-            type: key,
-            label: getPriceLabel(key),
-            price: value as number,
-            quantity: 0,
-          }));
+          .map(([key, value]) => {
+            // If going directly to payment and this is the preselected ticket type, set quantity to 1
+            const quantity = (skipToPayment && preselectedTicketType === key) ? 1 : 0;
+            return {
+              type: key,
+              label: getPriceLabel(key),
+              price: value as number,
+              quantity,
+            };
+          });
         
         setTicketSelections(prices);
       } catch (err) {
@@ -386,6 +395,7 @@ export default function EventBooking() {
                 {step === 2 && 'กรอกข้อมูล'}
                 {step === 3 && 'ยืนยันการจอง'}
                 {step === 4 && 'ชำระเงิน'}
+                {skipToPayment && step === 4 && ' (ด่วน! 💳)'}
               </span>
               {step < 4 && <div className="w-8 h-px bg-border mx-4" />}
             </div>
@@ -564,6 +574,19 @@ export default function EventBooking() {
             {/* Payment Step */}
             {currentStep === 4 && (
               <div className="space-y-6">
+                {/* AI Direct Payment Message */}
+                {skipToPayment && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <span className="text-lg">🤖</span>
+                      <h4 className="font-semibold">AI พาคุณมาที่นี่แล้ว!</h4>
+                    </div>
+                    <p className="text-blue-700 text-sm mt-2">
+                      ดิฉันได้เตรียมข้อมูลการจองและตั๋วที่คุณเลือกไว้แล้ว คุณสามารถแก้ไขจำนวนและชำระเงินได้เลยค่ะ
+                    </p>
+                  </div>
+                )}
+                
                 {paymentSuccess ? (
                   <Card>
                     <CardHeader>
@@ -656,7 +679,7 @@ export default function EventBooking() {
                       disabled={isSubmitting}
                     >
                       <CreditCard className="w-4 h-4 mr-2" />
-                      {isSubmitting ? 'กำลังจอง...' : 'ชำระเงิน'}
+                      {isSubmitting ? 'กำลังจอง...' : skipToPayment ? 'ชำระเงินเลย! 💳' : 'ชำระเงิน'}
                     </Button>
                   )}
 

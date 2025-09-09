@@ -15,6 +15,7 @@ interface AIContextType extends AIAgentState {
   cacheSearchResult: (query: string, results: any[], ttl?: number) => void;
   getCachedSearchResult: (query: string) => any[] | null;
   clearExpiredCache: () => void;
+  forceRealTimeUpdate: () => Promise<void>; // NEW: Force real-time data update
 }
 
 const AIContextProvider = createContext<AIContextType | undefined>(undefined);
@@ -253,8 +254,9 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         content: aiResponse.message,
         timestamp: new Date(),
         metadata: {
-          action: aiResponse.action?.type,
+          action: aiResponse.action,
           context: aiResponse.data,
+          suggestions: aiResponse.suggestions,
         },
       };
       dispatch({ type: 'ADD_MESSAGE', payload: assistantMessage });
@@ -298,6 +300,29 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           // Handle data display
           console.log('Display data:', action.payload);
           break;
+        case 'show_booking_choices':
+          // AI booking choices - store in context for reference
+          updateContext({ 
+            bookingChoices: action.payload,
+            showBookingInterface: true 
+          });
+          console.log('📋 Showing booking choices:', action.payload);
+          break;
+        case 'show_ticket_options':
+          // Specific event ticket options - store in context
+          updateContext({ 
+            ticketOptions: action.payload,
+            showTicketSelection: true 
+          });
+          console.log('🎫 Showing ticket options:', action.payload);
+          break;
+        case 'proceed_to_booking':
+          // Navigate to booking page with selected event
+          const eventId = action.payload.eventId;
+          if (eventId) {
+            navigate(`/events/${eventId}/booking`);
+          }
+          break;
         default:
           console.log('Unknown action type:', action.type);
       }
@@ -335,6 +360,41 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     dispatch({ type: 'CLEAR_EXPIRED_CACHE' });
   };
 
+  const forceRealTimeUpdate = async (): Promise<void> => {
+    try {
+      console.log('🔄 Forcing real-time data update...');
+      dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Force refresh all data
+      const refreshedData = await aiApi.forceDataRefresh();
+      
+      // Update memory with fresh data
+      const [events, categories, tickets] = await Promise.all([
+        aiApi.getAllEvents(),
+        aiApi.getAllCategories(),
+        user?.id ? aiApi.getUserTickets(user.id) : Promise.resolve([])
+      ]);
+      
+      // Update memory with fresh data
+      updateMemory('events', events.events || []);
+      updateMemory('categories', categories || []);
+      if (user?.id) {
+        updateMemory('tickets', tickets || []);
+      }
+      
+      // Clear all cached search results to force fresh data
+      dispatch({ type: 'CLEAR_EXPIRED_CACHE' });
+      
+      console.log('✅ Real-time update completed:', refreshedData);
+      
+    } catch (error) {
+      console.error('⚠️ Real-time update failed:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'ไม่สามารถอัปเดตข้อมูลแบบ real-time ได้' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
   const value: AIContextType = {
     ...state,
     sendMessage,
@@ -346,6 +406,7 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     cacheSearchResult,
     getCachedSearchResult,
     clearExpiredCache,
+    forceRealTimeUpdate, // NEW: Add the new function
   };
 
   return (

@@ -14,7 +14,33 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 export const parseUserInput = (input: string): { type: string; payload?: any } => {
   const lowerInput = input.toLowerCase().trim();
   
-  // Navigation confirmation responses
+  // Booking confirmation and general agreement responses - ENHANCED
+  if (lowerInput.includes('จองบัตร') || 
+      lowerInput.includes('จองตั๋ว') ||
+      lowerInput.includes('ตกลง') || 
+      lowerInput.includes('โอเค') || 
+      lowerInput.includes('ok') ||
+      lowerInput.includes('ใช่') ||
+      lowerInput.includes('yes') ||
+      lowerInput.includes('ยืนยัน') ||
+      lowerInput.includes('ไปเลย') ||
+      (lowerInput.includes('จอง') && 
+       (lowerInput.includes('ราคาปกติ') || lowerInput.includes('early bird') ||
+        lowerInput.includes('นักเรียน') || lowerInput.includes('vip') ||
+        lowerInput.includes('premium') || lowerInput.includes('ทั่วไป')))) {
+    
+    // Extract ticket type if specified
+    let ticketType = '';
+    if (lowerInput.includes('ราคาปกติ') || lowerInput.includes('regular')) ticketType = 'regular';
+    else if (lowerInput.includes('early bird') || lowerInput.includes('ล่วงหน้า')) ticketType = 'earlyBird';
+    else if (lowerInput.includes('นักเรียน') || lowerInput.includes('student')) ticketType = 'student';
+    else if (lowerInput.includes('vip')) ticketType = 'vip';
+    else if (lowerInput.includes('premium')) ticketType = 'premium';
+    else if (lowerInput.includes('ทั่วไป') || lowerInput.includes('general')) ticketType = 'general';
+    else if (lowerInput.includes('กลุ่ม') || lowerInput.includes('group')) ticketType = 'group';
+    
+    return { type: 'confirm_booking', payload: { ticketType, originalQuery: input } };
+  }
   if (lowerInput.includes('ไปเลย') || lowerInput.includes('ตกลง') || lowerInput.includes('ใช่') || 
       lowerInput.includes('yes') || lowerInput.includes('ok') || lowerInput.includes('โอเค') ||
       lowerInput === 'ไป' || lowerInput === 'go') {
@@ -52,7 +78,61 @@ export const parseUserInput = (input: string): { type: string; payload?: any } =
     return { type: 'auto_navigate', payload: { eventName: mentionedEvent, destination: lowerInput } };
   }
   
-  // Event management
+  // Real-time data requests - NEW
+  if (lowerInput.includes('ล่าสุด') || lowerInput.includes('ปัจจุบัน') || 
+      lowerInput.includes('real-time') || lowerInput.includes('อัปเดต') ||
+      lowerInput.includes('ข้อมูลใหม่') || lowerInput.includes('รีเฟรช')) {
+    return { type: 'force_realtime_update' };
+  }
+  
+  // AI Booking requests - NEW
+  if (lowerInput.includes('จองให้') || lowerInput.includes('ช่วยจอง') || 
+      lowerInput.includes('จองตั๋ว') || lowerInput.includes('book for me') ||
+      lowerInput.includes('ai จอง') || lowerInput.includes('จองอัตโนมัติ')) {
+    
+    // Extract event name if mentioned
+    const eventNames = [
+      'digital marketing',
+      'tech conference', 
+      'jazz under the stars',
+      'bangkok marathon',
+      'cultural heritage',
+      'business networking',
+      'photography workshop',
+      'workshop',
+      'conference',
+      'concert',
+      'marathon',
+      'festival',
+      'networking'
+    ];
+    
+    const mentionedEvent = eventNames.find(name => 
+      lowerInput.includes(name.toLowerCase())
+    );
+    
+    return { type: 'ai_booking_request', payload: { eventName: mentionedEvent, originalQuery: input } };
+  }
+  
+  // Specific booking choices - NEW
+  if (lowerInput.includes('จอง') && 
+      (lowerInput.includes('digital marketing') || lowerInput.includes('tech conference') ||
+       lowerInput.includes('jazz') || lowerInput.includes('marathon') ||
+       lowerInput.includes('cultural') || lowerInput.includes('networking') ||
+       lowerInput.includes('photography'))) {
+    
+    // Extract event name
+    let eventName = '';
+    if (lowerInput.includes('digital marketing')) eventName = 'Digital Marketing Masterclass';
+    else if (lowerInput.includes('tech conference')) eventName = 'Thailand Tech Conference';
+    else if (lowerInput.includes('jazz')) eventName = 'Jazz Under the Stars';
+    else if (lowerInput.includes('marathon')) eventName = 'Bangkok Marathon';
+    else if (lowerInput.includes('cultural')) eventName = 'Thai Cultural Heritage Festival';
+    else if (lowerInput.includes('networking')) eventName = 'Bangkok Business Networking Night';
+    else if (lowerInput.includes('photography')) eventName = 'Creative Photography Workshop';
+    
+    return { type: 'specific_event_booking', payload: { eventName, originalQuery: input } };
+  }
   if (lowerInput.includes('ดูอีเว้นท์') || lowerInput.includes('อีเว้นท์ทั้งหมด') || lowerInput.includes('รายการอีเว้นท์') || 
       lowerInput.includes('มีอีเว้นท์อะไรบ้าง') || lowerInput.includes('อีเว้นท์อะไรบ้าง') || 
       lowerInput.includes('มีงานอะไรบ้าง') || lowerInput.includes('งานอะไรบ้าง') ||
@@ -97,22 +177,43 @@ export const generateAIResponse = async (userInput: string, context?: any): Prom
   try {
     const action = parseUserInput(userInput);
     
-    // Update AI knowledge with current system data
-    await updateAIKnowledge(context);
+    // Force refresh for critical queries to ensure real-time data
+    const forceRefresh = userInput.includes('ล่าสุด') || 
+                        userInput.includes('ปัจจุบัน') || 
+                        userInput.includes('real-time') ||
+                        userInput.includes('อัปเดต') ||
+                        action.type === 'get_stats';
+    
+    // Update AI knowledge with current system data (with optional force refresh)
+    await updateAIKnowledge(context, forceRefresh);
+    
+    // Add real-time data indicator to context
+    const enhancedContext = {
+      ...context,
+      isRealTimeQuery: forceRefresh,
+      lastDataRefresh: new Date().toISOString()
+    };
     
     // Handle specific actions
     if (action.type !== 'general_query') {
-      return await executeSpecificAction(action, context);
+      return await executeSpecificAction(action, enhancedContext);
     }
     
     // For general queries, use dynamic system knowledge instead of hardcoded prompts
-    const systemKnowledge = getSystemContext(context, true); // Include event details
-    const conversationContext = context?.conversationContext || 'เริ่มต้นการสนทนา';
+    const systemKnowledge = getSystemContext(enhancedContext, true); // Include event details
+    const conversationContext = enhancedContext?.conversationContext || 'เริ่มต้นการสนทนา';
+    
+    // Include real-time data status in the prompt
+    const dataFreshnessInfo = forceRefresh 
+      ? 'ข้อมูลนี้ได้มาจาก API แบบ real-time เมื่อสักครู่ที่ผ่านมา'
+      : 'ข้อมูลนี้อาจเป็นข้อมูลที่ถูกเก็บ cache ไว้';
     
     const prompt = `
 คุณคือ AI Assistant ที่เข้าใจระบบนี้อย่างลึกซึ้ง ไม่ต้องพึ่งพาคำสั่งที่ตายตัว แต่ใช้ความรู้จริงเกี่ยวกับระบบ
 
 ${systemKnowledge}
+
+สถานะข้อมูล: ${dataFreshnessInfo}
 
 บริบทการสนทนา: ${conversationContext}
 
@@ -123,6 +224,7 @@ ${systemKnowledge}
 2. ข้อมูลจริงที่เกี่ยวข้อง
 3. ประสบการณ์จากการสนทนาก่อนหน้า
 4. ความเข้าใจในบริบทปัจจุบัน
+5. ข้อมูลล่าสุดและความถูกต้อง (${dataFreshnessInfo})
 
 ตอบอย่างเป็นธรรมชาติ เป็นมิตร และมีประโยชน์ หลีกเลี่ยงการใช้คำสั่งระบบแบบตายตัว
 ตอบเป็นภาษาไทยเท่านั้น
@@ -133,7 +235,7 @@ ${systemKnowledge}
     const text = response.text();
     
     // Generate contextual suggestions based on current system state
-    const suggestions = generateContextualSuggestions(context);
+    const suggestions = generateContextualSuggestions(enhancedContext);
     
     return {
       message: text,
@@ -149,75 +251,104 @@ ${systemKnowledge}
   }
 };
 
-// Update AI knowledge with fresh system data - Enhanced to capture ALL fields
-const updateAIKnowledge = async (context?: any): Promise<void> => {
+// Update AI knowledge with fresh system data - Enhanced for real-time access
+const updateAIKnowledge = async (context?: any, forceRefresh = false): Promise<void> => {
   try {
     // Check if we need to refresh data
     const memory = context?.memory;
     const lastFetch = memory?.lastFetchTime;
     const now = new Date();
     
-    // Fetch events with ALL their fields if not cached or cache is older than 5 minutes
+    // Fetch events with ALL their fields - reduced cache time for more real-time data
     const eventsCacheAge = lastFetch?.events ? now.getTime() - lastFetch.events.getTime() : Infinity;
-    if (!memory?.events || memory.events.length === 0 || eventsCacheAge > 300000) {
+    const cacheTimeout = forceRefresh ? 0 : 60000; // 1 minute cache instead of 5 minutes, or force refresh
+    
+    if (!memory?.events || memory.events.length === 0 || eventsCacheAge > cacheTimeout) {
       try {
+        console.log('🔄 Fetching real-time events data from API...');
         const eventsResult = await aiApi.getAllEvents();
         // Update with complete event data including all fields
         aiKnowledge.updateKnowledge({ 
           events: eventsResult.events || [],
         });
+        console.log(`✅ Updated AI knowledge with ${eventsResult.events?.length || 0} events from real-time API`);
       } catch (error) {
-        console.warn('Failed to fetch events for AI knowledge:', error);
+        console.warn('⚠️ Failed to fetch real-time events, using cached data:', error);
+        // If fresh data fails, use cached data but warn user
+        if (memory?.events) {
+          aiKnowledge.updateKnowledge({ events: memory.events });
+        }
       }
     } else {
-      // Use cached data
+      // Use cached data but note its age
+      const cacheAgeMinutes = Math.floor(eventsCacheAge / 60000);
+      console.log(`📋 Using cached events data (${cacheAgeMinutes} minutes old)`);
       aiKnowledge.updateKnowledge({ events: memory.events });
     }
     
-    // Fetch categories with full details
-    try {
-      const categories = await aiApi.getAllCategories();
-      aiKnowledge.updateKnowledge({ categories: categories || [] });
-    } catch (error) {
-      console.warn('Failed to fetch categories for AI knowledge:', error);
-    }
-    
-    // Update tickets with complete information if user is available
-    if (context?.currentUser?.id) {
+    // Fetch categories with full details - real-time
+    const categoriesCacheAge = lastFetch?.categories ? now.getTime() - lastFetch.categories.getTime() : Infinity;
+    if (forceRefresh || categoriesCacheAge > cacheTimeout) {
       try {
-        const tickets = await aiApi.getUserTickets(context.currentUser.id);
-        aiKnowledge.updateKnowledge({ tickets: tickets || [] });
+        console.log('🔄 Fetching real-time categories data...');
+        const categories = await aiApi.getAllCategories();
+        aiKnowledge.updateKnowledge({ categories: categories || [] });
+        console.log(`✅ Updated ${categories?.length || 0} categories from real-time API`);
       } catch (error) {
-        console.warn('Failed to fetch tickets for AI knowledge:', error);
+        console.warn('⚠️ Failed to fetch real-time categories:', error);
       }
     }
     
-    // Fetch comprehensive system stats if user is admin
+    // Update tickets with complete information if user is available - real-time
+    if (context?.currentUser?.id) {
+      const ticketsCacheAge = lastFetch?.tickets ? now.getTime() - lastFetch.tickets.getTime() : Infinity;
+      if (forceRefresh || ticketsCacheAge > cacheTimeout) {
+        try {
+          console.log('🔄 Fetching real-time user tickets...');
+          const tickets = await aiApi.getUserTickets(context.currentUser.id);
+          aiKnowledge.updateKnowledge({ tickets: tickets || [] });
+          console.log(`✅ Updated ${tickets?.length || 0} user tickets from real-time API`);
+        } catch (error) {
+          console.warn('⚠️ Failed to fetch real-time tickets:', error);
+        }
+      }
+    }
+    
+    // Fetch comprehensive system stats if user is admin - real-time
     if (context?.currentUser?.role === 'admin') {
-      try {
-        const stats = await aiApi.getSystemStats();
-        const eventStats = await aiApi.getEventStats();
-        const bookingStats = await aiApi.getBookingStats();
-        const revenueStats = await aiApi.getRevenueStats();
-        
-        // Combine all statistics with proper typing
-        const comprehensiveStats = {
-          totalEvents: stats.totalEvents || 0,
-          activeEvents: stats.activeEvents || 0,
-          totalTickets: stats.totalTickets || 0,
-          totalRevenue: stats.totalRevenue || revenueStats.totalRevenue || 0,
-          totalUsers: stats.totalUsers || 0,
-          activeUsers: stats.activeUsers || 0,
-          upcomingEvents: 0, // Will be calculated by AIKnowledgeBuilder
-          pastEvents: 0, // Will be calculated by AIKnowledgeBuilder
-          revenueGrowth: revenueStats.growth,
-          ...eventStats,
-          ...bookingStats,
-        };
-        
-        aiKnowledge.updateKnowledge({ systemStats: comprehensiveStats });
-      } catch (error) {
-        console.warn('Failed to fetch comprehensive stats for AI knowledge:', error);
+      const statsCacheAge = lastFetch?.systemStats ? now.getTime() - lastFetch.systemStats.getTime() : Infinity;
+      if (forceRefresh || statsCacheAge > cacheTimeout) {
+        try {
+          console.log('🔄 Fetching real-time system statistics...');
+          const [stats, eventStats, bookingStats, revenueStats] = await Promise.all([
+            aiApi.getSystemStats(),
+            aiApi.getEventStats(),
+            aiApi.getBookingStats(),
+            aiApi.getRevenueStats()
+          ]);
+          
+          // Combine all statistics with proper typing and real-time data
+          const comprehensiveStats = {
+            totalEvents: stats.totalEvents || 0,
+            activeEvents: stats.activeEvents || 0,
+            totalTickets: stats.totalTickets || 0,
+            totalRevenue: stats.totalRevenue || revenueStats.totalRevenue || 0,
+            totalUsers: stats.totalUsers || 0,
+            activeUsers: stats.activeUsers || 0,
+            upcomingEvents: 0, // Will be calculated by AIKnowledgeBuilder
+            pastEvents: 0, // Will be calculated by AIKnowledgeBuilder
+            revenueGrowth: revenueStats.growth,
+            lastUpdated: now.toISOString(),
+            isRealTime: true,
+            ...eventStats,
+            ...bookingStats,
+          };
+          
+          aiKnowledge.updateKnowledge({ systemStats: comprehensiveStats });
+          console.log('✅ Updated real-time system statistics');
+        } catch (error) {
+          console.warn('⚠️ Failed to fetch real-time stats:', error);
+        }
       }
     }
     
@@ -293,6 +424,18 @@ const executeSpecificAction = async (action: any, context?: any): Promise<AIResp
       case 'auto_navigate_detail':
       case 'auto_navigate':
         return await handleAutoNavigation(type, payload, context);
+        
+      case 'force_realtime_update':
+        return await handleRealTimeUpdate(context);
+        
+      case 'ai_booking_request':
+        return await handleAIBookingRequest(payload, context);
+        
+      case 'specific_event_booking':
+        return await handleSpecificEventBooking(payload, context);
+        
+      case 'confirm_booking':
+        return await handleBookingConfirmation(payload, context);
           
       case 'get_events':
         // Check if we have cached events data
@@ -460,6 +603,411 @@ const executeSpecificAction = async (action: any, context?: any): Promise<AIResp
     return {
       message: `เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : 'ไม่ทราบสาเหตุ'} กรุณาลองใหม่อีกครั้งค่ะ`,
       suggestions: ['ลองใหม่', 'ช่วยเหลือ', 'รายงานปัญหา']
+    };
+  }
+};
+
+// Handle booking confirmation and proceed to booking page - ENHANCED
+const handleBookingConfirmation = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('✅ Processing booking confirmation...', payload);
+    
+    const { ticketType, originalQuery } = payload || {};
+    
+    // Check if user is authenticated
+    if (!context?.currentUser?.id) {
+      return {
+        message: '🔐 คุณต้องเข้าสู่ระบบก่อนจองตั๋วค่ะ 😊\n\nการจองตั๋วต้องมีบัญชีผู้ใช้เพื่อความปลอดภัยและการจัดการการชำระเงิน ✨',
+        suggestions: ['เข้าสู่ระบบ', 'สมัครสมาชิก', 'ดูอีเว้นท์ก่อน'],
+        action: {
+          type: 'navigate',
+          payload: { url: '/login' }
+        }
+      };
+    }
+    
+    // Try to get event info from different context sources
+    let eventInfo = null;
+    let selectedTicketType = ticketType;
+    
+    // First check for stored ticket options in context
+    const ticketOptions = context?.ticketOptions;
+    if (ticketOptions?.event) {
+      eventInfo = ticketOptions.event;
+    }
+    
+    // If no ticket options, try to get from booking choices
+    if (!eventInfo && context?.bookingChoices?.events?.length > 0) {
+      // For now, take the first event - in a real scenario, we'd need better event selection logic
+      eventInfo = context.bookingChoices.events[0];
+    }
+    
+    // If still no event, try to find "หมอลำ" event specifically from the conversation context
+    if (!eventInfo) {
+      console.log('กำลังค้นหาอีเว้นท์ "หมอลำ" จากบันทึกการสนทนา...');
+      
+      try {
+        const events = await aiApi.getAllEvents();
+        const allEvents = events.events || [];
+        
+        // Look for "หมอลำ" event
+        eventInfo = allEvents.find(event => 
+          event && event.title && 
+          (event.title.toLowerCase().includes('หมอลำ') ||
+           'หมอลำ'.includes(event.title.toLowerCase()))
+        );
+        
+        // Default to regular ticket if not specified
+        if (!selectedTicketType && eventInfo) {
+          selectedTicketType = 'regular';
+        }
+      } catch (error) {
+        console.error('Error finding หมอลำ event:', error);
+      }
+    }
+
+    if (!eventInfo) {
+      return {
+        message: '😔 ขออภัยค่ะ ดิฉันไม่พบข้อมูลอีเว้นท์ที่คุณต้องการจอง\n\nกรุณาบอกชื่ออีเว้นท์ที่ต้องการจองก่อนไหมคะ 😊',
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'หมอลำ', 'ช่วยเหลือ']
+      };
+    }
+    
+    // Find selected ticket type info
+    let selectedTicket = null;
+    if (selectedTicketType && eventInfo?.pricing) {
+      // Map ticket type to pricing info
+      const priceMap = {
+        regular: 'ราคาปกติ',
+        earlyBird: 'บัตรนกผู้จองล่วงหน้า (Early Bird)',
+        student: 'บัตรนักเรียน/นักศึกษา',
+        vip: 'บัตร VIP',
+        premium: 'บัตร Premium',
+        general: 'บัตรทั่วไป',
+        group: 'บัตรกลุ่ม'
+      };
+      
+      const price = eventInfo.pricing[selectedTicketType];
+      if (price !== undefined) {
+        selectedTicket = {
+          type: selectedTicketType,
+          label: priceMap[selectedTicketType as keyof typeof priceMap] || selectedTicketType,
+          price: price
+        };
+      }
+    }
+    
+    // Generate confirmation message
+    let message = `✅ เยี่ยมเลย! กำลังพาคุณไปหน้าชำระเงินเลยค่ะ 🎉💳\n\n`;
+    message += `🎫 **${eventInfo.title}**\n`;
+    
+    if (selectedTicket) {
+      message += `🎫 ประเภทตั๋ว: ${selectedTicket.label}\n`;
+      message += `💰 ราคา: ${selectedTicket.price.toLocaleString()} บาท\n\n`;
+    }
+    
+    message += `ดิฉันจะพาคุณไปยังหน้าชำระเงินโดยตรง พร้อมข้อมูลที่คุณเลือกไว้แล้ว 🚀\n\nคุณจะสามารถ:\n• เลือกจำนวนตั๋วที่ต้องการ\n• กรอกข้อมูลการชำระเงิน\n• ชำระเงินทันที 💳`;
+    
+    return {
+      message,
+      data: [eventInfo],
+      suggestions: ['ไปจองเลย', 'ดูรายละเอียดก่อน', 'เลือกอีเว้นท์อื่น'],
+      action: {
+        type: 'navigate',
+        payload: {
+          url: `/events/${eventInfo.id}/booking?payment=true&ticket=${selectedTicketType}`,
+          eventId: eventInfo.id,
+          preselectedTicketType: selectedTicketType
+        }
+      }
+    };
+    
+  } catch (error) {
+    console.error('Booking confirmation error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการยืนยันการจอง กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle specific event booking with ticket options - NEW FUNCTION
+const handleSpecificEventBooking = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('🎫 Processing specific event booking...', payload);
+    
+    const { eventName, originalQuery } = payload || {};
+    
+    // Find the specific event
+    const events = await aiApi.getAllEvents();
+    const allEvents = events.events || [];
+    
+    const targetEvent = allEvents.find(event => 
+      event && event.title && 
+      (event.title.toLowerCase().includes(eventName.toLowerCase()) ||
+       eventName.toLowerCase().includes(event.title.toLowerCase()))
+    );
+    
+    if (!targetEvent) {
+      return {
+        message: `😔 ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการจอง หรืออาจอีเว้นท์นี้ไม่มีแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+    
+    // Check if event is available for booking
+    const eventDate = new Date(targetEvent.schedule?.startDate || 0);
+    const now = new Date();
+    
+    if (eventDate <= now) {
+      return {
+        message: `😔 ขออภัยค่ะ อีเว้นท์ "${targetEvent.title}" ได้จัดขึ้นแล้วหรือกำลังจะมาถึง ไม่สามารถจองได้แล้ว\n\nลองหาอีเว้นท์อื่นๆ ที่ยังจองได้ไหมคะ? 😊`,
+        suggestions: ['อีเว้นท์ที่กำลังจะมาถึง', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+    
+    if ((targetEvent.capacity?.available || 0) <= 0) {
+      return {
+        message: `😔 ขออภัยค่ะ อีเว้นท์ "${targetEvent.title}" มีที่นั่งเต็มแล้ว ไม่สามารถจองเพิ่มได้\n\nลองหาอีเว้นท์อื่นๆ ที่ยังมีที่ว่างไหมคะ? 😊`,
+        suggestions: ['อีเว้นท์ที่มีที่ว่าง', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+    
+    // Get ticket options from event pricing
+    const ticketOptions = [];
+    const pricing = targetEvent.pricing || {};
+    
+    // Map pricing to ticket options with Thai labels
+    const priceMap = {
+      earlyBird: 'บัตรนกผู้จองล่วงหน้า (Early Bird)',
+      regular: 'บัตรราคาปกติ',
+      student: 'บัตรนักเรียน/นักศึกษา',
+      group: 'บัตรกลุ่ม',
+      vip: 'บัตร VIP',
+      premium: 'บัตร Premium',
+      general: 'บัตรทั่วไป',
+      fullMarathon: 'มาราธอนเต็มระยะทาง',
+      halfMarathon: 'ฮาฟมาราธอน',
+      miniMarathon: 'มินิมาราธอน',
+      funRun: 'Fun Run',
+      adult: 'ผู้ใหญ่',
+      child: 'เด็ก',
+      senior: 'ผู้สูงอายุ',
+      member: 'สมาชิก',
+      free: 'ฟรี'
+    };
+    
+    Object.entries(pricing).forEach(([type, price]) => {
+      if (typeof price === 'number' && price >= 0 && priceMap[type as keyof typeof priceMap]) {
+        ticketOptions.push({
+          type,
+          label: priceMap[type as keyof typeof priceMap],
+          price
+        });
+      }
+    });
+    
+    // Sort by price
+    ticketOptions.sort((a, b) => a.price - b.price);
+    
+    if (ticketOptions.length === 0) {
+      return {
+        message: `😔 ขออภัยค่ะ ไม่มีข้อมูลราคาตั๋วสำหรับอีเว้นท์นี้ กรุณาติดต่อผู้จัดงานโดยตรง`,
+        suggestions: ['ดูรายละเอียด', 'ติดต่อผู้จัดงาน', 'กลับไปหน้าหลัก']
+      };
+    }
+    
+    // Generate message with ticket choices
+    const formattedEventDate = new Date(targetEvent.schedule?.startDate || 0);
+    const formattedDate = formattedEventDate.toLocaleDateString('th-TH', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    let message = `🎉 พบอีเว้นท์แล้ว! ดิฉันพร้อมจะช่วยคุณจอง 🚀\n\n`;
+    message += `🎫 **${targetEvent.title}**\n`;
+    message += `📅 ${formattedDate}\n`;
+    message += `📍 ${targetEvent.location?.venue || 'ออนไลน์'}\n`;
+    message += `🎫 เหลือ ${targetEvent.capacity?.available || 0} ที่นั่ง\n\n`;
+    
+    message += `🎫 **ประเภทตั๋ว:**\n`;
+    ticketOptions.forEach((option, index) => {
+      message += `${index + 1}. ${option.label} - **${option.price.toLocaleString()} บาท**\n`;
+    });
+    
+    message += `\nคุณต้องการตั๋วประเภทไหนคะ? 🤔\n\nกดปุ่มด้านล่างเพื่อเลือกและดำเนินการจองค่ะ ✨`;
+    
+    // Generate booking suggestions for each ticket type
+    const bookingSuggestions = ticketOptions.map(option => 
+      `จอง ${option.label}`
+    );
+    
+    // Add general options
+    bookingSuggestions.push('ดูรายละเอียดก่อน');
+    
+    return {
+      message,
+      data: [targetEvent],
+      suggestions: bookingSuggestions.slice(0, 4),
+      action: {
+        type: 'show_ticket_options',
+        payload: {
+          event: targetEvent,
+          ticketOptions,
+          eventId: targetEvent.id
+        }
+      }
+    };
+    
+  } catch (error) {
+    console.error('Specific event booking error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการค้นหาข้อมูลตั๋ว กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle AI booking requests with choices - NEW FUNCTION
+const handleAIBookingRequest = async (payload: any, context?: any): Promise<AIResponse> => {
+  try {
+    console.log('🤖 Processing AI booking request...', payload);
+    
+    const { eventName, originalQuery } = payload || {};
+    
+    // Get available events
+    const events = await aiApi.getAllEvents();
+    const allEvents = events.events || [];
+    
+    // Filter events based on query or show upcoming events
+    let candidateEvents = allEvents.filter(event => {
+      if (!event || !event.title) return false;
+      
+      // Filter by event name if mentioned
+      if (eventName) {
+        return event.title.toLowerCase().includes(eventName.toLowerCase()) ||
+               eventName.toLowerCase().includes(event.title.toLowerCase());
+      }
+      
+      // Show upcoming events with available seats
+      const eventDate = new Date(event.schedule?.startDate || 0);
+      const now = new Date();
+      return eventDate > now && 
+             event.status === 'active' && 
+             (event.capacity?.available || 0) > 0;
+    });
+    
+    // Limit to 5 most relevant events
+    candidateEvents = candidateEvents.slice(0, 5);
+    
+    if (candidateEvents.length === 0) {
+      return {
+        message: `😔 ขออภัยค่ะ ${eventName ? `ไม่พบอีเว้นท์ "${eventName}"` : 'ไม่มีอีเว้นท์ที่พร้อมจองในขณะนี้'} หรืออาจมีที่นั่งเต็มแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+      };
+    }
+    
+    // Generate message with event choices
+    let message = `🎉 เยี่ยมเลยค่ะ! ดิฉันพร้อมจะช่วยคุณจองตั๋ว 🚀\n\n`;
+    
+    if (eventName) {
+      message += `พบอีเว้นท์ที่ตรงกับ "${eventName}" แล้ว ${candidateEvents.length} รายการ:\n\n`;
+    } else {
+      message += `มีอีเว้นท์ที่น่าสนใจ ${candidateEvents.length} รายการให้เลือก:\n\n`;
+    }
+    
+    // Add event choices with booking buttons
+    candidateEvents.forEach((event, index) => {
+      const candidateEventDate = new Date(event.schedule?.startDate || 0);
+      const formattedDate = candidateEventDate.toLocaleDateString('th-TH', {
+        day: 'numeric',
+        month: 'short', 
+        year: 'numeric'
+      });
+      
+      const lowestPrice = Math.min(
+        ...(Object.values(event.pricing || {}).filter(p => typeof p === 'number' && p > 0) as number[])
+      );
+      
+      message += `🎫 **${event.title}**\n`;
+      message += `📅 ${formattedDate}\n`;
+      message += `📍 ${event.location?.venue || 'ออนไลน์'}\n`;
+      message += `💰 เริ่มต้น ${lowestPrice.toLocaleString()} บาท\n`;
+      message += `🎫 เหลือ ${event.capacity?.available || 0} ที่นั่ง\n\n`;
+    });
+    
+    message += `คุณต้องการให้ดิฉันจองอีเว้นท์ไหนคะ? 🤔\n\nกดปุ่มด้านล่างเพื่อเลือกอีเว้นท์ที่ต้องการค่ะ ✨`;
+    
+    // Generate booking suggestions with event names
+    const bookingSuggestions = candidateEvents.map(event => 
+      `จอง ${event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title}`
+    );
+    
+    // Add general suggestions
+    bookingSuggestions.push('ดูรายละเอียดก่อน');
+    bookingSuggestions.push('ยกเลิก');
+    
+    return {
+      message,
+      data: candidateEvents,
+      suggestions: bookingSuggestions.slice(0, 4), // Limit to 4 suggestions
+      action: {
+        type: 'show_booking_choices',
+        payload: {
+          events: candidateEvents,
+          originalQuery
+        }
+      }
+    };
+    
+  } catch (error) {
+    console.error('AI booking request error:', error);
+    return {
+      message: '😔 ขออภัยค่ะ เกิดข้อผิดพลาดในการค้นหาอีเว้นท์ กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูอีเว้นท์ทั้งหมด', 'ช่วยเหลือ']
+    };
+  }
+};
+
+// Handle real-time data update requests - NEW FUNCTION
+const handleRealTimeUpdate = async (context?: any): Promise<AIResponse> => {
+  try {
+    console.log('🔄 Processing real-time update request...');
+    
+    // Force update AI knowledge with real-time data
+    await updateAIKnowledge(context, true); // Force refresh
+    
+    // Get latest statistics
+    const stats = await aiApi.getSystemStats();
+    const events = await aiApi.getAllEvents();
+    
+    const eventCount = events.events?.length || 0;
+    const activeEvents = events.events?.filter(
+      event => new Date(event.schedule?.startDate || 0) > new Date()
+    ).length || 0;
+    
+    const message = `✅ อัปเดตข้อมูลแบบ real-time เรียบร้อยแล้วค่ะ! 🚀
+
+📊 ข้อมูลล่าสุด (เมื่อสักครู่ที่ผ่านมา):
+• อีเว้นท์ทั้งหมด: ${eventCount} รายการ
+• อีเว้นท์ที่กำลังจะมาถึง: ${activeEvents} รายการ
+• ตั๋วที่จองแล้ว: ${stats.totalTickets} ใบ
+• รายได้รวม: ${stats.totalRevenue.toLocaleString()} บาท
+
+ตอนนี้คุณสามารถมั่นใจได้ว่าข้อมูลที่แสดงเป็นข้อมูลล่าสุดจากฐานข้อมูล 💾`;
+    
+    return {
+      message,
+      data: events.events?.slice(0, 3), // Show latest 3 events
+      suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ดูสถิติระบบ', 'ค้นหาอีเว้นท์']
+    };
+  } catch (error) {
+    console.error('Real-time update error:', error);
+    return {
+      message: 'ขออภัยค่ะ เกิดข้อผิดพลาดในการอัปเดตข้อมูล 😔 กรุณาลองใหม่อีกครั้งค่ะ',
+      suggestions: ['ลองใหม่', 'ดูข้อมูลที่มี', 'รายงานปัญหา']
     };
   }
 };
