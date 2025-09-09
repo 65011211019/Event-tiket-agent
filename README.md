@@ -1,73 +1,125 @@
-# Welcome to your egoist project
+# EventTicketAgent - ระบบจัดการตั๋วอีเว้นท์
 
-## Project info
+🎫 **แพลตฟอร์มจัดการและจองตั๋วอีเว้นท์ออนไลน์** ที่ออกแบบมาเพื่อให้ผู้จัดงานและผู้เข้าร่วมงานสามารถจัดการอีเว้นท์ได้อย่างมีประสิทธิภาพ
 
-**URL**: https://egoist.dev/projects/59be4871-90f8-4a1d-916d-612d08fb3751
+## 🌐 ลิ้งค์สำคัญ
 
-## How can I edit this code?
+- 🚀 **Demo**: https://event-tiket-agent.vercel.app/
+- 📦 **GitHub Repository**: https://github.com/65011211019/Event-tiket-agent
 
-There are several ways of editing your application.
+## ✨ คุณสมบัติหลัก
 
-**Use egoist**
+- 🎪 **จัดการอีเว้นท์**: สร้าง แก้ไข และจัดการอีเว้นท์
+- 🎟️ **ระบบจองตั๋ว**: เลือกดูและจองตั๋วอีเว้นท์ต่างๆ
+- 💳 **ระบบชำระเงิน**: รองรับการชำระเงินผ่าน Omise
+- 🤖 **AI ช่วยเหลือ**: แชทบอทและการสร้างภาพตัวอย่างอีเว้นท์
+- 📱 **Responsive Design**: รองรับการใช้งานบนมือถือและเดสก์ท็อป
+- 🔍 **ระบบค้นหาและกรอง**: ค้นหาอีเว้นท์และกรองตามหมวดหมู่
+- 👥 **ระบบผู้ใช้**: แยกสิทธิ์ผู้ใช้ทั่วไปและแอดมิน
+- 📊 **แดชบอร์ดแอดมิน**: จัดการอีเว้นท์ ตั๋ว และรายงาน
 
-Simply visit the [egoist Project](https://egoist.dev/projects/59be4871-90f8-4a1d-916d-612d08fb3751) and start prompting.
+## 🚀 วิธีการแก้ไขโค้ด
 
-Changes made via egoist will be committed automatically to this repo.
+### **ใช้ IDE ที่ชื่นชอบ**
 
-**Use your preferred IDE**
+หากต้องการทำงานใน local โดยใช้ IDE ของตัวเอง สามารถ clone repository นี้และ push การเปลี่ยนแปลงได้
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in egoist.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+ขั้นตอนการติดตั้ง:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# ขั้นตอนที่ 1: Clone repository โดยใช้ Git URL ของโครงการ
+git clone https://github.com/65011211019/Event-tiket-agent.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# ขั้นตอนที่ 2: เข้าไปในโฟลเดอร์โครงการ
+cd Event-tiket-agent
 
-# Step 3: Install the necessary dependencies.
-npm i
+# ขั้นตอนที่ 3: ติดตั้ง dependencies ที่จำเป็น
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# ขั้นตอนที่ 4: เริ่มเซิร์ฟเวอร์พัฒนาพร้อม auto-reloading และ preview แบบทันที
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🛠️ เทคโนโลยีที่ใช้
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+โครงการนี้พัฒนาด้วย:
 
-**Use GitHub Codespaces**
+- **Frontend Framework**: React 18.3.1 + TypeScript 5.8.3
+- **Build Tool**: Vite 5.4.19
+- **UI Framework**: Tailwind CSS 3.4.17
+- **UI Components**: shadcn-ui
+- **Routing**: React Router DOM 6.30.1
+- **State Management**: React Context API
+- **API Integration**: REST API
+- **Payment**: Omise
+- **AI Integration**: Google Generative AI API
+- **Styling**: PostCSS + Tailwind CSS
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📁 โครงสร้างโครงการ
 
-## What technologies are used for this project?
+```
+src/
+├── components/          # UI Components
+│   ├── admin/          # คอมโพเนนต์แอดมิน
+│   ├── auth/           # คอมโพเนนต์การยืนยันตัวตน
+│   ├── events/         # คอมโพเนนต์อีเว้นท์
+│   ├── layout/         # คอมโพเนนต์เลย์เอาต์
+│   └── ui/             # คอมโพเนนต์ UI พื้นฐาน
+├── contexts/           # Global State Management
+├── hooks/              # Custom Hooks
+├── lib/                # Utility Functions และ API
+├── pages/              # หน้าเว็บต่างๆ
+├── services/           # Business Logic
+└── types/              # Type Definitions
+```
 
-This project is built with:
+## 🚀 การ Deploy โครงการ
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### การ Deploy แบบอื่นๆ
 
-## How can I deploy this project?
+```sh
+# Build สำหรับ production
+npm run build
 
-Simply open [egoist](https://egoist.dev/projects/59be4871-90f8-4a1d-916d-612d08fb3751) and click on Share -> Publish.
+# Preview build
+npm run preview
+```
 
-## Can I connect a custom domain to my egoist project?
+## 🌐 การเชื่อมต่อโดเมนที่กำหนดเอง
 
-Yes, you can!
+สามารถเชื่อมต่อโดเมนของตัวเองได้!
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+เพื่อเชื่อมต่อโดเมน ไปที่ Project > Settings > Domains และคลิก Connect Domain
 
-Read more here: [Setting up a custom domain](https://docs.egoist.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📝 คำสั่ง npm ที่สำคัญ
+
+```sh
+npm run dev          # เริ่มเซิร์ฟเวอร์พัฒนา
+npm run build        # Build สำหรับ production
+npm run preview      # Preview build
+npm run lint         # ตรวจสอบโค้ดด้วย ESLint
+```
+
+## 👥 การใช้งาน
+
+### สำหรับผู้ใช้ทั่วไป
+- เลือกดูและค้นหาอีเว้นท์
+- จองและชำระค่าตั๋ว
+- จัดการตั๋วของตัวเอง
+- ใช้ AI ช่วยเหลือ
+
+### สำหรับแอดมิน
+- จัดการอีเว้นท์ทั้งหมด
+- ติดตามยอดขายและรายงาน
+- จัดการผู้ใช้และสิทธิ์
+
+## 🔐 การเข้าสู่ระบบ
+
+### บัญชีทดสอบ
+- **Admin**: admin@tiketagent.com / password123
+- **User**: jason@gmail.com / password123
+
+---
+
+💡 **พัฒนาโดย**: egoist Team  
+🚀 **Powered by**: egoist.dev

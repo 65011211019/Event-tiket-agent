@@ -46,9 +46,13 @@ export default function Header({ onSearch }: HeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-primary to-primary-light shadow-lg hover:from-primary/90 hover:to-primary-light/90 transition-all duration-300">
-            <Calendar className="h-5 w-5 text-primary-foreground" />
+        <Link to="/" className="flex items-center space-x-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl shadow-lg hover:scale-105 transition-all duration-300 overflow-hidden">
+            <img 
+              src="/tiket.png" 
+              alt="EventTicketAgent Logo" 
+              className="h-10 w-10 rounded-xl object-cover"
+            />
           </div>
           <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
             EventTicketAgent
