@@ -192,10 +192,11 @@ export default function AdminDashboard() {
           avgTicketsPerEvent: avgTicketsPerEvent,
         });
 
-        // Prepare category data for pie chart
+        // Prepare category data for pie chart with Thai names
         const categoryCount: Record<string, number> = {};
         events.forEach(event => {
-          categoryCount[event.category] = (categoryCount[event.category] || 0) + 1;
+          const categoryName = getThaiCategoryName(event.category);
+          categoryCount[categoryName] = (categoryCount[categoryName] || 0) + 1;
         });
         
         const categoryChartData = Object.entries(categoryCount)
@@ -205,10 +206,11 @@ export default function AdminDashboard() {
         setCategoryData(categoryChartData);
         setPopularCategories(categoryChartData.slice(0, 5));
         
-        // Prepare ticket type data
+        // Prepare ticket type data with Thai names
         const ticketTypeCount: Record<string, number> = {};
         confirmedTickets.forEach(ticket => {
-          ticketTypeCount[ticket.ticketType] = (ticketTypeCount[ticket.ticketType] || 0) + (ticket.quantity || 1);
+          const ticketTypeName = getThaiTicketTypeName(ticket.ticketType);
+          ticketTypeCount[ticketTypeName] = (ticketTypeCount[ticketTypeName] || 0) + (ticket.quantity || 1);
         });
         
         const ticketTypeChartData = Object.entries(ticketTypeCount)
@@ -225,6 +227,56 @@ export default function AdminDashboard() {
 
     loadDashboardData();
   }, []);
+
+  // Helper function to get Thai category names
+  const getThaiCategoryName = (category: string) => {
+    const categoryNames: Record<string, string> = {
+      'music': 'ดนตรี',
+      'sports': 'กีฬา',
+      'conference': 'สัมมนา',
+      'workshop': 'เวิร์กช็อป',
+      'festival': 'เทศกาล',
+      'exhibition': 'นิทรรศการ',
+      'seminar': 'สัมมนา',
+      'concert': 'คอนเสิร์ต',
+      'theater': 'ละคร',
+      'comedy': 'คาบาเรต์',
+      'food': 'อาหาร',
+      'art': 'ศิลปะ',
+      'technology': 'เทคโนโลยี',
+      'business': 'ธุรกิจ',
+      'education': 'การศึกษา',
+      'health': 'สุขภาพ',
+      'travel': 'ท่องเที่ยว',
+      'charity': 'การกุศล',
+      'networking': 'สร้างเครือข่าย'
+    };
+    
+    return categoryNames[category] || category;
+  };
+
+  // Helper function to get Thai ticket type names
+  const getThaiTicketTypeName = (ticketType: string) => {
+    const ticketTypeNames: Record<string, string> = {
+      'general': 'ตั๋วทั่วไป',
+      'vip': 'ตั๋ว VIP',
+      'student': 'ตั๋วนักศึกษา',
+      'earlyBird': 'ตั๋วจองล่วงหน้า',
+      'group': 'ตั๋วกลุ่ม',
+      'member': 'ตั๋วสมาชิก',
+      'free': 'ตั๋วฟรี',
+      'adult': 'ตั๋วผู้ใหญ่',
+      'child': 'ตั๋วเด็ก',
+      'senior': 'ตั๋วผู้สูงอายุ',
+      'fullMarathon': 'มาราธอนเต็มระยะ',
+      'halfMarathon': 'มาราธอนครึ่งระยะ',
+      'miniMarathon': 'มาราธอนระยะสั้น',
+      'funRun': 'Fun Run',
+      'regular': 'ตั๋วปกติ'
+    };
+    
+    return ticketTypeNames[ticketType] || ticketType;
+  };
 
   // Subscribe to real-time updates for events
   React.useEffect(() => {
@@ -254,7 +306,7 @@ export default function AdminDashboard() {
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
-  // Stat cards data with icons
+  // Stat cards data with icons - already in Thai
   const statCards: StatCardProps[] = [
     {
       title: 'รายได้รวม',
@@ -316,7 +368,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            {t('admin.dashboard')}
+            แดชบอร์ดผู้ดูแลระบบ
           </h1>
           <p className="text-muted-foreground mt-2">
             ภาพรวมระบบจัดการอีเว้นท์
