@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { EventFilters as Filters, EventCategory } from '@/types/event';
+import { useLanguage } from '@/contexts/AppContext';
 
 interface EventFiltersProps {
   filters: Filters;
@@ -19,43 +20,45 @@ interface EventFiltersProps {
   onClear: () => void;
 }
 
-const locationTypes = [
-  { value: 'onsite', label: 'ที่งาน' },
-  { value: 'online', label: 'ออนไลน์' },
-  { value: 'hybrid', label: 'ไฮบริด' },
-];
-
-const dateRanges = [
-  { value: 'today', label: 'วันนี้' },
-  { value: 'week', label: 'สัปดาห์นี้' },
-  { value: 'month', label: 'เดือนนี้' },
-  { value: 'quarter', label: 'ไตรมาสนี้' },
-  { value: 'year', label: 'ปีนี้' },
-];
-
-const priceRanges = [
-  { value: 'free', label: 'ฟรี', min: 0, max: 0 },
-  { value: 'under1000', label: 'ต่ำกว่า 1,000 บาท', min: 1, max: 1000 },
-  { value: '1000-3000', label: '1,000 - 3,000 บาท', min: 1000, max: 3000 },
-  { value: '3000-6000', label: '3,000 - 6,000 บาท', min: 3000, max: 6000 },
-  { value: 'over6000', label: 'มากกว่า 6,000 บาท', min: 6000, max: undefined },
-];
-
-const sortOptions = [
-  { value: 'newest', label: 'ล่าสุด' },
-  { value: 'oldest', label: 'เก่าสุด' },
-  { value: 'date-asc', label: 'วันที่เริ่มงาน (เร็วสุด)' },
-  { value: 'date-desc', label: 'วันที่เริ่มงาน (ช้าสุด)' },
-  { value: 'price-asc', label: 'ราคา (ต่ำ-สูง)' },
-  { value: 'price-desc', label: 'ราคา (สูง-ต่ำ)' },
-];
-
 export default function EventFilters({
   filters,
   categories,
   onFiltersChange,
   onClear,
 }: EventFiltersProps) {
+  const { t } = useLanguage();
+
+  const locationTypes = [
+    { value: 'onsite', label: t('eventsComponents.eventFilters.locationTypes.onsite') },
+    { value: 'online', label: t('eventsComponents.eventFilters.locationTypes.online') },
+    { value: 'hybrid', label: t('eventsComponents.eventFilters.locationTypes.hybrid') },
+  ];
+
+  const dateRanges = [
+    { value: 'today', label: t('eventsComponents.eventFilters.dateRanges.today') },
+    { value: 'week', label: t('eventsComponents.eventFilters.dateRanges.week') },
+    { value: 'month', label: t('eventsComponents.eventFilters.dateRanges.month') },
+    { value: 'quarter', label: t('eventsComponents.eventFilters.dateRanges.quarter') },
+    { value: 'year', label: t('eventsComponents.eventFilters.dateRanges.year') },
+  ];
+
+  const priceRanges = [
+    { value: 'free', label: t('eventsComponents.eventFilters.priceRanges.free'), min: 0, max: 0 },
+    { value: 'under1000', label: t('eventsComponents.eventFilters.priceRanges.under1000'), min: 1, max: 1000 },
+    { value: '1000-3000', label: t('eventsComponents.eventFilters.priceRanges.1000-3000'), min: 1000, max: 3000 },
+    { value: '3000-6000', label: t('eventsComponents.eventFilters.priceRanges.3000-6000'), min: 3000, max: 6000 },
+    { value: 'over6000', label: t('eventsComponents.eventFilters.priceRanges.over6000'), min: 6000, max: undefined },
+  ];
+
+  const sortOptions = [
+    { value: 'newest', label: t('eventsComponents.eventFilters.sortOptions.newest') },
+    { value: 'oldest', label: t('eventsComponents.eventFilters.sortOptions.oldest') },
+    { value: 'date-asc', label: t('eventsComponents.eventFilters.sortOptions.dateAsc') },
+    { value: 'date-desc', label: t('eventsComponents.eventFilters.sortOptions.dateDesc') },
+    { value: 'price-asc', label: t('eventsComponents.eventFilters.sortOptions.priceAsc') },
+    { value: 'price-desc', label: t('eventsComponents.eventFilters.sortOptions.priceDesc') },
+  ];
+
   const updateFilters = (updates: Partial<Filters>) => {
     onFiltersChange({ ...filters, ...updates });
   };
@@ -132,7 +135,7 @@ export default function EventFilters({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="ค้นหาอีเว้นท์..."
+              placeholder={t('eventsComponents.eventFilters.searchPlaceholder')}
               value={filters.search || ''}
               onChange={(e) => updateFilters({ search: e.target.value || undefined })}
               className="pl-10"
@@ -153,10 +156,10 @@ export default function EventFilters({
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="หมวดหมู่" />
+              <SelectValue placeholder={t('eventsComponents.eventFilters.allCategories')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
+              <SelectItem value="all">{t('eventsComponents.eventFilters.allCategories')}</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
@@ -175,10 +178,10 @@ export default function EventFilters({
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="รูปแบบ" />
+              <SelectValue placeholder={t('eventsComponents.eventFilters.allFormats')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทุกรูปแบบ</SelectItem>
+              <SelectItem value="all">{t('eventsComponents.eventFilters.allFormats')}</SelectItem>
               {locationTypes.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
@@ -197,10 +200,10 @@ export default function EventFilters({
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="ช่วงเวลา" />
+              <SelectValue placeholder={t('eventsComponents.eventFilters.allDateRanges')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทุกช่วงเวลา</SelectItem>
+              <SelectItem value="all">{t('eventsComponents.eventFilters.allDateRanges')}</SelectItem>
               {dateRanges.map((range) => (
                 <SelectItem key={range.value} value={range.value}>
                   {range.label}
@@ -217,10 +220,10 @@ export default function EventFilters({
             onValueChange={handlePriceRangeChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="ช่วงราคา" />
+              <SelectValue placeholder={t('eventsComponents.eventFilters.allPriceRanges')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทุกช่วงราคา</SelectItem>
+              <SelectItem value="all">{t('eventsComponents.eventFilters.allPriceRanges')}</SelectItem>
               {priceRanges.map((range) => (
                 <SelectItem key={range.value} value={range.value}>
                   {range.label}
@@ -239,7 +242,7 @@ export default function EventFilters({
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="เรียงตาม" />
+              <SelectValue placeholder={t('eventsComponents.eventFilters.sortBy')} />
             </SelectTrigger>
             <SelectContent>
               {sortOptions.map((option) => (
@@ -255,7 +258,7 @@ export default function EventFilters({
         {hasActiveFilters && (
           <Button variant="outline" onClick={onClear} className="flex items-center gap-2">
             <X className="h-4 w-4" />
-            ล้างตัวกรอง
+            {t('eventsComponents.eventFilters.clearFilters')}
           </Button>
         )}
       </div>
@@ -265,7 +268,7 @@ export default function EventFilters({
         <div className="flex flex-wrap gap-2">
           {filters.search && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              ค้นหา: "{filters.search}"
+              {t('eventsComponents.eventFilters.search')}: "{filters.search}"
               <Button
                 variant="ghost"
                 size="sm"
@@ -341,7 +344,7 @@ export default function EventFilters({
 
           {filters.sortBy && filters.sortBy !== 'newest' && (
             <Badge variant="secondary" className="flex items-center gap-1">
-              เรียงตาม: {sortOptions.find(s => s.value === filters.sortBy)?.label}
+              {t('eventsComponents.eventFilters.sortBy')}: {sortOptions.find(s => s.value === filters.sortBy)?.label}
               <Button
                 variant="ghost"
                 size="sm"

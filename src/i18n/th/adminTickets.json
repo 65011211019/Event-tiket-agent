@@ -1,0 +1,121 @@
+{
+  "title": "ตั๋วทั้งหมด",
+  "subtitle": "จัดการตั๋วที่ผู้ใช้จองไว้",
+  "stats": {
+    "totalTickets": "ตั๋วทั้งหมด",
+    "confirmed": "ยืนยันแล้ว",
+    "pending": "รอดำเนินการ",
+    "cancelled": "ยกเลิก"
+  },
+  "ticketTypes": {
+    "title": "ประเภทตั๋ว",
+    "loading": "กำลังโหลดประเภทตั๋ว...",
+    "empty": "ยังไม่มีประเภทตั๋ว",
+    "price": "ราคา:",
+    "description": "คำอธิบาย:"
+  },
+  "ticketList": {
+    "title": "รายการตั๋ว",
+    "empty": "ยังไม่มีตั๋วที่ถูกจอง",
+    "searchPlaceholder": "ค้นหาตามชื่ออีเว้นท์, ชื่อผู้จอง, อีเมล, หรือประเภทตั๋ว...",
+    "allStatuses": "ทุกสถานะ",
+    "allTicketTypes": "ทุกประเภทตั๋ว",
+    "clearFilters": "ล้างตัวกรอง"
+  },
+  "table": {
+    "event": "อีเว้นท์",
+    "booker": "ผู้จอง",
+    "ticketType": "ประเภทตั๋ว",
+    "quantity": "จำนวน",
+    "price": "ราคา",
+    "bookingDate": "วันที่จอง",
+    "status": "สถานะ",
+    "actions": "การจัดการ"
+  },
+  "statuses": {
+    "confirmed": "ยืนยันแล้ว",
+    "pending": "รอดำเนินการ",
+    "cancelled": "ยกเลิก"
+  },
+  "pagination": {
+    "showing": "แสดง",
+    "to": "ถึง",
+    "of": "จาก",
+    "items": "รายการ",
+    "previous": "ก่อนหน้า",
+    "next": "ถัดไป"
+  },
+  "messages": {
+    "loadError": "ไม่สามารถโหลดตั๋วได้ กรุณาลองใหม่อีกครั้ง",
+    "retry": "ลองใหม่อีกครั้ง"
+  },
+  "noDate": "ไม่มีวันที่",
+  "invalidDate": "วันที่ไม่ถูกต้อง",
+  "loadingTicketTypes": "กำลังโหลดประเภทตั๋ว...",
+  "noTicketTypes": "ยังไม่มีประเภทตั๋ว",
+  "noTickets": "ยังไม่มีตั๋วที่ถูกจอง",
+  "errorOccurred": "เกิดข้อผิดพลาด",
+  "tryAgain": "ลองใหม่อีกครั้ง",
+  "ticketTypeInfo": {
+    "general": {
+      "name": "ตั๋วทั่วไป",
+      "description": "ตั๋วทั่วไปสำหรับผู้เข้าร่วมทั่วไป"
+    },
+    "vip": {
+      "name": "ตั๋ว VIP",
+      "description": "ตั๋ว VIP พร้อมสิทธิประโยชน์พิเศษ"
+    },
+    "student": {
+      "name": "ตั๋วนักศึกษา",
+      "description": "ตั๋วสำหรับนักเรียนนักศึกษา"
+    },
+    "earlyBird": {
+      "name": "ตั๋วจองล่วงหน้า",
+      "description": "ตั๋วราคาพิเศษสำหรับผู้จองล่วงหน้า"
+    },
+    "group": {
+      "name": "ตั๋วกลุ่ม",
+      "description": "ตั๋วสำหรับการจองเป็นกลุ่ม"
+    },
+    "member": {
+      "name": "ตั๋วสมาชิก",
+      "description": "ตั๋วสำหรับสมาชิก"
+    },
+    "free": {
+      "name": "ตั๋วฟรี",
+      "description": "ตั๋วฟรี"
+    },
+    "adult": {
+      "name": "ตั๋วผู้ใหญ่",
+      "description": "ตั๋วสำหรับผู้ใหญ่"
+    },
+    "child": {
+      "name": "ตั๋วเด็ก",
+      "description": "ตั๋วสำหรับเด็ก"
+    },
+    "senior": {
+      "name": "ตั๋วผู้สูงอายุ",
+      "description": "ตั๋วสำหรับผู้สูงอายุ"
+    },
+    "fullMarathon": {
+      "name": "มาราธอนเต็มระยะ",
+      "description": "ตั๋วสำหรับมาราธอนเต็มระยะ"
+    },
+    "halfMarathon": {
+      "name": "มาราธอนครึ่งระยะ",
+      "description": "ตั๋วสำหรับมาราธอนครึ่งระยะ"
+    },
+    "miniMarathon": {
+      "name": "มาราธอนระยะสั้น",
+      "description": "ตั๋วสำหรับมาราธอนระยะสั้น"
+    },
+    "funRun": {
+      "name": "Fun Run",
+      "description": "ตั๋วสำหรับ Fun Run"
+    },
+    "regular": {
+      "name": "ตั๋วปกติ",
+      "description": "ตั๋วปกติสำหรับผู้เข้าร่วม"
+    }
+  }
+}

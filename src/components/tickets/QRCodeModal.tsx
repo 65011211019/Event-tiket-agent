@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { EventTicket } from '@/types/event';
 import { QrCode, Download, X } from 'lucide-react';
+import { useLanguage } from '@/contexts/AppContext';
 
 interface QRCodeModalProps {
   ticket: EventTicket | null;
@@ -18,6 +19,8 @@ const generateQRCodeDataURL = (data: string): string => {
 };
 
 export default function QRCodeModal({ ticket, isOpen, onClose }: QRCodeModalProps) {
+  const { t } = useLanguage();
+
   if (!ticket) return null;
 
   const qrData = JSON.stringify({
@@ -43,7 +46,7 @@ export default function QRCodeModal({ ticket, isOpen, onClose }: QRCodeModalProp
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>QR Code ตั๋ว</span>
+            <span>{t('ticketsComponents.qrCodeModal.title')}</span>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -78,23 +81,23 @@ export default function QRCodeModal({ ticket, isOpen, onClose }: QRCodeModalProp
           {/* Ticket Details */}
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">รหัสตั๋ว:</span>
+              <span className="text-muted-foreground">{t('ticketsComponents.qrCodeModal.ticketId')}</span>
               <span className="font-mono">{ticket.id}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">วันที่ซื้อ:</span>
-              <span>{ticket.purchaseDate ? new Date(ticket.purchaseDate).toLocaleDateString('th-TH') : 'ไม่ระบุ'}</span>
+              <span className="text-muted-foreground">{t('ticketsComponents.qrCodeModal.purchaseDate')}</span>
+              <span>{ticket.purchaseDate ? new Date(ticket.purchaseDate).toLocaleDateString('th-TH') : t('ticketsComponents.qrCodeModal.statuses.unknown')}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">สถานะ:</span>
+              <span className="text-muted-foreground">{t('ticketsComponents.qrCodeModal.status')}</span>
               <span className={`font-medium ${
                 ticket.status === 'confirmed' ? 'text-green-600' :
                 ticket.status === 'pending' ? 'text-yellow-600' :
                 ticket.status === 'cancelled' ? 'text-red-600' : 'text-gray-500'
               }`}>
-                {ticket.status === 'confirmed' ? 'ยืนยันแล้ว' :
-                 ticket.status === 'pending' ? 'รอดำเนินการ' :
-                 ticket.status === 'cancelled' ? 'ยกเลิก' : ticket.status || 'ไม่ระบุ'}
+                {ticket.status === 'confirmed' ? t('ticketsComponents.qrCodeModal.statuses.confirmed') :
+                 ticket.status === 'pending' ? t('ticketsComponents.qrCodeModal.statuses.pending') :
+                 ticket.status === 'cancelled' ? t('ticketsComponents.qrCodeModal.statuses.cancelled') : ticket.status || t('ticketsComponents.qrCodeModal.statuses.unknown')}
               </span>
             </div>
           </div>
@@ -103,17 +106,17 @@ export default function QRCodeModal({ ticket, isOpen, onClose }: QRCodeModalProp
           <div className="flex space-x-2">
             <Button onClick={handleDownload} className="flex-1">
               <Download className="h-4 w-4 mr-2" />
-              ดาวน์โหลด QR Code
+              {t('ticketsComponents.qrCodeModal.buttons.download')}
             </Button>
             <Button variant="outline" onClick={onClose} className="flex-1">
-              ปิด
+              {t('ticketsComponents.qrCodeModal.buttons.close')}
             </Button>
           </div>
 
           {/* Instructions */}
           <div className="text-xs text-muted-foreground text-center space-y-1">
-            <p>แสดง QR Code นี้ที่จุดเช็คอินของงาน</p>
-            <p>กรุณาเก็บรักษา QR Code ไว้ให้ดี</p>
+            <p>{t('ticketsComponents.qrCodeModal.instructions.showAtCheckin')}</p>
+            <p>{t('ticketsComponents.qrCodeModal.instructions.keepSafe')}</p>
           </div>
         </div>
       </DialogContent>

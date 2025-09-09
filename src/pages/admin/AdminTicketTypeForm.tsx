@@ -64,11 +64,11 @@ export default function AdminTicketTypeForm() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Show success message and navigate back
-      alert('สร้างประเภทตั๋วใหม่เรียบร้อยแล้ว');
+      alert(t('adminTicketTypeForm.messages.createSuccess'));
       navigate('/admin/tickets');
     } catch (error) {
       console.error('Error creating ticket type:', error);
-      alert('เกิดข้อผิดพลาดในการสร้างประเภทตั๋ว');
+      alert(t('adminTicketTypeForm.messages.createError'));
     }
   };
 
@@ -80,18 +80,18 @@ export default function AdminTicketTypeForm() {
           <div className="flex items-center space-x-4">
             <Button variant="ghost" onClick={() => navigate(-1)}>
               <ChevronLeft className="h-4 w-4 mr-2" />
-              กลับ
+              {t('adminTicketTypeForm.back')}
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">สร้างประเภทตั๋วใหม่</h1>
+              <h1 className="text-3xl font-bold">{t('adminTicketTypeForm.title')}</h1>
               <p className="text-muted-foreground">
-                เพิ่มประเภทตั๋วสำหรับอีเว้นท์ต่างๆ
+                {t('adminTicketTypeForm.subtitle')}
               </p>
             </div>
           </div>
           <Button asChild variant="outline">
             <Link to="/admin/tickets">
-              กลับหน้าตั๋ว
+              {t('adminTicketTypeForm.backToTickets')}
             </Link>
           </Button>
         </div>
@@ -102,36 +102,36 @@ export default function AdminTicketTypeForm() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>ข้อมูลพื้นฐาน</CardTitle>
+                  <CardTitle>{t('adminTicketTypeForm.sections.basicInfo')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">ชื่อประเภทตั๋ว *</Label>
+                    <Label htmlFor="name">{t('adminTicketTypeForm.fields.ticketTypeName')} *</Label>
                     <Input
                       id="name"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="เช่น ตั๋ว VIP, ตั๋วทั่วไป"
+                      placeholder={t('adminTicketTypeForm.placeholders.ticketTypeExample')}
                       required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="description">คำอธิบาย</Label>
+                    <Label htmlFor="description">{t('adminTicketTypeForm.fields.description')}</Label>
                     <Textarea
                       id="description"
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="คำอธิบายประเภทตั๋วนี้"
+                      placeholder={t('adminTicketTypeForm.placeholders.descriptionExample')}
                       rows={3}
                     />
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="price">ราคา *</Label>
+                      <Label htmlFor="price">{t('adminTicketTypeForm.fields.price')} *</Label>
                       <Input
                         id="price"
                         name="price"
@@ -145,7 +145,7 @@ export default function AdminTicketTypeForm() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="currency">สกุลเงิน</Label>
+                      <Label htmlFor="currency">{t('adminTicketTypeForm.fields.currency')}</Label>
                       <Select 
                         value={formData.currency} 
                         onValueChange={(value) => handleSelectChange('currency', value)}
@@ -154,9 +154,9 @@ export default function AdminTicketTypeForm() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="THB">THB (บาทไทย)</SelectItem>
-                          <SelectItem value="USD">USD (ดอลลาร์สหรัฐ)</SelectItem>
-                          <SelectItem value="EUR">EUR (ยูโร)</SelectItem>
+                          <SelectItem value="THB">{t('adminTicketTypeForm.currencies.THB')}</SelectItem>
+                          <SelectItem value="USD">{t('adminTicketTypeForm.currencies.USD')}</SelectItem>
+                          <SelectItem value="EUR">{t('adminTicketTypeForm.currencies.EUR')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -166,12 +166,12 @@ export default function AdminTicketTypeForm() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>การตั้งค่าการสั่งซื้อ</CardTitle>
+                  <CardTitle>{t('adminTicketTypeForm.sections.orderSettings')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="minPerOrder">จำนวนขั้นต่ำต่อคำสั่งซื้อ</Label>
+                      <Label htmlFor="minPerOrder">{t('adminTicketTypeForm.fields.minPerOrder')}</Label>
                       <Input
                         id="minPerOrder"
                         name="minPerOrder"
@@ -183,7 +183,7 @@ export default function AdminTicketTypeForm() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="maxPerOrder">จำนวนสูงสุดต่อคำสั่งซื้อ</Label>
+                      <Label htmlFor="maxPerOrder">{t('adminTicketTypeForm.fields.maxPerOrder')}</Label>
                       <Input
                         id="maxPerOrder"
                         name="maxPerOrder"
@@ -201,12 +201,12 @@ export default function AdminTicketTypeForm() {
                       checked={formData.isLimited}
                       onCheckedChange={(checked) => handleCheckboxChange('isLimited', !!checked)}
                     />
-                    <Label htmlFor="isLimited">จำกัดจำนวนตั๋วทั้งหมด</Label>
+                    <Label htmlFor="isLimited">{t('adminTicketTypeForm.fields.isLimited')}</Label>
                   </div>
                   
                   {formData.isLimited && (
                     <div className="space-y-2">
-                      <Label htmlFor="maxQuantity">จำนวนตั๋วสูงสุด</Label>
+                      <Label htmlFor="maxQuantity">{t('adminTicketTypeForm.fields.maxQuantity')}</Label>
                       <Input
                         id="maxQuantity"
                         name="maxQuantity"
@@ -225,7 +225,7 @@ export default function AdminTicketTypeForm() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>สถานะ</CardTitle>
+                  <CardTitle>{t('adminTicketTypeForm.sections.status')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center space-x-2">
@@ -234,22 +234,22 @@ export default function AdminTicketTypeForm() {
                       checked={formData.isActive}
                       onCheckedChange={(checked) => handleCheckboxChange('isActive', !!checked)}
                     />
-                    <Label htmlFor="isActive">เปิดใช้งานประเภทตั๋วนี้</Label>
+                    <Label htmlFor="isActive">{t('adminTicketTypeForm.fields.isActive')}</Label>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
-                    ประเภทตั๋วที่เปิดใช้งานจะสามารถเลือกได้เมื่อสร้างหรือแก้ไขอีเว้นท์
+                    {t('adminTicketTypeForm.statusDescription')}
                   </p>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle>การดำเนินการ</CardTitle>
+                  <CardTitle>{t('adminTicketTypeForm.sections.actions')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button type="submit" className="w-full">
                     <Save className="h-4 w-4 mr-2" />
-                    บันทึกประเภทตั๋ว
+                    {t('adminTicketTypeForm.actions.saveTicketType')}
                   </Button>
                   
                   <Button 
@@ -258,7 +258,7 @@ export default function AdminTicketTypeForm() {
                     className="w-full"
                     onClick={() => navigate('/admin/tickets')}
                   >
-                    ยกเลิก
+                    {t('adminTicketTypeForm.actions.cancel')}
                   </Button>
                 </CardContent>
               </Card>

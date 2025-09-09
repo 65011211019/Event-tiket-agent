@@ -13,8 +13,10 @@ import { uploadToCloudinary } from '@/lib/cloudinary'; // Import the Cloudinary 
 import { Event, EventLocation } from '@/types/event';
 import { toast } from '@/hooks/use-toast';
 import MapSelector from '@/components/maps/MapSelector';
+import { useLanguage } from '@/contexts/AppContext';
 
 export default function AdminEventForm() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
@@ -162,8 +164,8 @@ export default function AdminEventForm() {
         } catch (error) {
           console.error('Failed to load event:', error);
           toast({
-            title: "เกิดข้อผิดพลาด",
-            description: "ไม่สามารถโหลดข้อมูลอีเว้นท์ได้",
+            title: t('adminEventForm.messages.errorOccurred'),
+            description: t('adminEventForm.messages.loadEventError'),
             variant: "destructive",
           });
         } finally {
@@ -197,8 +199,8 @@ export default function AdminEventForm() {
     reader.readAsDataURL(file);
     
     toast({
-      title: "เลือกรูปภาพแล้ว",
-      description: `รูปภาพ ${imageType === 'banner' ? 'แบนเนอร์' : 'ย่อ'} ถูกเลือกแล้ว ระบบจะอัปโหลดเมื่อบันทึกอีเว้นท์`,
+      title: t('adminEventForm.messages.imageSelected'),
+      description: t('adminEventForm.messages.imageSelectedDesc').replace('{type}', imageType === 'banner' ? t('adminEventForm.fields.bannerImage') : t('adminEventForm.fields.thumbnailImage')),
     });
   };
 
@@ -234,8 +236,8 @@ export default function AdminEventForm() {
     }
     
     toast({
-      title: "ลบรูปภาพสำเร็จ",
-      description: `รูปภาพ ${imageType === 'banner' ? 'แบนเนอร์' : 'ย่อ'} ได้ถูกลบแล้ว`,
+      title: t('adminEventForm.messages.imageRemoved'),
+      description: t('adminEventForm.messages.imageRemovedDesc').replace('{type}', imageType === 'banner' ? t('adminEventForm.fields.bannerImage') : t('adminEventForm.fields.thumbnailImage')),
     });
   };
 
@@ -260,8 +262,8 @@ export default function AdminEventForm() {
       return uploadedImages;
     } catch (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถอัปโหลดรูปภาพได้",
+        title: t('adminEventForm.messages.errorOccurred'),
+        description: t('adminEventForm.messages.uploadImageError'),
         variant: "destructive",
       });
       throw error;
@@ -292,31 +294,31 @@ export default function AdminEventForm() {
         const updatedEvent = await eventApi.updateEvent(id, formDataWithImages);
         setSavedEvent(updatedEvent);
         toast({
-          title: "อัปเดตอีเว้นท์สำเร็จ",
-          description: "ข้อมูลอีเว้นท์ได้รับการอัปเดตแล้ว",
+          title: t('adminEventForm.messages.eventUpdated'),
+          description: t('adminEventForm.messages.eventUpdatedDesc'),
         });
         navigate('/admin/events');
       } else {
         const createdEvent = await eventApi.createEvent(formDataWithImages);
         setSavedEvent(createdEvent);
         toast({
-          title: "สร้างอีเว้นท์สำเร็จ",
-          description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว",
+          title: t('adminEventForm.messages.eventCreated'),
+          description: t('adminEventForm.messages.eventCreatedDesc'),
         });
         // Navigate back to events list after successful creation
         navigate('/admin/events', { 
           state: { 
             alert: {
-              title: "สร้างอีเว้นท์สำเร็จ",
-              description: "อีเว้นท์ใหม่ได้ถูกสร้างแล้ว"
+              title: t('adminEventForm.messages.eventCreated'),
+              description: t('adminEventForm.messages.eventCreatedDesc')
             }
           } 
         });
       }
     } catch (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถบันทึกข้อมูลได้",
+        title: t('adminEventForm.messages.errorOccurred'),
+        description: t('adminEventForm.messages.saveError'),
         variant: "destructive",
       });
     } finally {
@@ -350,8 +352,8 @@ export default function AdminEventForm() {
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
-        title: "ไม่รองรับ",
-        description: "เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง",
+        title: t('adminEventForm.location.notSupported'),
+        description: t('adminEventForm.location.notSupportedDesc'),
         variant: "destructive",
       });
       return;
@@ -366,30 +368,30 @@ export default function AdminEventForm() {
         handleCoordinatesChange({ lat: latitude, lng: longitude });
         
         toast({
-          title: "ดึงตำแหน่งสำเร็จ",
-          description: `พิกัดปัจจุบัน: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          title: t('adminEventForm.location.locationSuccess'),
+          description: `${t('adminEventForm.location.locationSuccessDesc')} ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
         });
         
         setIsGettingLocation(false);
       },
       (error) => {
         console.error('เกิดข้อผิดพลาดในการดึงตำแหน่ง:', error);
-        let errorMessage = "ไม่สามารถดึงตำแหน่งได้";
+        let errorMessage = t('adminEventForm.location.locationError');
         
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "ผู้ใช้ปฏิเสธการขอสิทธิ์เข้าถึงตำแหน่ง";
+            errorMessage = t('adminEventForm.location.permissionDenied');
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = "ข้อมูลตำแหน่งไม่พร้อมใช้งาน";
+            errorMessage = t('adminEventForm.location.positionUnavailable');
             break;
           case error.TIMEOUT:
-            errorMessage = "หมดเวลาในการดึงตำแหน่ง";
+            errorMessage = t('adminEventForm.location.timeout');
             break;
         }
         
         toast({
-          title: "เกิดข้อผิดพลาด",
+          title: t('adminEventForm.messages.errorOccurred'),
           description: errorMessage,
           variant: "destructive",
         });
@@ -408,8 +410,8 @@ export default function AdminEventForm() {
   const searchPlaces = async () => {
     if (!searchQuery.trim()) {
       toast({
-        title: "กรุณากรอกข้อมูล",
-        description: "กรุณาใส่ชื่อสถานที่ที่ต้องการค้นหา",
+        title: t('adminEventForm.location.pleaseEnter'),
+        description: t('adminEventForm.location.pleaseEnterDesc'),
         variant: "destructive",
       });
       return;
@@ -432,8 +434,8 @@ export default function AdminEventForm() {
       
       if (results.length === 0) {
         toast({
-          title: "ไม่พบผลการค้นหา",
-          description: "ลองใช้คำค้นหาอื่นหรือเพิ่มรายละเอียด เช่น ชื่อเมือง",
+          title: t('adminEventForm.location.noResults'),
+          description: t('adminEventForm.location.noResultsDesc'),
         });
       }
       
@@ -441,8 +443,8 @@ export default function AdminEventForm() {
     } catch (error) {
       console.error('เกิดข้อผิดพลาดในการค้นหา:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถค้นหาสถานที่ได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('adminEventForm.messages.errorOccurred'),
+        description: t('adminEventForm.location.searchError'),
         variant: "destructive",
       });
     } finally {
@@ -475,8 +477,8 @@ export default function AdminEventForm() {
     setSearchQuery('');
     
     toast({
-      title: "เลือกสถานที่สำเร็จ",
-      description: `ตำแหน่ง: ${placeName}`,
+      title: t('adminEventForm.location.placeSelected'),
+      description: `${t('adminEventForm.location.placeSelectedDesc')} ${placeName}`,
     });
   };
 
@@ -498,14 +500,14 @@ export default function AdminEventForm() {
           <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={handleBackToList}>
             <ChevronLeft className="h-4 w-4 mr-2" />
-            กลับ
+            {t('adminEventForm.back')}
           </Button>
           <div>
             <h1 className="text-2xl font-bold">
-              {isEdit ? 'แก้ไขอีเว้นท์' : 'สร้างอีเว้นท์ใหม่'}
+              {isEdit ? t('adminEventForm.editTitle') : t('adminEventForm.title')}
             </h1>
             <p className="text-muted-foreground">
-              กรอกข้อมูลอีเว้นท์ให้ครบถ้วน
+              {t('adminEventForm.subtitle')}
             </p>
           </div>
         </div>
@@ -513,11 +515,11 @@ export default function AdminEventForm() {
         <form onSubmit={handleSubmit} className="space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle>ข้อมูลพื้นฐาน</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">ชื่ออีเว้นท์ *</Label>
+                <Label htmlFor="title">{t('adminEventForm.fields.eventName')} *</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -527,7 +529,7 @@ export default function AdminEventForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">รายละเอียด *</Label>
+                <Label htmlFor="description">{t('adminEventForm.fields.description')} *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -539,32 +541,32 @@ export default function AdminEventForm() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="category">หมวดหมู่ *</Label>
+                  <Label htmlFor="category">{t('adminEventForm.fields.category')} *</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="เลือกหมวดหมู่" />
+                      <SelectValue placeholder={t('adminEventForm.placeholders.selectCategory')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="workshop">Workshop & Training</SelectItem>
-                      <SelectItem value="conference">Conference & Seminar</SelectItem>
-                      <SelectItem value="networking">Networking Event</SelectItem>
-                      <SelectItem value="entertainment">Entertainment</SelectItem>
-                      <SelectItem value="sports">Sports & Fitness</SelectItem>
-                      <SelectItem value="cultural">Cultural Event</SelectItem>
+                      <SelectItem value="workshop">{t('adminEventForm.categories.workshop')}</SelectItem>
+                      <SelectItem value="conference">{t('adminEventForm.categories.conference')}</SelectItem>
+                      <SelectItem value="networking">{t('adminEventForm.categories.networking')}</SelectItem>
+                      <SelectItem value="entertainment">{t('adminEventForm.categories.entertainment')}</SelectItem>
+                      <SelectItem value="sports">{t('adminEventForm.categories.sports')}</SelectItem>
+                      <SelectItem value="cultural">{t('adminEventForm.categories.cultural')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="type">ประเภท</Label>
+                  <Label htmlFor="type">{t('adminEventForm.fields.type')}</Label>
                   <Input
                     id="type"
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    placeholder="เช่น workshop, conference"
+                    placeholder={t('adminEventForm.placeholders.typeExample')}
                   />
                 </div>
               </div>
@@ -577,7 +579,7 @@ export default function AdminEventForm() {
                     setFormData({ ...formData, featured: !!checked })
                   }
                 />
-                <Label htmlFor="featured">อีเว้นท์แนะนำ</Label>
+                <Label htmlFor="featured">{t('adminEventForm.fields.featured')}</Label>
               </div>
             </CardContent>
           </Card>
@@ -585,11 +587,11 @@ export default function AdminEventForm() {
           {/* Organizer Information */}
           <Card>
             <CardHeader>
-              <CardTitle>ข้อมูลผู้จัดงาน</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.organizerInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="organizerName">ชื่อผู้จัดงาน *</Label>
+                <Label htmlFor="organizerName">{t('adminEventForm.fields.organizerName')} *</Label>
                 <Input
                   id="organizerName"
                   value={formData.organizer.name}
@@ -603,7 +605,7 @@ export default function AdminEventForm() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="organizerContact">อีเมล</Label>
+                  <Label htmlFor="organizerContact">{t('adminEventForm.fields.organizerEmail')}</Label>
                   <Input
                     id="organizerContact"
                     type="email"
@@ -616,7 +618,7 @@ export default function AdminEventForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="organizerPhone">เบอร์โทรศัพท์</Label>
+                  <Label htmlFor="organizerPhone">{t('adminEventForm.fields.organizerPhone')}</Label>
                   <Input
                     id="organizerPhone"
                     value={formData.organizer.phone}
@@ -633,12 +635,12 @@ export default function AdminEventForm() {
           {/* Schedule Information */}
           <Card>
             <CardHeader>
-              <CardTitle>กำหนดการ</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.schedule')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startDate">วันที่เริ่ม *</Label>
+                  <Label htmlFor="startDate">{t('adminEventForm.fields.startDate')} *</Label>
                   <Input
                     id="startDate"
                     type="date"
@@ -652,7 +654,7 @@ export default function AdminEventForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="endDate">วันที่สิ้นสุด</Label>
+                  <Label htmlFor="endDate">{t('adminEventForm.fields.endDate')}</Label>
                   <Input
                     id="endDate"
                     type="date"
@@ -667,7 +669,7 @@ export default function AdminEventForm() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startTime">เวลาเริ่ม *</Label>
+                  <Label htmlFor="startTime">{t('adminEventForm.fields.startTime')} *</Label>
                   <Input
                     id="startTime"
                     type="time"
@@ -681,7 +683,7 @@ export default function AdminEventForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="endTime">เวลาสิ้นสุด</Label>
+                  <Label htmlFor="endTime">{t('adminEventForm.fields.endTime')}</Label>
                   <Input
                     id="endTime"
                     type="time"
@@ -699,11 +701,11 @@ export default function AdminEventForm() {
           {/* Location Information */}
           <Card>
             <CardHeader>
-              <CardTitle>สถานที่จัดงาน</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.location')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="locationType">รูปแบบงาน *</Label>
+                <Label htmlFor="locationType">{t('adminEventForm.fields.locationType')} *</Label>
                 <Select
                   value={formData.location.type}
                   onValueChange={(value: 'onsite' | 'online' | 'hybrid') => 
@@ -714,12 +716,12 @@ export default function AdminEventForm() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="เลือกรูปแบบงาน" />
+                    <SelectValue placeholder={t('adminEventForm.placeholders.selectLocationType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="onsite">งานที่สถานที่จริง</SelectItem>
-                    <SelectItem value="online">งานออนไลน์</SelectItem>
-                    <SelectItem value="hybrid">งานแบบผสม</SelectItem>
+                    <SelectItem value="onsite">{t('adminEventForm.locationTypes.onsite')}</SelectItem>
+                    <SelectItem value="online">{t('adminEventForm.locationTypes.online')}</SelectItem>
+                    <SelectItem value="hybrid">{t('adminEventForm.locationTypes.hybrid')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -727,7 +729,7 @@ export default function AdminEventForm() {
               {(formData.location.type === 'onsite' || formData.location.type === 'hybrid') && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="venue">สถานที่ *</Label>
+                    <Label htmlFor="venue">{t('adminEventForm.fields.venue')} *</Label>
                     <Input
                       id="venue"
                       value={formData.location.venue}
@@ -740,7 +742,7 @@ export default function AdminEventForm() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="address">ที่อยู่</Label>
+                    <Label htmlFor="address">{t('adminEventForm.fields.address')}</Label>
                     <Textarea
                       id="address"
                       value={formData.location.address}
@@ -754,7 +756,7 @@ export default function AdminEventForm() {
                   
                   {/* Map Selector สำหรับเลือกตำแหน่ง */}
                   <div className="space-y-4">
-                    <Label>📍 เลือกตำแหน่งบนแผนที่</Label>
+                    <Label>{t('adminEventForm.location.selectLocation')}</Label>
                     
                     {/* ปุ่มช่วยเหลือ */}
                     <div className="flex flex-col sm:flex-row gap-3">
@@ -766,12 +768,12 @@ export default function AdminEventForm() {
                         className="flex-1 min-w-0"
                       >
                         <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                        {isGettingLocation ? 'กำลังดึงตำแหน่ง...' : 'ดึงตำแหน่งปัจจุบัน'}
+                        {isGettingLocation ? t('adminEventForm.location.gettingLocation') : t('adminEventForm.location.getCurrentLocation')}
                       </Button>
                       
                       <div className="flex-1 min-w-0 flex gap-2">
                         <Input
-                          placeholder="ค้นหาสถานที่ เช่น สยามพารากอน, MBK"
+                          placeholder={t('adminEventForm.location.searchPlaceholder')}
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && searchPlaces()}
@@ -792,7 +794,7 @@ export default function AdminEventForm() {
                     {/* ผลการค้นหา */}
                     {searchResults.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-sm text-muted-foreground">ผลการค้นหา (คลิกเพื่อเลือก):</Label>
+                        <Label className="text-sm text-muted-foreground">{t('adminEventForm.location.searchResults')}</Label>
                         <div className="max-h-40 overflow-y-auto space-y-1 border rounded-md p-2">
                           {searchResults.map((place, index) => (
                             <button
@@ -819,7 +821,7 @@ export default function AdminEventForm() {
                     {formData.location.coordinates.lat !== 0 && formData.location.coordinates.lng !== 0 && (
                       <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="space-y-1">
-                          <Label className="text-sm text-blue-700 dark:text-blue-300">ละติจูด (Latitude)</Label>
+                          <Label className="text-sm text-blue-700 dark:text-blue-300">{t('adminEventForm.location.latitude')}</Label>
                           <Input
                             value={formData.location.coordinates.lat.toFixed(6)}
                             readOnly
@@ -827,7 +829,7 @@ export default function AdminEventForm() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-sm text-blue-700 dark:text-blue-300">ลองติจูด (Longitude)</Label>
+                          <Label className="text-sm text-blue-700 dark:text-blue-300">{t('adminEventForm.location.longitude')}</Label>
                           <Input
                             value={formData.location.coordinates.lng.toFixed(6)}
                             readOnly
@@ -842,7 +844,7 @@ export default function AdminEventForm() {
               
               {(formData.location.type === 'online' || formData.location.type === 'hybrid') && (
                 <div className="space-y-2">
-                  <Label htmlFor="onlineLink">ลิงก์ออนไลน์</Label>
+                  <Label htmlFor="onlineLink">{t('adminEventForm.fields.onlineLink')}</Label>
                   <Input
                     id="onlineLink"
                     type="url"
@@ -861,12 +863,12 @@ export default function AdminEventForm() {
           {/* Pricing Information */}
           <Card>
             <CardHeader>
-              <CardTitle>ราคาตั๋ว</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.pricing')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="earlyBirdPrice">ราคา Early Bird (บาท)</Label>
+                  <Label htmlFor="earlyBirdPrice">{t('adminEventForm.fields.earlyBirdPrice')}</Label>
                   <Input
                     id="earlyBirdPrice"
                     type="number"
@@ -880,7 +882,7 @@ export default function AdminEventForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="regularPrice">ราคาปกติ (บาท) *</Label>
+                  <Label htmlFor="regularPrice">{t('adminEventForm.fields.regularPrice')} *</Label>
                   <Input
                     id="regularPrice"
                     type="number"
@@ -897,7 +899,7 @@ export default function AdminEventForm() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="studentPrice">ราคานักเรียน/นักศึกษา (บาท)</Label>
+                  <Label htmlFor="studentPrice">{t('adminEventForm.fields.studentPrice')}</Label>
                   <Input
                     id="studentPrice"
                     type="number"
@@ -911,7 +913,7 @@ export default function AdminEventForm() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="groupPrice">ราคากลุ่ม (บาท)</Label>
+                  <Label htmlFor="groupPrice">{t('adminEventForm.fields.groupPrice')}</Label>
                   <Input
                     id="groupPrice"
                     type="number"
@@ -930,11 +932,11 @@ export default function AdminEventForm() {
           {/* Capacity Information */}
           <Card>
             <CardHeader>
-              <CardTitle>จำนวนที่นั่ง</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.capacity')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="maxCapacity">จำนวนที่นั่งสูงสุด *</Label>
+                <Label htmlFor="maxCapacity">{t('adminEventForm.fields.maxCapacity')} *</Label>
                 <Input
                   id="maxCapacity"
                   type="number"
@@ -957,11 +959,11 @@ export default function AdminEventForm() {
           {/* Images Information */}
           <Card>
             <CardHeader>
-              <CardTitle>รูปภาพ</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.images')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="bannerImage">รูปแบนเนอร์</Label>
+                <Label htmlFor="bannerImage">{t('adminEventForm.fields.bannerImage')}</Label>
                 <div className="flex items-center space-x-4">
                   <Input
                     id="bannerImage"
@@ -971,7 +973,7 @@ export default function AdminEventForm() {
                       ...formData, 
                       images: { ...formData.images, banner: e.target.value }
                     })}
-                    placeholder="https://example.com/banner.jpg"
+                    placeholder={t('adminEventForm.placeholders.bannerUrl')}
                     className="flex-1"
                   />
                   <Input
@@ -1014,7 +1016,7 @@ export default function AdminEventForm() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="thumbnailImage">รูปย่อ</Label>
+                <Label htmlFor="thumbnailImage">{t('adminEventForm.fields.thumbnailImage')}</Label>
                 <div className="flex items-center space-x-4">
                   <Input
                     id="thumbnailImage"
@@ -1024,7 +1026,7 @@ export default function AdminEventForm() {
                       ...formData, 
                       images: { ...formData.images, thumbnail: e.target.value }
                     })}
-                    placeholder="https://example.com/thumbnail.jpg"
+                    placeholder={t('adminEventForm.placeholders.thumbnailUrl')}
                     className="flex-1"
                   />
                   <Input
@@ -1071,11 +1073,11 @@ export default function AdminEventForm() {
           {/* Tags Information */}
           <Card>
             <CardHeader>
-              <CardTitle>แท็ก</CardTitle>
+              <CardTitle>{t('adminEventForm.sections.tags')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="tags">แท็ก (คั่นด้วยเครื่องหมายจุลภาค)</Label>
+                <Label htmlFor="tags">{t('adminEventForm.fields.tags')}</Label>
                 <Input
                   id="tags"
                   value={formData.tags.join(', ')}
@@ -1083,7 +1085,7 @@ export default function AdminEventForm() {
                     ...formData, 
                     tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
                   })}
-                  placeholder="digital marketing, workshop, online business"
+                  placeholder={t('adminEventForm.placeholders.tagsExample')}
                 />
               </div>
             </CardContent>
@@ -1091,16 +1093,16 @@ export default function AdminEventForm() {
 
           <div className="flex justify-end space-x-4">
             <Button type="button" variant="outline" onClick={handleBackToList}>
-              กลับไปรายการ
+              {t('adminEventForm.backToList')}
             </Button>
             {savedEvent && !isEdit && (
               <Button type="button" variant="outline" onClick={handlePreview}>
-                ดูตัวอย่างหน้าหลัก
+{t('adminEventForm.preview')}
               </Button>
             )}
             <Button type="submit" disabled={isSaving}>
               <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'กำลังบันทึก...' : (isEdit ? 'อัปเดต' : 'สร้างอีเว้นท์')}
+              {isSaving ? t('adminEventForm.saving') : (isEdit ? t('adminEventForm.update') : t('adminEventForm.create'))}
             </Button>
           </div>
         </form>

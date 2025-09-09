@@ -1,0 +1,53 @@
+{
+  "title": "Events",
+  "subtitle": "Find and book events you love",
+  "loading": "Loading events...",
+  "error": "Failed to load events",
+  "noResults": "No events found",
+  "noResultsDesc": "No events match your search criteria. Try adjusting your filters or search terms.",
+  "clearFilters": "Clear all filters",
+  "resultsCount": "Found {count} events{total, select, undefined {} other { out of {total} total}}",
+  "sortBy": "Sorted by: {sort}",
+  "categories": {
+    "workshop": "Workshop",
+    "seminar": "Seminar",
+    "conference": "Conference",
+    "music": "Music",
+    "sports": "Sports",
+    "technology": "Technology",
+    "education": "Education",
+    "food": "Food",
+    "art": "Art",
+    "business": "Business",
+    "health": "Health",
+    "travel": "Travel",
+    "lifestyle": "Lifestyle",
+    "entertainment": "Entertainment",
+    "networking": "Networking"
+  },
+  "categoryDescriptions": {
+    "workshop": "Workshop events",
+    "seminar": "Seminar events",
+    "conference": "Conference events",
+    "music": "Music events",
+    "sports": "Sports events",
+    "technology": "Technology events",
+    "education": "Education events",
+    "food": "Food events",
+    "art": "Art events",
+    "business": "Business events",
+    "health": "Health events",
+    "travel": "Travel events",
+    "lifestyle": "Lifestyle events",
+    "entertainment": "Entertainment events",
+    "networking": "Networking events"
+  },
+  "sortOptions": {
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "date-asc": "Date (Earliest)",
+    "date-desc": "Date (Latest)",
+    "price-asc": "Price (Low to High)",
+    "price-desc": "Price (High to Low)"
+  }
+}

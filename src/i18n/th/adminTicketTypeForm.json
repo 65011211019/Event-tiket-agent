@@ -1,0 +1,41 @@
+{
+  "title": "สร้างประเภทตั๋วใหม่",
+  "subtitle": "เพิ่มประเภทตั๋วสำหรับอีเว้นท์ต่างๆ",
+  "back": "กลับ",
+  "backToTickets": "กลับหน้าตั๋ว",
+  "sections": {
+    "basicInfo": "ข้อมูลพื้นฐาน",
+    "orderSettings": "การตั้งค่าการสั่งซื้อ",
+    "status": "สถานะ",
+    "actions": "การดำเนินการ"
+  },
+  "fields": {
+    "ticketTypeName": "ชื่อประเภทตั๋ว",
+    "description": "คำอธิบาย",
+    "price": "ราคา",
+    "currency": "สกุลเงิน",
+    "minPerOrder": "จำนวนขั้นต่ำต่อคำสั่งซื้อ",
+    "maxPerOrder": "จำนวนสูงสุดต่อคำสั่งซื้อ",
+    "isLimited": "จำกัดจำนวนตั๋วทั้งหมด",
+    "maxQuantity": "จำนวนตั๋วสูงสุด",
+    "isActive": "เปิดใช้งานประเภทตั๋วนี้"
+  },
+  "placeholders": {
+    "ticketTypeExample": "เช่น ตั๋ว VIP, ตั๋วทั่วไป",
+    "descriptionExample": "คำอธิบายประเภทตั๋วนี้"
+  },
+  "currencies": {
+    "THB": "THB (บาทไทย)",
+    "USD": "USD (ดอลลาร์สหรัฐ)",
+    "EUR": "EUR (ยูโร)"
+  },
+  "actions": {
+    "saveTicketType": "บันทึกประเภทตั๋ว",
+    "cancel": "ยกเลิก"
+  },
+  "statusDescription": "ประเภทตั๋วที่เปิดใช้งานจะสามารถเลือกได้เมื่อสร้างหรือแก้ไขอีเว้นท์",
+  "messages": {
+    "createSuccess": "สร้างประเภทตั๋วใหม่เรียบร้อยแล้ว",
+    "createError": "เกิดข้อผิดพลาดในการสร้างประเภทตั๋ว"
+  }
+}

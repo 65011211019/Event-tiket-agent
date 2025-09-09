@@ -1,0 +1,15 @@
+{
+  "eventMap": {
+    "noLocationData": "No location data available",
+    "coordinates": "Coordinates"
+  },
+  "mapSelector": {
+    "instructions": {
+      "title": "How to use:",
+      "clickToSelect": "Click on the map to select a location",
+      "dragToSearch": "Drag the map to find the desired location",
+      "scrollToZoom": "Use scroll to zoom the map"
+    },
+    "selectedCoordinates": "Selected coordinates"
+  }
+}

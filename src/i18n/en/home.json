@@ -1,0 +1,58 @@
+{
+  "hero": {
+    "badge": "Thailand's #1 Event Platform",
+    "title": "Find and Book Events",
+    "titleHighlight": "You Love",
+    "subtitle": "Thailand's most comprehensive online event ticket booking platform with quality events from professional organizers",
+    "searchPlaceholder": "Search events, categories, or locations...",
+    "featuredEvents": "Featured Events",
+    "thisWeek": "This Week",
+    "onlineEvents": "Online Events"
+  },
+  "stats": {
+    "totalEvents": "Total Events",
+    "participants": "Participants",
+    "rating": "Rating",
+    "cities": "Cities Served"
+  },
+  "aiAgent": {
+    "title": "AI Assistant for Ticket Booking",
+    "subtitle": "Use our smart AI assistant to easily search and book events. Just type 'book for me' or the event name you want, and AI will help recommend and handle your booking completely.",
+    "features": {
+      "natural": "Natural Conversation",
+      "naturalDesc": "Talk like with a real person",
+      "instant": "Instant Booking",
+      "instantDesc": "No need to search yourself",
+      "personal": "Personal Recommendations",
+      "personalDesc": "Tailored to your preferences"
+    },
+    "tryThese": "Try these:",
+    "example1": "book for me",
+    "example2": "book concert",
+    "example3": "find tech events"
+  },
+  "categories": {
+    "badge": "Popular Categories",
+    "title": "Event Categories",
+    "subtitle": "Choose categories you're interested in from specially curated quality events"
+  },
+  "featured": {
+    "badge": "Special Recommendation",
+    "title": "Featured Events",
+    "subtitle": "Popular events you shouldn't miss, specially curated by our team",
+    "viewAll": "View All",
+    "noEvents": "No featured events available at the moment"
+  },
+  "upcoming": {
+    "badge": "Just Opened",
+    "title": "Upcoming Events",
+    "subtitle": "Latest new events now open for booking. Book quickly before they're gone!",
+    "viewAll": "View All",
+    "noEvents": "No new events available at the moment"
+  },
+  "cta": {
+    "title": "Ready to Host Your Event?",
+    "subtitle": "Join us as an event organizer and reach thousands of participants",
+    "learnMore": "Learn More"
+  }
+}

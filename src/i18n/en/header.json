@@ -1,0 +1,23 @@
+{
+  "navigation": {
+    "home": "Home",
+    "events": "Events",
+    "myTickets": "My Tickets",
+    "admin": "Admin",
+    "settings": "Settings"
+  },
+  "search": {
+    "placeholder": "Search"
+  },
+  "language": {
+    "thai": "ไทย (Thai)",
+    "english": "English"
+  },
+  "user": {
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "mobile": {
+    "languageLabel": "Language / ภาษา"
+  }
+}

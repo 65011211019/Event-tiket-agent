@@ -1,0 +1,41 @@
+{
+  "title": "Create New Ticket Type",
+  "subtitle": "Add ticket types for various events",
+  "back": "Back",
+  "backToTickets": "Back to Tickets",
+  "sections": {
+    "basicInfo": "Basic Information",
+    "orderSettings": "Order Settings",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "fields": {
+    "ticketTypeName": "Ticket Type Name",
+    "description": "Description",
+    "price": "Price",
+    "currency": "Currency",
+    "minPerOrder": "Minimum per Order",
+    "maxPerOrder": "Maximum per Order",
+    "isLimited": "Limit Total Ticket Quantity",
+    "maxQuantity": "Maximum Ticket Quantity",
+    "isActive": "Enable this Ticket Type"
+  },
+  "placeholders": {
+    "ticketTypeExample": "e.g. VIP Ticket, General Ticket",
+    "descriptionExample": "Description of this ticket type"
+  },
+  "currencies": {
+    "THB": "THB (Thai Baht)",
+    "USD": "USD (US Dollar)",
+    "EUR": "EUR (Euro)"
+  },
+  "actions": {
+    "saveTicketType": "Save Ticket Type",
+    "cancel": "Cancel"
+  },
+  "statusDescription": "Enabled ticket types can be selected when creating or editing events",
+  "messages": {
+    "createSuccess": "New ticket type created successfully",
+    "createError": "Error occurred while creating ticket type"
+  }
+}

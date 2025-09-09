@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { EventCategory } from '@/types/event';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/AppContext';
 
 interface CategoryChipsProps {
   categories: EventCategory[];
@@ -11,6 +12,7 @@ interface CategoryChipsProps {
 
 export default function CategoryChips({ categories, className }: CategoryChipsProps) {
   const [searchParams] = useSearchParams();
+  const { t } = useLanguage();
   const selectedCategories = searchParams.get('categories')?.split(',') || [];
 
   const getCategoryClass = (categoryId: string) => {
@@ -20,11 +22,11 @@ export default function CategoryChips({ categories, className }: CategoryChipsPr
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
       <Link to="/events">
-        <Badge 
+        <Badge
           variant={selectedCategories.length === 0 ? 'default' : 'outline'}
           className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
         >
-          ทั้งหมด
+          {t('eventsComponents.categoryChips.all')}
         </Badge>
       </Link>
       

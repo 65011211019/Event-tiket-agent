@@ -1,0 +1,29 @@
+{
+  "title": "เข้าสู่ระบบ",
+  "subtitle": "กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ",
+  "email": "อีเมล",
+  "emailPlaceholder": "your@email.com",
+  "password": "รหัสผ่าน",
+  "passwordPlaceholder": "รหัสผ่าน",
+  "loginButton": "เข้าสู่ระบบ",
+  "loggingIn": "กำลังเข้าสู่ระบบ...",
+  "welcome": {
+    "title": "EventTicketAgent",
+    "subtitle": "ระบบจัดการตั๋วอีเว่นท์",
+    "description": "เข้าสู่ระบบเพื่อเข้าถึงแพลตฟอร์มการจัดการอีเว้นท์ที่ครบครัน"
+  },
+  "testAccounts": {
+    "title": "บัญชีทดสอบ",
+    "admin": "ผู้ดูแลระบบ",
+    "user": "ผู้ใช้งานทั่วไป",
+    "adminEmail": "admin@tiketagent.com",
+    "userEmail": "jason@gmail.com",
+    "password": "password123"
+  },
+  "validation": {
+    "loginSuccess": "เข้าสู่ระบบสำเร็จ",
+    "loginSuccessDesc": "ยินดีต้อนรับ!",
+    "loginFailed": "เข้าสู่ระบบไม่สำเร็จ",
+    "loginFailedDesc": "กรุณาตรวจสอบอีเมลและรหัสผ่าน"
+  }
+}

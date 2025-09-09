@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { translate } from '@/lib/i18n';
 
 // Language Context
 type Language = 'th' | 'en';
@@ -40,177 +41,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Translations
-const translations = {
-  th: {
-    // Navigation
-    'nav.home': 'หน้าแรก',
-    'nav.events': 'อีเว้นท์',
-    'nav.categories': 'หมวดหมู่',
-    'nav.myTickets': 'ตั๋วของฉัน',
-    'nav.help': 'ช่วยเหลือ',
-    'nav.admin': 'ผู้ดูแลระบบ',
-    'nav.dashboard': 'แดชบอร์ด',
-    'nav.users': 'ผู้ใช้',
-    'nav.settings': 'การตั้งค่า',
-    
-    // General
-    'general.search': 'ค้นหา',
-    'general.filter': 'กรอง',
-    'general.sort': 'เรียงตาม',
-    'general.clear': 'ล้าง',
-    'general.save': 'บันทึก',
-    'general.cancel': 'ยกเลิก',
-    'general.delete': 'ลบ',
-    'general.edit': 'แก้ไข',
-    'general.view': 'ดู',
-    'general.create': 'สร้าง',
-    'general.update': 'อัปเดต',
-    'general.loading': 'กำลังโหลด...',
-    'general.error': 'เกิดข้อผิดพลาด',
-    'general.noResults': 'ไม่พบผลลัพธ์',
-    'general.tryAgain': 'ลองใหม่',
-    
-    // Events
-    'events.title': 'อีเว้นท์',
-    'events.featured': 'อีเว้นท์แนะนำ',
-    'events.upcoming': 'อีเว้นท์ที่จะมาถึง',
-    'events.categories': 'หมวดหมู่',
-    'events.allCategories': 'ทุกหมวดหมู่',
-    'events.location': 'สถานที่',
-    'events.date': 'วันที่',
-    'events.price': 'ราคา',
-    'events.available': 'ที่เหลือ',
-    'events.soldOut': 'ขายหมดแล้ว',
-    'events.free': 'ฟรี',
-    'events.bookNow': 'จองเลย',
-    'events.viewDetails': 'ดูรายละเอียด',
-    'events.share': 'แชร์',
-    'events.addToCalendar': 'เพิ่มในปฏิทิน',
-    
-    // Event Details
-    'event.description': 'รายละเอียด',
-    'event.schedule': 'กำหนดการ',
-    'event.location': 'สถานที่',
-    'event.pricing': 'ราคาบัตร',
-    'event.capacity': 'จำนวนที่นั่ง',
-    'event.organizer': 'ผู้จัด',
-    'event.speakers': 'วิทยากร',
-    'event.requirements': 'สิ่งที่ต้องเตรียม',
-    'event.includes': 'รวมในราคา',
-    'event.tags': 'แท็ก',
-    
-    // Tickets
-    'tickets.myTickets': 'ตั๋วของฉัน',
-    'tickets.selectTickets': 'เลือกประเภทบัตร',
-    'tickets.quantity': 'จำนวน',
-    'tickets.total': 'รวมทั้งสิ้น',
-    'tickets.summary': 'สรุปคำสั่งซื้อ',
-    'tickets.checkout': 'ชำระเงิน',
-    'tickets.confirmation': 'ยืนยันการสั่งซื้อ',
-    
-    // Admin
-    'admin.dashboard': 'แดชบอร์ด',
-    'admin.events': 'จัดการอีเว้นท์',
-    'admin.categories': 'จัดการหมวดหมู่',
-    'admin.tickets': 'จัดการตั๋ว',
-    'admin.createEvent': 'สร้างอีเว้นท์ใหม่',
-    'admin.editEvent': 'แก้ไขอีเว้นท์',
-    'admin.eventForm': 'ฟอร์มอีเว้นท์',
-    
-    // Messages
-    'message.eventCreated': 'สร้างอีเว้นท์สำเร็จ',
-    'message.eventUpdated': 'อัปเดตอีเว้นท์สำเร็จ',
-    'message.eventDeleted': 'ลบอีเว้นท์สำเร็จ',
-    'message.ticketBooked': 'จองตั๋วสำเร็จ',
-    'message.loginRequired': 'กรุณาเข้าสู่ระบบ',
-    'message.accessDenied': 'ไม่มีสิทธิ์เข้าถึง',
-  },
-  en: {
-    // Navigation
-    'nav.home': 'Home',
-    'nav.events': 'Events',
-    'nav.categories': 'Categories',
-    'nav.myTickets': 'My Tickets',
-    'nav.help': 'Help',
-    'nav.admin': 'Admin',
-    'nav.dashboard': 'Dashboard',
-    'nav.users': 'Users',
-    'nav.settings': 'Settings',
-    
-    // General
-    'general.search': 'Search',
-    'general.filter': 'Filter',
-    'general.sort': 'Sort',
-    'general.clear': 'Clear',
-    'general.save': 'Save',
-    'general.cancel': 'Cancel',
-    'general.delete': 'Delete',
-    'general.edit': 'Edit',
-    'general.view': 'View',
-    'general.create': 'Create',
-    'general.update': 'Update',
-    'general.loading': 'Loading...',
-    'general.error': 'Error occurred',
-    'general.noResults': 'No results found',
-    'general.tryAgain': 'Try again',
-    
-    // Events
-    'events.title': 'Events',
-    'events.featured': 'Featured Events',
-    'events.upcoming': 'Upcoming Events',
-    'events.categories': 'Categories',
-    'events.allCategories': 'All Categories',
-    'events.location': 'Location',
-    'events.date': 'Date',
-    'events.price': 'Price',
-    'events.available': 'Available',
-    'events.soldOut': 'Sold Out',
-    'events.free': 'Free',
-    'events.bookNow': 'Book Now',
-    'events.viewDetails': 'View Details',
-    'events.share': 'Share',
-    'events.addToCalendar': 'Add to Calendar',
-    
-    // Event Details
-    'event.description': 'Description',
-    'event.schedule': 'Schedule',
-    'event.location': 'Location',
-    'event.pricing': 'Pricing',
-    'event.capacity': 'Capacity',
-    'event.organizer': 'Organizer',
-    'event.speakers': 'Speakers',
-    'event.requirements': 'Requirements',
-    'event.includes': 'Includes',
-    'event.tags': 'Tags',
-    
-    // Tickets
-    'tickets.myTickets': 'My Tickets',
-    'tickets.selectTickets': 'Select Tickets',
-    'tickets.quantity': 'Quantity',
-    'tickets.total': 'Total',
-    'tickets.summary': 'Order Summary',
-    'tickets.checkout': 'Checkout',
-    'tickets.confirmation': 'Order Confirmation',
-    
-    // Admin
-    'admin.dashboard': 'Dashboard',
-    'admin.events': 'Event Management',
-    'admin.categories': 'Category Management',
-    'admin.tickets': 'Ticket Management',
-    'admin.createEvent': 'Create New Event',
-    'admin.editEvent': 'Edit Event',
-    'admin.eventForm': 'Event Form',
-    
-    // Messages
-    'message.eventCreated': 'Event created successfully',
-    'message.eventUpdated': 'Event updated successfully',
-    'message.eventDeleted': 'Event deleted successfully',
-    'message.ticketBooked': 'Ticket booked successfully',
-    'message.loginRequired': 'Please log in',
-    'message.accessDenied': 'Access denied',
-  },
-};
 
 // Providers
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -225,7 +55,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations[typeof language]] || key;
+    return translate(language, key);
   };
 
   return (

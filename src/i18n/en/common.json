@@ -1,0 +1,86 @@
+{
+  "navigation": {
+    "home": "Home",
+    "events": "Events",
+    "categories": "Categories",
+    "myTickets": "My Tickets",
+    "help": "Help",
+    "admin": "Admin",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "general": {
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "create": "Create",
+    "update": "Update",
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "noResults": "No results found",
+    "tryAgain": "Try again",
+    "logout": "Logout"
+  },
+  "events": {
+    "title": "Events",
+    "featured": "Featured Events",
+    "upcoming": "Upcoming Events",
+    "categories": "Categories",
+    "allCategories": "All Categories",
+    "location": "Location",
+    "date": "Date",
+    "price": "Price",
+    "available": "Available",
+    "soldOut": "Sold Out",
+    "free": "Free",
+    "bookNow": "Book Now",
+    "viewDetails": "View Details",
+    "share": "Share",
+    "addToCalendar": "Add to Calendar"
+  },
+  "event": {
+    "description": "Description",
+    "schedule": "Schedule",
+    "location": "Location",
+    "pricing": "Pricing",
+    "capacity": "Capacity",
+    "organizer": "Organizer",
+    "speakers": "Speakers",
+    "requirements": "Requirements",
+    "includes": "Includes",
+    "tags": "Tags"
+  },
+  "tickets": {
+    "myTickets": "My Tickets",
+    "selectTickets": "Select Tickets",
+    "quantity": "Quantity",
+    "total": "Total",
+    "summary": "Order Summary",
+    "checkout": "Checkout",
+    "confirmation": "Order Confirmation"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "events": "Event Management",
+    "categories": "Category Management",
+    "tickets": "Ticket Management",
+    "createEvent": "Create New Event",
+    "editEvent": "Edit Event",
+    "eventForm": "Event Form"
+  },
+  "message": {
+    "eventCreated": "Event created successfully",
+    "eventUpdated": "Event updated successfully",
+    "eventDeleted": "Event deleted successfully",
+    "ticketBooked": "Ticket booked successfully",
+    "loginRequired": "Please log in",
+    "accessDenied": "Access denied"
+  }
+}

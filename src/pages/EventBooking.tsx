@@ -104,7 +104,7 @@ export default function EventBooking() {
         setTicketSelections(prices);
       } catch (err) {
         console.error('Failed to load event:', err);
-        setError('ไม่พบอีเว้นท์ที่ต้องการ');
+        setError(t('eventBooking.eventNotFound'));
       } finally {
         setIsLoading(false);
       }
@@ -149,8 +149,8 @@ export default function EventBooking() {
       setTicketSelections(newSelections);
     } else {
       toast({
-        title: "ไม่สามารถเพิ่มตั๋วได้",
-        description: "จำนวนตั๋วที่เลือกเกินจำนวนที่เหลือ",
+        title: t('eventBooking.validation.bookingError'),
+        description: t('eventBooking.validation.bookingErrorDesc'),
         variant: "destructive",
       });
     }
@@ -178,8 +178,8 @@ export default function EventBooking() {
       const selectedTickets = getSelectedTickets();
       if (selectedTickets.length === 0) {
         toast({
-          title: "กรุณาเลือกตั๋ว",
-          description: "กรุณาเลือกประเภทและจำนวนตั๋วที่ต้องการ",
+          title: t('eventBooking.validation.selectTickets'),
+          description: t('eventBooking.validation.selectTicketsDesc'),
           variant: "destructive",
         });
         return;
@@ -188,8 +188,8 @@ export default function EventBooking() {
     } else if (currentStep === 2) {
       if (!formData.firstName || !formData.lastName || !formData.email) {
         toast({
-          title: "กรุณากรอกข้อมูลให้ครบถ้วน",
-          description: "กรุณากรอกชื่อ นามสกุล และอีเมล",
+          title: t('eventBooking.validation.fillDetails'),
+          description: t('eventBooking.validation.fillDetailsDesc'),
           variant: "destructive",
         });
         return;
@@ -218,8 +218,8 @@ export default function EventBooking() {
     if (!id) {
       console.error('❌ Event ID is missing');
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่พบรหัสอีเว้นท์ กรุณาลองใหม่อีกครั้ง",
+        title: t('eventBooking.validation.bookingError'),
+        description: t('eventBooking.validation.chargeIdMissing'),
         variant: "destructive",
       });
       return;
@@ -255,8 +255,8 @@ export default function EventBooking() {
       console.log('✅ Booking created successfully:', bookingResponse);
       
       toast({
-        title: "จองสำเร็จ!",
-        description: "การจองตั๋วของคุณเสร็จสิ้นแล้ว",
+        title: t('eventBooking.validation.bookingSuccess'),
+        description: t('eventBooking.orderSummary.bookingSuccess'),
       });
       
       // Navigate to tickets page
@@ -265,8 +265,8 @@ export default function EventBooking() {
     } catch (error) {
       console.error('❌ Booking creation failed:', error);
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถสร้างการจองได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('eventBooking.validation.bookingError'),
+        description: t('eventBooking.validation.bookingCreationFailed'),
         variant: "destructive",
       });
     }
@@ -275,7 +275,7 @@ export default function EventBooking() {
   const handlePaymentError = (error: string) => {
     console.error('💥 Payment Error:', error);
     toast({
-      title: "การชำระเงินล้มเหลว",
+      title: t('eventBooking.payment.error'),
       description: error,
       variant: "destructive",
     });
@@ -284,8 +284,8 @@ export default function EventBooking() {
   const handleSubmit = async () => {
     if (!user) {
       toast({
-        title: "กรุณาเข้าสู่ระบบ",
-        description: "กรุณาเข้าสู่ระบบก่อนทำการจองตั๋ว",
+        title: t('eventBooking.validation.loginRequired'),
+        description: t('eventBooking.validation.loginRequiredDesc'),
         variant: "destructive",
       });
       navigate('/login');
@@ -294,9 +294,9 @@ export default function EventBooking() {
 
     try {
       setIsSubmitting(true);
-      
+
       const selectedTickets = getSelectedTickets();
-      
+
       const bookingRequest: BookingRequest = {
          eventId: event.id,
          tickets: selectedTickets.map(ticket => ({
@@ -313,19 +313,19 @@ export default function EventBooking() {
           currency: event.pricing?.currency || 'THB',
           notes: `จองตั๋วงาน ${event.title} ผ่านระบบออนไลน์`
        };
-      
+
       await eventApi.createBooking(bookingRequest);
 
       toast({
-        title: "จองตั๋วสำเร็จ!",
-        description: "ตั๋วของคุณได้ถูกจองแล้ว คุณจะได้รับอีเมลยืนยันเร็วๆ นี้",
+        title: t('eventBooking.validation.bookingSuccess'),
+        description: t('eventBooking.validation.bookingSuccessDesc'),
       });
 
       navigate('/my-tickets');
     } catch (error) {
       toast({
-        title: "เกิดข้อผิดพลาด",
-        description: "ไม่สามารถจองตั๋วได้ กรุณาลองใหม่อีกครั้ง",
+        title: t('eventBooking.validation.bookingError'),
+        description: t('eventBooking.validation.bookingErrorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -352,9 +352,9 @@ export default function EventBooking() {
       <div className="container py-8">
         <Alert className="max-w-2xl mx-auto">
           <AlertDescription className="flex items-center justify-between">
-            <span>{error || 'ไม่พบอีเว้นท์ที่ต้องการ'}</span>
+            <span>{error || t('eventBooking.eventNotFound')}</span>
             <Button variant="outline" size="sm" onClick={() => navigate('/events')}>
-              กลับไปหน้ารายการ
+              {t('eventBooking.backToList')}
             </Button>
           </AlertDescription>
         </Alert>
@@ -369,10 +369,10 @@ export default function EventBooking() {
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={handleBack}>
             <ChevronLeft className="h-4 w-4 mr-2" />
-            กลับ
+            {t('eventBooking.back')}
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">จองตั๋ว</h1>
+            <h1 className="text-2xl font-bold">{t('eventBooking.bookingTitle')}</h1>
             <p className="text-muted-foreground">{event.title}</p>
           </div>
         </div>
@@ -391,11 +391,11 @@ export default function EventBooking() {
                 {step}
               </div>
               <span className={`ml-2 ${step <= currentStep ? 'text-foreground' : 'text-muted-foreground'}`}>
-                {step === 1 && 'เลือกตั๋ว'}
-                {step === 2 && 'กรอกข้อมูล'}
-                {step === 3 && 'ยืนยันการจอง'}
-                {step === 4 && 'ชำระเงิน'}
-                {skipToPayment && step === 4 && ' (ด่วน! 💳)'}
+                {step === 1 && t('eventBooking.selectTickets')}
+                {step === 2 && t('eventBooking.enterDetails')}
+                {step === 3 && t('eventBooking.confirmBooking')}
+                {step === 4 && t('eventBooking.payment')}
+                {skipToPayment && step === 4 && t('eventBooking.quickPayment')}
               </span>
               {step < 4 && <div className="w-8 h-px bg-border mx-4" />}
             </div>
@@ -409,7 +409,7 @@ export default function EventBooking() {
             {currentStep === 1 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>เลือกประเภทตั๋ว</CardTitle>
+                  <CardTitle>{t('eventBooking.ticketSelection.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {ticketSelections.map((ticket, index) => (
@@ -448,7 +448,7 @@ export default function EventBooking() {
 
                   {getTotalTickets() === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
-                      กรุณาเลือกประเภทและจำนวนตั๋วที่ต้องการ
+                      {t('eventBooking.ticketSelection.noSelection')}
                     </div>
                   )}
                 </CardContent>
@@ -459,58 +459,58 @@ export default function EventBooking() {
             {currentStep === 2 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>ข้อมูลผู้จอง</CardTitle>
+                  <CardTitle>{t('eventBooking.customerInfo.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">ชื่อ *</Label>
+                      <Label htmlFor="firstName">{t('eventBooking.customerInfo.firstName')}</Label>
                       <Input
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        placeholder="ชื่อ"
+                        placeholder={t('eventBooking.customerInfo.firstName').replace(' *', '')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">นามสกุล *</Label>
+                      <Label htmlFor="lastName">{t('eventBooking.customerInfo.lastName')}</Label>
                       <Input
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        placeholder="นามสกุล"
+                        placeholder={t('eventBooking.customerInfo.lastName').replace(' *', '')}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">อีเมล *</Label>
+                    <Label htmlFor="email">{t('eventBooking.customerInfo.email')}</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="อีเมล"
+                      placeholder={t('eventBooking.customerInfo.email').replace(' *', '')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">เบอร์โทรศัพท์</Label>
+                    <Label htmlFor="phone">{t('eventBooking.customerInfo.phone')}</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="เบอร์โทรศัพท์"
+                      placeholder={t('eventBooking.customerInfo.phone')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="specialRequests">ข้อกำหนดพิเศษ</Label>
+                    <Label htmlFor="specialRequests">{t('eventBooking.customerInfo.specialRequests')}</Label>
                     <Input
                       id="specialRequests"
                       value={formData.specialRequests}
                       onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
-                      placeholder="ข้อกำหนดหรือคำขออื่นๆ (ถ้ามี)"
+                      placeholder={t('eventBooking.customerInfo.specialRequestsPlaceholder')}
                     />
                   </div>
                 </CardContent>
@@ -521,12 +521,12 @@ export default function EventBooking() {
             {currentStep === 3 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>ยืนยันการจอง</CardTitle>
+                  <CardTitle>{t('eventBooking.confirmation.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Event Info */}
                   <div>
-                    <h4 className="font-semibold mb-2">ข้อมูลอีเว้นท์</h4>
+                    <h4 className="font-semibold mb-2">{t('eventBooking.confirmation.eventInfo')}</h4>
                     <div className="space-y-1 text-sm text-muted-foreground">
                       <div>{event.title}</div>
                       <div>{new Date(event.schedule.startDate).toLocaleDateString('th-TH')}</div>
@@ -538,7 +538,7 @@ export default function EventBooking() {
 
                   {/* Customer Info */}
                   <div>
-                    <h4 className="font-semibold mb-2">ข้อมูลผู้จอง</h4>
+                    <h4 className="font-semibold mb-2">{t('eventBooking.confirmation.customerInfo')}</h4>
                     <div className="space-y-1 text-sm text-muted-foreground">
                       <div>{formData.firstName} {formData.lastName}</div>
                       <div>{formData.email}</div>
@@ -550,7 +550,7 @@ export default function EventBooking() {
 
                   {/* Selected Tickets */}
                   <div>
-                    <h4 className="font-semibold mb-2">ตั๋วที่เลือก</h4>
+                    <h4 className="font-semibold mb-2">{t('eventBooking.confirmation.selectedTickets')}</h4>
                     <div className="space-y-2">
                       {getSelectedTickets().map((ticket, index) => (
                         <div key={index} className="flex justify-between text-sm">
@@ -564,7 +564,7 @@ export default function EventBooking() {
                   {/* Terms */}
                   <Alert>
                     <AlertDescription>
-                      การจองตั๋วนี้เป็นการยืนยันว่าคุณยอมรับเงื่อนไขการใช้งานและนโยบายการคืนเงิน
+                      {t('eventBooking.confirmation.terms')}
                     </AlertDescription>
                   </Alert>
                 </CardContent>
@@ -579,22 +579,22 @@ export default function EventBooking() {
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                     <div className="flex items-center gap-2 text-blue-800">
                       <span className="text-lg">🤖</span>
-                      <h4 className="font-semibold">AI พาคุณมาที่นี่แล้ว!</h4>
+                      <h4 className="font-semibold">{t('eventBooking.aiMessage.title')}</h4>
                     </div>
                     <p className="text-blue-700 text-sm mt-2">
-                      ดิฉันได้เตรียมข้อมูลการจองและตั๋วที่คุณเลือกไว้แล้ว คุณสามารถแก้ไขจำนวนและชำระเงินได้เลยค่ะ
+                      {t('eventBooking.aiMessage.description')}
                     </p>
                   </div>
                 )}
-                
+
                 {paymentSuccess ? (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-green-600">ชำระเงินสำเร็จ!</CardTitle>
+                      <CardTitle className="text-green-600">{t('eventBooking.payment.success')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground">
-                        การชำระเงินของคุณเสร็จสิ้นแล้ว กำลังสร้างการจอง...
+                        {t('eventBooking.payment.processing')}
                       </p>
                     </CardContent>
                   </Card>
@@ -619,7 +619,7 @@ export default function EventBooking() {
           <div>
             <Card className="sticky top-24">
               <CardHeader>
-                <CardTitle>สรุปคำสั่งซื้อ</CardTitle>
+                <CardTitle>{t('eventBooking.orderSummary.title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Event Info */}
@@ -644,7 +644,7 @@ export default function EventBooking() {
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground text-center py-4">
-                    ยังไม่ได้เลือกตั๋ว
+                    {t('eventBooking.orderSummary.noTicketsSelected')}
                   </div>
                 )}
 
@@ -652,19 +652,19 @@ export default function EventBooking() {
 
                 {/* Total */}
                 <div className="flex justify-between font-semibold">
-                  <span>รวมทั้งสิ้น</span>
+                  <span>{t('eventBooking.orderSummary.total')}</span>
                   <span className="text-primary">฿{getTotalPrice().toLocaleString()}</span>
                 </div>
 
                 {/* Action Button */}
                 <div className="space-y-2">
                   {currentStep < 4 ? (
-                    <Button 
+                    <Button
                       onClick={handleNext}
                       className="w-full"
                       disabled={currentStep === 1 && getTotalTickets() === 0}
                     >
-                      {currentStep === 1 ? 'ต่อไป' : currentStep === 2 ? 'ยืนยันข้อมูล' : 'ชำระเงิน'}
+                      {currentStep === 1 ? t('eventBooking.buttons.next') : currentStep === 2 ? t('eventBooking.buttons.confirm') : t('eventBooking.buttons.pay')}
                     </Button>
                   ) : (
                     <Button
@@ -679,13 +679,13 @@ export default function EventBooking() {
                       disabled={isSubmitting}
                     >
                       <CreditCard className="w-4 h-4 mr-2" />
-                      {isSubmitting ? 'กำลังจอง...' : skipToPayment ? 'ชำระเงินเลย! 💳' : 'ชำระเงิน'}
+                      {isSubmitting ? t('eventBooking.buttons.booking') : skipToPayment ? t('eventBooking.buttons.quickPay') : t('eventBooking.buttons.pay')}
                     </Button>
                   )}
 
                   {currentStep > 1 && (
                     <Button variant="outline" onClick={handleBack} className="w-full">
-                      กลับ
+                      {t('eventBooking.buttons.back')}
                     </Button>
                   )}
                 </div>

@@ -1,0 +1,86 @@
+{
+  "navigation": {
+    "home": "หน้าแรก",
+    "events": "อีเว้นท์",
+    "categories": "หมวดหมู่",
+    "myTickets": "ตั๋วของฉัน",
+    "help": "ช่วยเหลือ",
+    "admin": "ผู้ดูแลระบบ",
+    "dashboard": "แดชบอร์ด",
+    "users": "ผู้ใช้",
+    "settings": "การตั้งค่า"
+  },
+  "general": {
+    "search": "ค้นหา",
+    "filter": "กรอง",
+    "sort": "เรียงตาม",
+    "clear": "ล้าง",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "view": "ดู",
+    "create": "สร้าง",
+    "update": "อัปเดต",
+    "loading": "กำลังโหลด...",
+    "error": "เกิดข้อผิดพลาด",
+    "noResults": "ไม่พบผลลัพธ์",
+    "tryAgain": "ลองใหม่",
+    "logout": "ออกจากระบบ"
+  },
+  "events": {
+    "title": "อีเว้นท์",
+    "featured": "อีเว้นท์แนะนำ",
+    "upcoming": "อีเว้นท์ที่จะมาถึง",
+    "categories": "หมวดหมู่",
+    "allCategories": "ทุกหมวดหมู่",
+    "location": "สถานที่",
+    "date": "วันที่",
+    "price": "ราคา",
+    "available": "ที่เหลือ",
+    "soldOut": "ขายหมดแล้ว",
+    "free": "ฟรี",
+    "bookNow": "จองเลย",
+    "viewDetails": "ดูรายละเอียด",
+    "share": "แชร์",
+    "addToCalendar": "เพิ่มในปฏิทิน"
+  },
+  "event": {
+    "description": "รายละเอียด",
+    "schedule": "กำหนดการ",
+    "location": "สถานที่",
+    "pricing": "ราคาบัตร",
+    "capacity": "จำนวนที่นั่ง",
+    "organizer": "ผู้จัด",
+    "speakers": "วิทยากร",
+    "requirements": "สิ่งที่ต้องเตรียม",
+    "includes": "รวมในราคา",
+    "tags": "แท็ก"
+  },
+  "tickets": {
+    "myTickets": "ตั๋วของฉัน",
+    "selectTickets": "เลือกประเภทบัตร",
+    "quantity": "จำนวน",
+    "total": "รวมทั้งสิ้น",
+    "summary": "สรุปคำสั่งซื้อ",
+    "checkout": "ชำระเงิน",
+    "confirmation": "ยืนยันการสั่งซื้อ"
+  },
+  "admin": {
+    "dashboard": "แดชบอร์ด",
+    "events": "จัดการอีเว้นท์",
+    "categories": "จัดการหมวดหมู่",
+    "tickets": "จัดการตั๋ว",
+    "createEvent": "สร้างอีเว้นท์ใหม่",
+    "editEvent": "แก้ไขอีเว้นท์",
+    "eventForm": "ฟอร์มอีเว้นท์"
+  },
+  "message": {
+    "eventCreated": "สร้างอีเว้นท์สำเร็จ",
+    "eventUpdated": "อัปเดตอีเว้นท์สำเร็จ",
+    "eventDeleted": "ลบอีเว้นท์สำเร็จ",
+    "ticketBooked": "จองตั๋วสำเร็จ",
+    "loginRequired": "กรุณาเข้าสู่ระบบ",
+    "accessDenied": "ไม่มีสิทธิ์เข้าถึง"
+  }
+}

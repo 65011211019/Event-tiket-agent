@@ -11,23 +11,23 @@ export default function AdminReports() {
   return (
     <div className="container py-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">รายงาน</h1>
+        <h1 className="text-3xl font-bold">{t('adminReports.title')}</h1>
         <p className="text-muted-foreground mt-2">
-          สถิติและการวิเคราะห์ข้อมูลอีเว้นท์
+          {t('adminReports.subtitle')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>รายงานถูกรวมไว้ในแดชบอร์ด</CardTitle>
+          <CardTitle>{t('adminReports.integratedTitle')}</CardTitle>
         </CardHeader>
         <CardContent className="text-center py-12">
           <p className="text-muted-foreground mb-6">
-            ฟีเจอร์รายงานทั้งหมดได้ถูกรวมไว้ในหน้าแดชบอร์ดเพื่อความสะดวกในการใช้งาน
+            {t('adminReports.integratedMessage')}
           </p>
           <Button asChild>
             <Link to="/admin">
-              ไปยังแดชบอร์ด
+              {t('adminReports.goToDashboard')}
             </Link>
           </Button>
         </CardContent>

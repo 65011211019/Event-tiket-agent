@@ -8,19 +8,19 @@ export default function Footer() {
 
   const footerLinks = {
     product: [
-      { name: 'ค้นหาอีเว้นท์', href: '/events' },
-      { name: 'ตั๋วของฉัน', href: '/my-tickets' },
-      { name: 'ศูนย์ช่วยเหลือ', href: '#' },
+      { name: t('footer.links.product.searchEvents'), href: '/events' },
+      { name: t('footer.links.product.myTickets'), href: '/my-tickets' },
+      { name: t('footer.links.product.helpCenter'), href: '#' },
     ],
     company: [
-      { name: 'เกี่ยวกับเรา', href: '#' },
-      { name: 'บล็อก', href: '#' },
-      { name: 'ติดต่อเรา', href: '#' },
+      { name: t('footer.links.company.aboutUs'), href: '#' },
+      { name: t('footer.links.company.blog'), href: '#' },
+      { name: t('footer.links.company.contactUs'), href: '#' },
     ],
     legal: [
-      { name: 'ข้อกำหนดการใช้งาน', href: '#' },
-      { name: 'นโยบายความเป็นส่วนตัว', href: '#' },
-      { name: 'นโยบายคืนเงิน', href: '#' },
+      { name: t('footer.links.legal.termsOfService'), href: '#' },
+      { name: t('footer.links.legal.privacyPolicy'), href: '#' },
+      { name: t('footer.links.legal.refundPolicy'), href: '#' },
     ],
   };
 
@@ -46,20 +46,20 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-muted-foreground mb-6 max-w-md">
-              แพลตฟอร์มจองตั๋วอีเว้นท์ออนไลน์ที่ง่ายและสะดวก ค้นหาและจองตั๋วสำหรับอีเว้นท์ที่คุณชื่นชอบได้ทันที
+              {t('footer.brandDescription')}
             </p>
             <div className="space-y-3">
               <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Mail className="h-4 w-4 mr-3 text-primary" />
-                support@EventTicketAgent.com
+                {t('footer.contact.email')}
               </div>
               <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Phone className="h-4 w-4 mr-3 text-primary" />
-                +66 2 123 4567
+                {t('footer.contact.phone')}
               </div>
               <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                 <MapPin className="h-4 w-4 mr-3 text-primary" />
-                กรุงเทพมหานคร ประเทศไทย
+                {t('footer.contact.address')}
               </div>
             </div>
             <div className="flex space-x-4 mt-6">
@@ -80,7 +80,7 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-primary">ผลิตภัณฑ์</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">{t('footer.links.product.title')}</h3>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
@@ -97,7 +97,7 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-primary">บริษัท</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">{t('footer.links.company.title')}</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -114,7 +114,7 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-primary">กฎหมาย</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">{t('footer.links.legal.title')}</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
@@ -131,18 +131,18 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h3 className="font-semibold mb-4 text-lg text-primary">ข่าวสาร</h3>
+            <h3 className="font-semibold mb-4 text-lg text-primary">{t('footer.links.newsletter.title')}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              สมัครรับข่าวสารและโปรโมชั่นพิเศษ
+              {t('footer.links.newsletter.description')}
             </p>
             <div className="flex">
               <input
                 type="email"
-                placeholder="อีเมลของคุณ"
+                placeholder={t('footer.links.newsletter.emailPlaceholder')}
                 className="flex-1 rounded-l-lg border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background text-foreground"
               />
               <button className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground px-4 py-2 rounded-r-lg text-sm font-medium hover:from-primary/90 hover:to-primary-light transition-all duration-200 shadow-md">
-                สมัคร
+                {t('footer.links.newsletter.subscribe')}
               </button>
             </div>
           </div>
@@ -150,17 +150,17 @@ export default function Footer() {
 
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 EventTicketAgent. สงวนลิขสิทธิ์.
+            {t('footer.copyright')}
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">
-              ข้อกำหนด
+              {t('footer.bottomLinks.terms')}
             </Link>
             <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">
-              ความเป็นส่วนตัว
+              {t('footer.bottomLinks.privacy')}
             </Link>
             <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">
-              คุกกี้
+              {t('footer.bottomLinks.cookies')}
             </Link>
           </div>
         </div>

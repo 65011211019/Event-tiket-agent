@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, Mail, Lock, Eye, EyeOff, Ticket, Users, MapPin, Star, Music, Camera, Gift, Heart } from 'lucide-react';
-import { useAuth } from '@/contexts/AppContext';
+import { useAuth, useLanguage } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 
@@ -13,6 +13,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, user } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -31,13 +32,13 @@ export default function Login() {
     try {
       await login(email, password);
       toast({
-        title: "เข้าสู่ระบบสำเร็จ",
-        description: "ยินดีต้อนรับ!",
+        title: t('login.validation.loginSuccess'),
+        description: t('login.validation.loginSuccessDesc'),
       });
     } catch (error) {
       toast({
-        title: "เข้าสู่ระบบไม่สำเร็จ",
-        description: "กรุณาตรวจสอบอีเมลและรหัสผ่าน",
+        title: t('login.validation.loginFailed'),
+        description: t('login.validation.loginFailedDesc'),
         variant: "destructive",
       });
     }
@@ -109,11 +110,11 @@ export default function Login() {
                   </Link>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">EventTicketAgent</h2>
-                  <p className="text-primary-foreground/90">ระบบจัดการตั๋วอีเว่นท์</p>
+                  <h2 className="text-3xl font-bold mb-2">{t('login.welcome.title')}</h2>
+                  <p className="text-primary-foreground/90">{t('login.welcome.subtitle')}</p>
                 </div>
                 <div className="pt-4 border-t border-primary-foreground/20">
-                  <p className="text-sm text-primary-foreground/80">เข้าสู่ระบบเพื่อเข้าถึงแพลตฟอร์มการจัดการอีเว้นท์ที่ครบครัน</p>
+                  <p className="text-sm text-primary-foreground/80">{t('login.welcome.description')}</p>
                 </div>
               </div>
             </div>
@@ -125,8 +126,8 @@ export default function Login() {
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-xl translate-y-12 -translate-x-12"></div>
               
               <CardHeader className="text-center pb-6 pt-4 relative">
-                <CardTitle className="text-2xl font-bold text-primary">เข้าสู่ระบบ</CardTitle>
-                <p className="text-sm text-muted-foreground mt-2">กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
+                <CardTitle className="text-2xl font-bold text-primary">{t('login.title')}</CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">{t('login.subtitle')}</p>
               </CardHeader>
               
               <CardContent className="pb-6 relative">
@@ -134,7 +135,7 @@ export default function Login() {
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm font-medium flex items-center">
                       <Mail className="w-4 h-4 mr-2 text-primary" />
-                      อีเมล
+                      {t('login.email')}
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -145,7 +146,7 @@ export default function Login() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="your@email.com"
+                        placeholder={t('login.emailPlaceholder')}
                         required
                         className="pl-12 py-6 rounded-xl border border-input focus:border-primary focus:ring-2 focus:ring-ring transition-all text-base shadow-sm"
                       />
@@ -154,7 +155,7 @@ export default function Login() {
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-sm font-medium flex items-center">
                       <Lock className="w-4 h-4 mr-2 text-primary" />
-                      รหัสผ่าน
+                      {t('login.password')}
                     </Label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -165,7 +166,7 @@ export default function Login() {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="รหัสผ่าน"
+                        placeholder={t('login.passwordPlaceholder')}
                         required
                         className="pl-12 pr-12 py-6 rounded-xl border border-input focus:border-primary focus:ring-2 focus:ring-ring transition-all text-base shadow-sm"
                       />
@@ -184,45 +185,45 @@ export default function Login() {
                       </Button>
                     </div>
                   </div>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-primary text-primary-foreground py-6 rounded-xl font-medium text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 hover:bg-primary/90"
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <span className="flex items-center justify-center">
                         <span className="h-5 w-5 rounded-full border-2 border-primary-foreground border-t-transparent animate-spin mr-2"></span>
-                        กำลังเข้าสู่ระบบ...
+                        {t('login.loggingIn')}
                       </span>
-                    ) : 'เข้าสู่ระบบ'}
+                    ) : t('login.loginButton')}
                   </Button>
                 </form>
                 
                 <div className="mt-8 pt-6 border-t border-border">
                   <div className="text-center text-sm text-muted-foreground mb-3 flex items-center justify-center">
                     <Star className="w-4 h-4 mr-2 text-yellow-500" />
-                    บัญชีทดสอบ
+                    {t('login.testAccounts.title')}
                     <Star className="w-4 h-4 ml-2 text-yellow-500" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="bg-muted/50 rounded-xl p-4 transition-all duration-300 hover:bg-muted/80 hover:shadow-md border border-border">
                       <div className="flex items-center space-x-2 mb-2">
                         <div className="h-3 w-3 rounded-full bg-primary"></div>
-                        <span className="font-medium text-sm">ผู้ดูแลระบบ</span>
+                        <span className="font-medium text-sm">{t('login.testAccounts.admin')}</span>
                       </div>
                       <div className="text-xs space-y-1">
-                        <div className="font-mono bg-background/50 p-2 rounded-lg">admin@tiketagent.com</div>
-                        <div className="font-mono bg-background/50 p-2 rounded-lg">password123</div>
+                        <div className="font-mono bg-background/50 p-2 rounded-lg">{t('login.testAccounts.adminEmail')}</div>
+                        <div className="font-mono bg-background/50 p-2 rounded-lg">{t('login.testAccounts.password')}</div>
                       </div>
                     </div>
                     <div className="bg-muted/50 rounded-xl p-4 transition-all duration-300 hover:bg-muted/80 hover:shadow-md border border-border">
                       <div className="flex items-center space-x-2 mb-2">
                         <div className="h-3 w-3 rounded-full bg-primary"></div>
-                        <span className="font-medium text-sm">ผู้ใช้งานทั่วไป</span>
+                        <span className="font-medium text-sm">{t('login.testAccounts.user')}</span>
                       </div>
                       <div className="text-xs space-y-1">
-                        <div className="font-mono bg-background/50 p-2 rounded-lg">jason@gmail.com</div>
-                        <div className="font-mono bg-background/50 p-2 rounded-lg">password123</div>
+                        <div className="font-mono bg-background/50 p-2 rounded-lg">{t('login.testAccounts.userEmail')}</div>
+                        <div className="font-mono bg-background/50 p-2 rounded-lg">{t('login.testAccounts.password')}</div>
                       </div>
                     </div>
                   </div>

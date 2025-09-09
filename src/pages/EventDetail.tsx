@@ -103,7 +103,7 @@ export default function EventDetail() {
 
       } catch (err) {
         console.error('Failed to load event:', err);
-        setError('ไม่พบอีเว้นท์ที่ต้องการ');
+        setError(t('eventDetail.notFound'));
       } finally {
         setIsLoading(false);
       }
@@ -175,8 +175,8 @@ export default function EventDetail() {
       .map(([key, value]) => ({ key, value: value as number }))
       .filter(price => price.value > 0);
 
-    if (prices.length === 0) return 'ฟรี';
-    
+    if (prices.length === 0) return t('eventDetail.free');
+
     return prices.map(price => ({
       type: price.key,
       price: price.value,
@@ -185,25 +185,7 @@ export default function EventDetail() {
   };
 
   const getPriceLabel = (key: string) => {
-    const labels: Record<string, string> = {
-      earlyBird: 'Early Bird',
-      regular: 'ราคาปกติ',
-      student: 'นักเรียน/นักศึกษา',
-      group: 'กลุ่ม',
-      vip: 'VIP',
-      premium: 'Premium',
-      general: 'ทั่วไป',
-      fullMarathon: 'Full Marathon',
-      halfMarathon: 'Half Marathon',
-      miniMarathon: 'Mini Marathon',
-      funRun: 'Fun Run',
-      adult: 'ผู้ใหญ่',
-      child: 'เด็ก',
-      senior: 'ผู้สูงอายุ',
-      free: 'ฟรี',
-      member: 'สมาชิก',
-    };
-    return labels[key] || key;
+    return t(`eventDetail.priceLabels.${key}`) || key;
   };
 
   const getCategoryClass = (categoryId: string) => {
@@ -212,9 +194,9 @@ export default function EventDetail() {
 
   const getLocationTypeLabel = (type: string) => {
     switch (type) {
-      case 'online': return 'ออนไลน์';
-      case 'hybrid': return 'ไฮบริด';
-      case 'onsite': return 'ที่งาน';
+      case 'online': return t('eventDetail.online');
+      case 'hybrid': return t('eventDetail.hybrid');
+      case 'onsite': return t('eventDetail.onsite');
       default: return type;
     }
   };
@@ -259,9 +241,9 @@ export default function EventDetail() {
           <Alert className="max-w-2xl mx-auto bg-destructive/10 border-destructive/20 text-destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
-              <span>{error || 'ไม่พบอีเว้นท์ที่ต้องการ'}</span>
+              <span>{error || t('eventDetail.notFound')}</span>
               <Button variant="outline" size="sm" className="border-destructive/20 hover:bg-destructive/10 text-destructive">
-                กลับไปหน้ารายการ
+                {t('events.backToList')}
               </Button>
             </AlertDescription>
           </Alert>
@@ -289,7 +271,7 @@ export default function EventDetail() {
       <div className="container py-4 pt-20">
         <Button variant="ghost" className="hover:bg-accent" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4 mr-2" />
-          กลับ
+          {t('eventDetail.back')}
         </Button>
       </div>
 
@@ -309,7 +291,7 @@ export default function EventDetail() {
                   {event.featured && (
                     <Badge className="bg-primary text-primary-foreground">
                       <Star className="w-3 h-3 mr-1" />
-                      แนะนำ
+                      {t('eventDetail.featured')}
                     </Badge>
                   )}
                   <Badge className={cn("text-white", getCategoryClass(event.category))}>
@@ -339,13 +321,13 @@ export default function EventDetail() {
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-primary" />
                     <div>
-                      <div className="font-semibold">{event.schedule?.startDate ? formatDate(event.schedule.startDate) : 'ไม่ระบุวันที่'}</div>
+                      <div className="font-semibold">{event.schedule?.startDate ? formatDate(event.schedule.startDate) : t('eventDetail.noDate')}</div>
                       <div className="text-sm text-muted-foreground">
                         {event.schedule?.startTime ? formatTime(event.schedule.startTime) : ''} {event.schedule?.endTime ? `- ${formatTime(event.schedule.endTime)}` : ''}
                       </div>
                       {event.schedule?.startDate && event.schedule?.endDate && event.schedule.startDate !== event.schedule.endDate && (
                         <div className="text-sm text-muted-foreground">
-                          ถึง {formatDate(event.schedule.endDate)}
+                          {t('eventDetail.outOf')} {formatDate(event.schedule.endDate)}
                         </div>
                       )}
                     </div>
@@ -355,7 +337,7 @@ export default function EventDetail() {
                     <MapPin className="h-5 w-5 text-primary" />
                     <div>
                       <div className="font-semibold">
-                        {event.location?.venue || 'ออนไลน์'}
+                        {event.location?.venue || t('eventDetail.online')}
                       </div>
                       {event.location?.address && (
                         <div className="text-sm text-muted-foreground">
@@ -375,11 +357,11 @@ export default function EventDetail() {
                     <div>
 
                       <div className="font-semibold">
-                        {realAvailableTickets.toLocaleString()} ที่เหลือ
+                        {realAvailableTickets.toLocaleString()} {t('eventDetail.available')}
 
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        ผู้เข้าร่วม {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
+                        {t('eventDetail.participants')} {actualParticipants.toLocaleString()} / {maxCapacity.toLocaleString()}
                       </div>
                       {maxCapacity > 0 && (
                         <div className="mt-1">
@@ -390,12 +372,12 @@ export default function EventDetail() {
                             />
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            ที่เหลือ {availableCapacity.toLocaleString()}/{maxCapacity.toLocaleString()}
+                            {t('eventDetail.spotsLeft')} {availableCapacity.toLocaleString()}/{maxCapacity.toLocaleString()}
                           </div>
                         </div>
                       )}
                       <div className="text-xs text-muted-foreground mt-1">
-                        อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString('th-TH')}
+                        {t('eventDetail.lastUpdated')} {lastUpdated.toLocaleTimeString('th-TH')}
                       </div>
                     </div>
                   </div>
@@ -410,7 +392,7 @@ export default function EventDetail() {
               <Card className="bg-card text-card-foreground">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    🗺️ ตำแหน่งที่ตั้ง
+                    🗺️ {t('eventDetail.location.title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -443,14 +425,14 @@ export default function EventDetail() {
                         }}
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        เปิดใน Google Maps
+                        {t('eventDetail.location.openInMaps')}
                       </Button>
                     </div>
                   </div>
                   
                   <div className="pt-2">
                     <p className="text-sm text-muted-foreground mb-4">
-                      คลิกที่ marker เพื่อดูรายละเอียด
+                      {t('eventDetail.location.clickMarker')}
                     </p>
                     <EventMap
                       coordinates={event.location.coordinates}
@@ -467,7 +449,7 @@ export default function EventDetail() {
             {/* Description */}
             <Card className="bg-card text-card-foreground">
               <CardHeader>
-                <CardTitle>รายละเอียดอีเว้นท์</CardTitle>
+                <CardTitle>{t('eventDetail.details')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
@@ -480,7 +462,7 @@ export default function EventDetail() {
             {event.speakers && event.speakers.length > 0 && (
               <Card className="bg-card text-card-foreground">
                 <CardHeader>
-                  <CardTitle>วิทยากร</CardTitle>
+                  <CardTitle>{t('eventDetail.speakers')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {event.speakers.map((speaker, index) => (
@@ -510,12 +492,12 @@ export default function EventDetail() {
             {(event.requirements?.length || event.includes?.length || event.activities?.length || event.tracks?.length) && (
               <Card className="bg-card text-card-foreground">
                 <CardHeader>
-                  <CardTitle>ข้อมูลเพิ่มเติม</CardTitle>
+                  <CardTitle>{t('eventDetail.additionalInfo')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {event.requirements && event.requirements.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">สิ่งที่ต้องเตรียม</h4>
+                      <h4 className="font-semibold mb-2">{t('eventDetail.requirements')}</h4>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                         {event.requirements.map((req, index) => (
                           <li key={index}>{req}</li>
@@ -526,7 +508,7 @@ export default function EventDetail() {
 
                   {event.includes && event.includes.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">รวมในราคา</h4>
+                      <h4 className="font-semibold mb-2">{t('eventDetail.includes')}</h4>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                         {event.includes.map((item, index) => (
                           <li key={index}>{item}</li>
@@ -537,7 +519,7 @@ export default function EventDetail() {
 
                   {event.tracks && event.tracks.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">หัวข้อ</h4>
+                      <h4 className="font-semibold mb-2">{t('eventDetail.topics')}</h4>
                       <div className="flex flex-wrap gap-2">
                         {event.tracks.map((track, index) => (
                           <Badge key={index} variant="outline" className="border-border">
@@ -550,7 +532,7 @@ export default function EventDetail() {
 
                   {event.activities && event.activities.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">กิจกรรม</h4>
+                      <h4 className="font-semibold mb-2">{t('eventDetail.activities')}</h4>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                         {event.activities.map((activity, index) => (
                           <li key={index}>{activity}</li>
@@ -561,7 +543,7 @@ export default function EventDetail() {
 
                   {event.distances && event.distances.length > 0 && (
                     <div>
-                      <h4 className="font-semibold mb-2">ระยะทาง</h4>
+                      <h4 className="font-semibold mb-2">{t('eventDetail.distances')}</h4>
                       <div className="flex flex-wrap gap-2">
                         {event.distances.map((distance, index) => (
                           <Badge key={index} variant="outline" className="border-border">
@@ -579,7 +561,7 @@ export default function EventDetail() {
             {event.tags?.length > 0 && (
               <Card className="bg-card text-card-foreground">
                 <CardHeader>
-                  <CardTitle>แท็ก</CardTitle>
+                  <CardTitle>{t('eventDetail.tags')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
@@ -601,7 +583,7 @@ export default function EventDetail() {
             <Card className="sticky top-24 bg-card text-card-foreground">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>จองตั๋ว</span>
+                  <span>{t('eventDetail.booking.title')}</span>
                   <Button variant="ghost" size="sm" className="hover:bg-accent" onClick={handleShare}>
                     <Share2 className="h-4 w-4" />
                   </Button>
@@ -611,7 +593,7 @@ export default function EventDetail() {
                 {/* Pricing */}
                 {Array.isArray(priceData) ? (
                   <div className="space-y-3">
-                    <h4 className="font-semibold">ราคาบัตร</h4>
+                    <h4 className="font-semibold">{t('eventDetail.booking.pricing')}</h4>
                     {priceData.map((price, index) => (
                       <div key={index} className="flex justify-between items-center">
                         <span className="text-sm">{price.label}</span>
@@ -622,7 +604,7 @@ export default function EventDetail() {
                 ) : (
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">{priceData}</div>
-                    <div className="text-sm text-muted-foreground">ราคาบัตร</div>
+                    <div className="text-sm text-muted-foreground">{t('eventDetail.booking.pricing')}</div>
                   </div>
                 )}
 
@@ -631,7 +613,7 @@ export default function EventDetail() {
                 {/* Availability with real-time updates */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>ผู้เข้าร่วม</span>
+                    <span>{t('eventDetail.participants')}</span>
                     <span className="font-medium">
 
                       {realAvailableTickets.toLocaleString()} / {event.capacity?.max?.toLocaleString() || '0'}
@@ -645,17 +627,17 @@ export default function EventDetail() {
                     />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>ที่เหลือ: {availableCapacity.toLocaleString()}</span>
+                    <span>{t('eventDetail.spotsLeft')} {availableCapacity.toLocaleString()}</span>
                     <span>{availabilityPercentage.toFixed(0)}%</span>
                   </div>
                   {availabilityPercentage < 20 && availabilityPercentage > 0 && (
                     <div className="flex items-center text-destructive text-sm">
                       <Clock className="w-4 h-4 mr-1" />
-                      เหลือไม่มาก!
+                      {t('eventDetail.almostGone')}
                     </div>
                   )}
                   <div className="text-xs text-muted-foreground text-center">
-                    อัปเดตล่าสุด: {lastUpdated.toLocaleTimeString('th-TH')}
+                    {t('eventDetail.lastUpdated')} {lastUpdated.toLocaleTimeString('th-TH')}
                   </div>
                 </div>
 
@@ -664,26 +646,25 @@ export default function EventDetail() {
 
                   {realAvailableTickets === 0 ? (
                     <Button disabled className="w-full">
-
-                      ขายหมดแล้ว
+                      {t('eventDetail.booking.soldOut')}
                     </Button>
                   ) : !isUpcoming ? (
                     <Button disabled className="w-full bg-muted text-muted-foreground">
-                      อีเว้นท์สิ้นสุดแล้ว
+                      {t('eventDetail.booking.eventEnded')}
                     </Button>
                   ) : (
                     <Button asChild className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90">
                       <Link to={`/events/${event.id}/booking`}>
-                        จองตั๋วเลย
+                        {t('eventDetail.booking.bookNow')}
                       </Link>
                     </Button>
                   )}
-                  
+
                   {event.location?.onlineLink && (
                     <Button variant="outline" className="w-full border-input hover:bg-accent" asChild>
                       <a href={event.location.onlineLink} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        เข้าร่วมออนไลน์
+                        {t('eventDetail.booking.joinOnline')}
                       </a>
                     </Button>
                   )}
@@ -694,12 +675,12 @@ export default function EventDetail() {
             {/* Organizer Card */}
             <Card className="bg-card text-card-foreground">
               <CardHeader>
-                <CardTitle>ผู้จัดงาน</CardTitle>
+                <CardTitle>{t('eventDetail.organizer')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{event.organizer?.name || 'ไม่ระบุ'}</span>
+                  <span className="font-medium">{event.organizer?.name || t('eventDetail.notSpecified')}</span>
                 </div>
                 {event.organizer?.contact && (
                   <div className="flex items-center space-x-2">
