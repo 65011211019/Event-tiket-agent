@@ -27,9 +27,16 @@ export default function Header({ onSearch }: HeaderProps) {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch?.(searchQuery);
-    if (location.pathname !== '/events') {
-      navigate(`/events?search=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery.trim()) {
+      // Always navigate to events page with search query, regardless of current page
+      navigate(`/events?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      // If empty search, navigate to events page without query
+      navigate('/events');
+    }
+    // Clear search on mobile after search
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
     }
   };
 
@@ -44,7 +51,7 @@ export default function Header({ onSearch }: HeaderProps) {
             <Calendar className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-            EventTix
+            EventTicketAgent
           </span>
         </Link>
 

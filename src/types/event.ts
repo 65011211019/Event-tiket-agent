@@ -196,6 +196,20 @@ export interface FilterOptions {
   dateRanges: ('today' | 'week' | 'month' | 'quarter' | 'year')[];
 }
 
+export interface EventFilters {
+  search?: string;
+  categories?: string[];
+  location?: string;
+  dateRange?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  page?: number;
+}
+
 export interface SortOption {
   field: string;
   order: 'asc' | 'desc';
@@ -217,4 +231,5 @@ export interface EventFilters {
   dateRange?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  page?: number;
 }
