@@ -143,33 +143,30 @@ export const parseUserInput = (input: string, conversationContext?: any): { type
   
   // Auto navigation patterns
   if (lowerInput.includes('พาไป') || lowerInput.includes('ไป') || lowerInput.includes('navigate') || lowerInput.includes('auto')) {
-    // Extract event name if mentioned
-    const eventNames = [
-      'creative photography workshop',
-      'jazz festival',
-      'food festival',
-      'tech summit',
-      'art exhibition',
-      'music concert',
-      'workshop',
-      'festival',
-      'conference'
-    ];
-    
-    const mentionedEvent = eventNames.find(name => 
-      lowerInput.includes(name.toLowerCase()) ||
-      input.toLowerCase().includes(name.toLowerCase())
-    );
-    
+    // Extract event name from user's actual input
+    let eventName = '';
+
+    // Remove navigation words to get the actual event name
+    let cleanedInput = input.replace(/พาไป|ไป|navigate|auto/gi, '').trim();
+
+    // Remove common words that are not part of event names
+    const removeWords = ['จอง', 'booking', 'book', 'รายละเอียด', 'detail', 'หน่อย', 'ให้', 'หน่อย'];
+    removeWords.forEach(word => {
+      cleanedInput = cleanedInput.replace(new RegExp(word, 'gi'), '').trim();
+    });
+
+    // Use the cleaned input as the event name for searching
+    eventName = cleanedInput;
+
     if (lowerInput.includes('จอง') || lowerInput.includes('booking') || lowerInput.includes('book')) {
-      return { type: 'auto_navigate_booking', payload: { eventName: mentionedEvent } };
+      return { type: 'auto_navigate_booking', payload: { eventName: eventName } };
     }
-    
+
     if (lowerInput.includes('รายละเอียด') || lowerInput.includes('detail')) {
-      return { type: 'auto_navigate_detail', payload: { eventName: mentionedEvent } };
+      return { type: 'auto_navigate_detail', payload: { eventName: eventName } };
     }
-    
-    return { type: 'auto_navigate', payload: { eventName: mentionedEvent, destination: lowerInput } };
+
+    return { type: 'auto_navigate', payload: { eventName: eventName, destination: lowerInput } };
   }
   
   // Real-time data requests - NEW
@@ -180,32 +177,26 @@ export const parseUserInput = (input: string, conversationContext?: any): { type
   }
   
   // AI Booking requests - NEW
-  if (lowerInput.includes('จองให้') || lowerInput.includes('ช่วยจอง') || 
+  if (lowerInput.includes('จองให้') || lowerInput.includes('ช่วยจอง') ||
       lowerInput.includes('จองตั๋ว') || lowerInput.includes('book for me') ||
       lowerInput.includes('ai จอง') || lowerInput.includes('จองอัตโนมัติ')) {
-    
-    // Extract event name if mentioned
-    const eventNames = [
-      'digital marketing',
-      'tech conference', 
-      'jazz under the stars',
-      'bangkok marathon',
-      'cultural heritage',
-      'business networking',
-      'photography workshop',
-      'workshop',
-      'conference',
-      'concert',
-      'marathon',
-      'festival',
-      'networking'
-    ];
-    
-    const mentionedEvent = eventNames.find(name => 
-      lowerInput.includes(name.toLowerCase())
-    );
-    
-    return { type: 'ai_booking_request', payload: { eventName: mentionedEvent, originalQuery: input } };
+
+    // Extract event name from user's actual input
+    let eventName = '';
+
+    // Remove "จองให้", "ช่วยจอง", etc. to get the actual event name
+    let cleanedInput = input.replace(/จองให้|ช่วยจอง|จองตั๋ว|book for me|ai จอง|จองอัตโนมัติ/gi, '').trim();
+
+    // Remove common words that are not part of event names
+    const removeWords = ['ราคาปกติ', 'early bird', 'ล่วงหน้า', 'นักเรียน', 'student', 'vip', 'premium', 'ทั่วไป', 'general', 'กลุ่ม', 'group', '1', '2', '3', '4', '5', 'ใบ'];
+    removeWords.forEach(word => {
+      cleanedInput = cleanedInput.replace(new RegExp(word, 'gi'), '').trim();
+    });
+
+    // Use the cleaned input as the event name for searching
+    eventName = cleanedInput;
+
+    return { type: 'ai_booking_request', payload: { eventName: eventName, originalQuery: input } };
   }
   
   // Show more events in booking - NEW
@@ -214,22 +205,23 @@ export const parseUserInput = (input: string, conversationContext?: any): { type
       lowerInput.includes('อีเว้นท์ต่อไป') || lowerInput.includes('เพิ่มเติม')) {
     return { type: 'show_more_events', payload: { originalQuery: input } };
   }
-  if (lowerInput.includes('จอง') && 
-      (lowerInput.includes('digital marketing') || lowerInput.includes('tech conference') ||
-       lowerInput.includes('jazz') || lowerInput.includes('marathon') ||
-       lowerInput.includes('cultural') || lowerInput.includes('networking') ||
-       lowerInput.includes('photography'))) {
-    
-    // Extract event name
+  // Handle any booking request - no hardcode conditions
+  if (lowerInput.includes('จอง')) {
+    // Extract event name from user's actual input
     let eventName = '';
-    if (lowerInput.includes('digital marketing')) eventName = 'Digital Marketing Masterclass';
-    else if (lowerInput.includes('tech conference')) eventName = 'Thailand Tech Conference';
-    else if (lowerInput.includes('jazz')) eventName = 'Jazz Under the Stars';
-    else if (lowerInput.includes('marathon')) eventName = 'Bangkok Marathon';
-    else if (lowerInput.includes('cultural')) eventName = 'Thai Cultural Heritage Festival';
-    else if (lowerInput.includes('networking')) eventName = 'Bangkok Business Networking Night';
-    else if (lowerInput.includes('photography')) eventName = 'Creative Photography Workshop';
-    
+
+    // Remove "จอง" and common words to get the actual event name
+    let cleanedInput = input.replace(/จอง/gi, '').trim();
+
+    // Remove common ticket type words
+    const removeWords = ['ราคาปกติ', 'early bird', 'ล่วงหน้า', 'นักเรียน', 'student', 'vip', 'premium', 'ทั่วไป', 'general', 'กลุ่ม', 'group', '1', '2', '3', '4', '5', 'ใบ', 'ใบ'];
+    removeWords.forEach(word => {
+      cleanedInput = cleanedInput.replace(new RegExp(word, 'gi'), '').trim();
+    });
+
+    // Use the cleaned input as the event name for searching
+    eventName = cleanedInput;
+
     return { type: 'specific_event_booking', payload: { eventName, originalQuery: input } };
   }
   if (lowerInput.includes('ดูอีเว้นท์') || lowerInput.includes('อีเว้นท์ทั้งหมด') || lowerInput.includes('รายการอีเว้นท์') || 
@@ -579,7 +571,12 @@ const generateContextualSuggestions = (context?: any): string[] => {
   if (suggestions.length < 3) {
     suggestions.push('ช่วยเหลือ', 'ค้นหาข้อมูล', 'ติดต่อสอบถาม');
   }
-  
+
+  // Always include "จองให้หน่อย" as a quick action
+  if (!suggestions.includes('จองให้หน่อย')) {
+    suggestions.push('จองให้หน่อย');
+  }
+
   return suggestions.slice(0, 4); // Return max 4 suggestions
 };
 
@@ -664,14 +661,9 @@ const handleAutoNavigation = async (type: string, payload: any, context?: any): 
       );
     }
     
-    // If no specific event found but user wants navigation, show available events
-    if (!targetEvent && validEvents.length > 0) {
-      // Try to find Creative Photography Workshop specifically with null checks
-      targetEvent = validEvents.find(event => 
-        event.title.toLowerCase().includes('creative') ||
-        event.title.toLowerCase().includes('photography') ||
-        event.title.toLowerCase().includes('workshop')
-      );
+    // If no specific event found, don't use fallback - tell user we couldn't find the event
+    if (!targetEvent) {
+      console.log(`❌ ไม่พบอีเว้นท์ที่ระบุในคำค้นหา`);
     }
     
     let navigationUrl = '';
@@ -706,14 +698,11 @@ const handleAutoNavigation = async (type: string, payload: any, context?: any): 
         suggestions: ['ไปเลย', 'ดูรายละเอียดก่อน', 'ยกเลิก']
       };
     } else {
-      // No matching event found
-      const availableEvents = validEvents.slice(0, 3); // Show first 3 valid events as alternatives
-      
+      // No matching event found - don't use fallback
       return {
-        message: eventName 
-          ? `ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการ 😔\n\nแต่เรามีอีเว้นท์น่าสนใจอื่นๆ ให้เลือกด้านล่างค่ะ ✨`
-          : 'เรามีอีเว้นท์น่าสนใจหลายรายการค่ะ กรุณาเลือกอีเว้นท์ที่ต้องการจากด้านล่างค่ะ ✨',
-        data: availableEvents,
+        message: eventName
+          ? `😔 ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการ\n\nลองพิมพ์ชื่ออีเว้นท์ที่ต้องการค้นหาใหม่ หรือดูอีเว้นท์ทั้งหมดได้ค่ะ 😊`
+          : '😔 ขออภัยค่ะ ไม่พบอีเว้นท์ที่คุณต้องการ\n\nลองพิมพ์ชื่ออีเว้นท์ที่ต้องการค้นหา หรือดูอีเว้นท์ทั้งหมดได้ค่ะ 😊',
         suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ค้นหาอีเว้นท์', 'ช่วยเหลือ']
       };
     }
@@ -1047,8 +1036,8 @@ const handleSpecificEventBooking = async (payload: any, context?: any): Promise<
 
     if (!targetEvent) {
       return {
-        message: `😔 ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการจอง หรืออาจอีเว้นท์นี้ไม่มีแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
-        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+        message: `😔 ขออภัยค่ะ ไม่พบอีเว้นท์ "${eventName}" ที่คุณต้องการจอง\n\nลองพิมพ์ชื่ออีเว้นท์ที่ต้องการค้นหาใหม่ หรือดูอีเว้นท์ทั้งหมดได้ค่ะ 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ค้นหาอีเว้นท์', 'ช่วยเหลือ']
       };
     }
 
@@ -1250,8 +1239,8 @@ const handleAIBookingRequest = async (payload: any, context?: any): Promise<AIRe
 
     if (candidateEvents.length === 0) {
       return {
-        message: `😔 ขออภัยค่ะ ${eventName ? `ไม่พบอีเว้นท์ "${eventName}"` : 'ไม่มีอีเว้นท์ที่พร้อมจองในขณะนี้'} หรืออาจมีที่นั่งเต็มแล้ว\n\nลองดูอีเว้นท์อื่นๆ ได้ไหมคะ? 😊`,
-        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'อีเว้นท์แนะนำ', 'ค้นหาอีเว้นท์']
+        message: `😔 ขออภัยค่ะ ${eventName ? `ไม่พบอีเว้นท์ "${eventName}"` : 'ไม่มีอีเว้นท์ที่พร้อมจองในขณะนี้'}\n\nลองพิมพ์ชื่ออีเว้นท์ที่ต้องการค้นหาใหม่ หรือดูอีเว้นท์ทั้งหมดได้ค่ะ 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ค้นหาอีเว้นท์', 'ช่วยเหลือ']
       };
     }
 
@@ -1413,9 +1402,8 @@ const handleBookingConfirmation = async (payload: any, context?: any): Promise<A
           }
 
           if (contextText) {
-            // Look for event names mentioned in context
-            const eventKeywords = ['football', 'league', 'wayu', 'หมอลำ', 'digital', 'marketing', 'tech', 'conference', 'jazz', 'marathon'];
-            searchTerms = eventKeywords.filter(keyword => contextText.includes(keyword));
+            // Extract all words from context as potential search terms
+            searchTerms = contextText.split(' ').filter(term => term.length > 2);
           }
         }
 
@@ -1436,20 +1424,9 @@ const handleBookingConfirmation = async (payload: any, context?: any): Promise<A
           });
         }
 
-        // If still no match, check if there's a recently viewed or popular event
-        if (!eventInfo && allEvents.length > 0) {
-          // Sort by availability and recent activity
-          const availableEvents = allEvents.filter(event =>
-            event && event.title &&
-            (event.capacity?.available || 0) > 0 &&
-            new Date(event.schedule?.startDate || 0) > new Date()
-          );
-
-          if (availableEvents.length > 0) {
-            // Take the first available event as fallback
-            eventInfo = availableEvents[0];
-            console.log(`⚠️ ไม่พบอีเว้นท์ที่ระบุ ใช้ ${eventInfo.title} เป็นทางเลือก`);
-          }
+        // If still no match, don't use fallback - tell user we couldn't find the event
+        if (!eventInfo) {
+          console.log(`❌ ไม่พบอีเว้นท์ที่ระบุในคำค้นหา`);
         }
 
         // Default to regular ticket if not specified
@@ -1462,10 +1439,9 @@ const handleBookingConfirmation = async (payload: any, context?: any): Promise<A
     }
 
     if (!eventInfo) {
-      const eventHint = userContext?.lastBookingRequest?.eventName || 'อีเว้นท์ที่คุณสนใจ';
       return {
-        message: `😔 ขออภัยค่ะ ดิฉันไม่พบข้อมูลอีเว้นท์ที่คุณต้องการจอง\n\nคุณหมายถึง "${eventHint}" ใช่ไหมคะ? หรือต้องการบอกชื่ออีเว้นท์ที่ต้องการจองก่อนไหมคะ 😊`,
-        suggestions: ['ดูอีเว้นท์ทั้งหมด', eventHint !== 'อีเว้นท์ที่คุณสนใจ' ? `จอง ${eventHint}` : 'จองให้หน่อย', 'ช่วยเหลือ']
+        message: `😔 ขออภัยค่ะ ดิฉันไม่พบข้อมูลอีเว้นท์ที่คุณต้องการจอง\n\nลองพิมพ์ชื่ออีเว้นท์ที่ต้องการค้นหาใหม่ หรือดูอีเว้นท์ทั้งหมดได้ค่ะ 😊`,
+        suggestions: ['ดูอีเว้นท์ทั้งหมด', 'ค้นหาอีเว้นท์', 'ช่วยเหลือ']
       };
     }
 
