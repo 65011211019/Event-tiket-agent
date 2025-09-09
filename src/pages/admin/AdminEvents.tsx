@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Search, Filter, Edit, Trash2, Eye, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { eventApi } from '@/lib/api';
 import { Event, EventTicket, BookingRecord, BookingTicket } from '@/types/event';
 import { ticketUpdateService } from '@/services/ticketService';
+import { toast } from '@/hooks/use-toast';
 
 // Helper function to determine if an object is a BookingRecord
 const isBookingRecord = (item: any): item is BookingRecord => {
@@ -62,10 +63,32 @@ const extractTicketsFromData = (data: (BookingRecord | EventTicket)[]): EventTic
 
 export default function AdminEvents() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [events, setEvents] = React.useState<Event[]>([]);
   const [tickets, setTickets] = React.useState<(BookingRecord | EventTicket)[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
+  
+  // Filter states
+  const [categoryFilter, setCategoryFilter] = React.useState<string>('all');
+  const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [dateFilter, setDateFilter] = React.useState<string>('all');
+  
+  // Available categories
+  const [availableCategories, setAvailableCategories] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    // Check for alert message from navigation state
+    if (location.state?.alert) {
+      toast({
+        title: location.state.alert.title,
+        description: location.state.alert.description,
+      });
+      
+      // Clear the state to prevent showing the alert again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   React.useEffect(() => {
     const loadEventsAndTickets = async () => {
@@ -80,6 +103,10 @@ export default function AdminEvents() {
         
         setEvents(eventsResponse.events || []);
         setTickets(ticketsData);
+        
+        // Extract unique categories
+        const categories = [...new Set((eventsResponse.events || []).map(event => event.category))];
+        setAvailableCategories(categories);
       } catch (error) {
         console.error('Failed to load events and tickets:', error);
       } finally {
@@ -125,10 +152,44 @@ export default function AdminEvents() {
     return totalParticipants;
   };
 
-  const filteredEvents = events.filter(event =>
-    (event.title && event.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredEvents = events.filter(event => {
+    // Search filter
+    const matchesSearch = 
+      (event.title && event.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Category filter
+    const matchesCategory = categoryFilter === 'all' || event.category === categoryFilter;
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
+    
+    // Date filter (simplified - in a real app, you might want more sophisticated date filtering)
+    let matchesDate = true;
+    if (dateFilter !== 'all') {
+      const eventDate = new Date(event.schedule?.startDate || '');
+      const now = new Date();
+      
+      switch (dateFilter) {
+        case 'today':
+          matchesDate = eventDate.toDateString() === now.toDateString();
+          break;
+        case 'week':
+          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          matchesDate = eventDate >= now && eventDate <= weekFromNow;
+          break;
+        case 'month':
+          const monthFromNow = new Date();
+          monthFromNow.setMonth(monthFromNow.getMonth() + 1);
+          matchesDate = eventDate >= now && eventDate <= monthFromNow;
+          break;
+        default:
+          matchesDate = true;
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesDate;
+  });
 
   const handleDeleteEvent = async (eventId: string) => {
     if (window.confirm('คุณแน่ใจหรือไม่ที่จะลบอีเว้นท์นี้?')) {
@@ -190,8 +251,8 @@ export default function AdminEvents() {
       {/* Enhanced Search and Filter Section */}
       <Card className="shadow-sm bg-card text-card-foreground">
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1 max-w-md">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="ค้นหาอีเว้นท์..."
@@ -200,9 +261,61 @@ export default function AdminEvents() {
                 className="pl-10 bg-background text-foreground border-input"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2 border-input hover:bg-accent hover:text-accent-foreground">
-              <Filter className="h-4 w-4" />
-              กรอง
+            
+            <div>
+              <select 
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="all">ทุกหมวดหมู่</option>
+                {availableCategories.map(category => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="all">ทุกสถานะ</option>
+                <option value="active">เปิดใช้งาน</option>
+                <option value="draft">ฉบับร่าง</option>
+                <option value="cancelled">ยกเลิก</option>
+              </select>
+            </div>
+            
+            <div>
+              <select 
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="all">ทุกวันที่</option>
+                <option value="today">วันนี้</option>
+                <option value="week">สัปดาห์นี้</option>
+                <option value="month">เดือนนี้</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchQuery('');
+                setCategoryFilter('all');
+                setStatusFilter('all');
+                setDateFilter('all');
+              }}
+              className="border-input hover:bg-accent hover:text-accent-foreground"
+            >
+              ล้างตัวกรอง
             </Button>
           </div>
         </CardContent>
