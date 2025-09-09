@@ -3,12 +3,52 @@ import { AIResponse } from '@/types/ai';
 import { aiApi } from './ai-api';
 import { aiKnowledge, getSystemContext } from './ai-prompts';
 
-// Gemini API configuration
-const GEMINI_API_KEY = 'AIzaSyDxOtuESZB_IeWBbaB3aljbLV7hDXtGFRY';
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+// Gemini API configuration with multiple keys for load balancing
+const GEMINI_API_KEYS = [
+  'AIzaSyDxOtuESZB_IeWBbaB3aljbLV7hDXtGFRY',
+  'AIzaSyBW3tywgCWHLL5-0dcPm99WGamY2m_6oqw'
+];
 
-// Initialize Gemini 2.5 Flash model
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+// Current key index for rotation
+let currentKeyIndex = 0;
+
+// Function to get current API key
+const getCurrentApiKey = () => {
+  return GEMINI_API_KEYS[currentKeyIndex];
+};
+
+// Function to rotate to next API key
+const rotateApiKey = () => {
+  currentKeyIndex = (currentKeyIndex + 1) % GEMINI_API_KEYS.length;
+  console.log(`🔄 Rotated to API key index: ${currentKeyIndex}`);
+};
+
+// Initialize Gemini AI with current key
+let genAI = new GoogleGenerativeAI(getCurrentApiKey());
+let model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+
+// Function to reinitialize model with new API key
+const reinitializeModel = () => {
+  genAI = new GoogleGenerativeAI(getCurrentApiKey());
+  model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+};
+
+// Function to get API key status
+export const getApiKeyStatus = () => {
+  return {
+    currentKeyIndex,
+    totalKeys: GEMINI_API_KEYS.length,
+    currentKey: `${getCurrentApiKey().substring(0, 20)}...`,
+    availableKeys: GEMINI_API_KEYS.length
+  };
+};
+
+// Function to manually rotate API key
+export const manualRotateApiKey = () => {
+  rotateApiKey();
+  reinitializeModel();
+  return getApiKeyStatus();
+};
 
 // Enhanced action types to support automatic navigation
 export const parseUserInput = (input: string): { type: string; payload?: any } => {
@@ -172,43 +212,48 @@ export const parseUserInput = (input: string): { type: string; payload?: any } =
   return { type: 'general_query', payload: { query: input } };
 };
 
-// Function to generate AI response using dynamic system knowledge
+// Function to generate AI response using dynamic system knowledge with API key failover
 export const generateAIResponse = async (userInput: string, context?: any): Promise<AIResponse> => {
-  try {
-    const action = parseUserInput(userInput);
-    
-    // Force refresh for critical queries to ensure real-time data
-    const forceRefresh = userInput.includes('ล่าสุด') || 
-                        userInput.includes('ปัจจุบัน') || 
-                        userInput.includes('real-time') ||
-                        userInput.includes('อัปเดต') ||
-                        action.type === 'get_stats';
-    
-    // Update AI knowledge with current system data (with optional force refresh)
-    await updateAIKnowledge(context, forceRefresh);
-    
-    // Add real-time data indicator to context
-    const enhancedContext = {
-      ...context,
-      isRealTimeQuery: forceRefresh,
-      lastDataRefresh: new Date().toISOString()
-    };
-    
-    // Handle specific actions
-    if (action.type !== 'general_query') {
-      return await executeSpecificAction(action, enhancedContext);
-    }
-    
-    // For general queries, use dynamic system knowledge instead of hardcoded prompts
-    const systemKnowledge = getSystemContext(enhancedContext, true); // Include event details
-    const conversationContext = enhancedContext?.conversationContext || 'เริ่มต้นการสนทนา';
-    
-    // Include real-time data status in the prompt
-    const dataFreshnessInfo = forceRefresh 
-      ? 'ข้อมูลนี้ได้มาจาก API แบบ real-time เมื่อสักครู่ที่ผ่านมา'
-      : 'ข้อมูลนี้อาจเป็นข้อมูลที่ถูกเก็บ cache ไว้';
-    
-    const prompt = `
+  let lastError = null;
+  let attemptCount = 0;
+  const maxAttempts = GEMINI_API_KEYS.length;
+
+  while (attemptCount < maxAttempts) {
+    try {
+      const action = parseUserInput(userInput);
+      
+      // Force refresh for critical queries to ensure real-time data
+      const forceRefresh = userInput.includes('ล่าสุด') || 
+                          userInput.includes('ปัจจุบัน') || 
+                          userInput.includes('real-time') ||
+                          userInput.includes('อัปเดต') ||
+                          action.type === 'get_stats';
+      
+      // Update AI knowledge with current system data (with optional force refresh)
+      await updateAIKnowledge(context, forceRefresh);
+      
+      // Add real-time data indicator to context
+      const enhancedContext = {
+        ...context,
+        isRealTimeQuery: forceRefresh,
+        lastDataRefresh: new Date().toISOString()
+      };
+      
+      // Handle specific actions
+      if (action.type !== 'general_query') {
+        return await executeSpecificAction(action, enhancedContext);
+      }
+      
+      // For general queries, use dynamic system knowledge instead of hardcoded prompts
+      const systemKnowledge = getSystemContext(enhancedContext, true); // Include event details
+      const conversationContext = enhancedContext?.conversationContext || 'เริ่มต้นการสนทนา';
+      
+      // Include real-time data status in the prompt
+      const dataFreshnessInfo = forceRefresh 
+        ? 'ข้อมูลนี้ได้มาจาก API แบบ real-time เมื่อสักครู่ที่ผ่านมา'
+        : 'ข้อมูลนี้อาจเป็นข้อมูลที่ถูกเก็บ cache ไว้';
+      
+      const prompt = `
 คุณคือ AI Assistant ที่เข้าใจระบบนี้อย่างลึกซึ้ง ไม่ต้องพึ่งพาคำสั่งที่ตายตัว แต่ใช้ความรู้จริงเกี่ยวกับระบบ
 
 ${systemKnowledge}
@@ -229,26 +274,52 @@ ${systemKnowledge}
 ตอบอย่างเป็นธรรมชาติ เป็นมิตร และมีประโยชน์ หลีกเลี่ยงการใช้คำสั่งระบบแบบตายตัว
 ตอบเป็นภาษาไทยเท่านั้น
 `;
-    
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Generate contextual suggestions based on current system state
-    const suggestions = generateContextualSuggestions(enhancedContext);
-    
-    return {
-      message: text,
-      suggestions: suggestions
-    };
-    
-  } catch (error) {
-    console.error('Gemini AI Error:', error);
-    return {
-      message: 'ขออภัย เกิดข้อผิดพลาดในการประมวลผล กรุณาลองใหม่อีกครั้ง',
-      suggestions: ['ลองใหม่', 'ช่วยเหลือ', 'ติดต่อผู้ดูแล']
-    };
+      
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      // Generate contextual suggestions based on current system state
+      const suggestions = generateContextualSuggestions(enhancedContext);
+      
+      return {
+        message: text,
+        suggestions: suggestions
+      };
+      
+    } catch (error: any) {
+      console.error(`Gemini AI Error with key ${currentKeyIndex}:`, error);
+      lastError = error;
+      
+      // If this is a quota/rate limit error or authentication error, try next key
+      if (error?.message?.includes('quota') || 
+          error?.message?.includes('rate') ||
+          error?.message?.includes('QUOTA_EXCEEDED') ||
+          error?.message?.includes('RATE_LIMIT_EXCEEDED') ||
+          error?.message?.includes('API_KEY_INVALID') ||
+          error?.status === 429 ||
+          error?.status === 403) {
+        
+        attemptCount++;
+        if (attemptCount < maxAttempts) {
+          console.log(`🔄 API key ${currentKeyIndex} failed, rotating to next key...`);
+          rotateApiKey();
+          reinitializeModel();
+          continue; // Try with next key
+        }
+      } else {
+        // For other errors, don't retry
+        break;
+      }
+    }
   }
+  
+  // All keys failed or non-retryable error
+  console.error('All Gemini API keys failed or non-retryable error:', lastError);
+  return {
+    message: 'ขออภัย เกิดข้อผิดพลาดในการประมวลผล กรุณาลองใหม่อีกครั้ง',
+    suggestions: ['ลองใหม่', 'ช่วยเหลือ', 'ติดต่อผู้ดูแล']
+  };
 };
 
 // Update AI knowledge with fresh system data - Enhanced for real-time access
