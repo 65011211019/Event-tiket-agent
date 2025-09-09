@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, MapPin, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { eventApi } from '@/lib/api';
 import { uploadToCloudinary } from '@/lib/cloudinary'; // Import the Cloudinary utility
 import { Event, EventLocation } from '@/types/event';
 import { toast } from '@/hooks/use-toast';
+import MapSelector from '@/components/maps/MapSelector';
 
 export default function AdminEventForm() {
   const { id } = useParams();
@@ -20,11 +21,18 @@ export default function AdminEventForm() {
   const [isLoading, setIsLoading] = React.useState(isEdit);
   const [isSaving, setIsSaving] = React.useState(false);
   const [savedEvent, setSavedEvent] = React.useState<Event | null>(null); // Track the saved event
+
+  const [isGettingLocation, setIsGettingLocation] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchResults, setSearchResults] = React.useState<any[]>([]);
+  const [isSearching, setIsSearching] = React.useState(false);
+
   const [previewImages, setPreviewImages] = React.useState<{banner: string, thumbnail: string}>({banner: '', thumbnail: ''});
   const bannerFileRef = React.useRef<File | null>(null);
   const thumbnailFileRef = React.useRef<File | null>(null);
   const bannerInputRef = React.useRef<HTMLInputElement>(null);
   const thumbnailInputRef = React.useRef<HTMLInputElement>(null);
+
 
   const [formData, setFormData] = React.useState<{
     title: string;
@@ -264,6 +272,10 @@ export default function AdminEventForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // 📝 Log ข้อมูลก่อนบันทึก
+    console.log('📦 ข้อมูลอีเว้นท์ที่จะบันทึก:', JSON.stringify(formData, null, 2));
+    console.log('🗺️ พิกัดที่เลือก:', formData.location.coordinates);
+    
     try {
       setIsSaving(true);
       
@@ -322,6 +334,152 @@ export default function AdminEventForm() {
     navigate('/admin/events');
   };
 
+  // จัดการการเปลี่ยนแปลงพิกัดจากแผนที่
+  const handleCoordinatesChange = (coords: { lat: number; lng: number }) => {
+    console.log('🗺️ อัปเดตพิกัดใหม่:', coords);
+    setFormData({ 
+      ...formData, 
+      location: { 
+        ...formData.location, 
+        coordinates: coords 
+      }
+    });
+  };
+
+  // ฟังก์ชันดึงตำแหน่งปัจจุบัน
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "ไม่รองรับ",
+        description: "เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log('📍 ตำแหน่งปัจจุบัน:', { lat: latitude, lng: longitude });
+        
+        handleCoordinatesChange({ lat: latitude, lng: longitude });
+        
+        toast({
+          title: "ดึงตำแหน่งสำเร็จ",
+          description: `พิกัดปัจจุบัน: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+        });
+        
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        console.error('เกิดข้อผิดพลาดในการดึงตำแหน่ง:', error);
+        let errorMessage = "ไม่สามารถดึงตำแหน่งได้";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "ผู้ใช้ปฏิเสธการขอสิทธิ์เข้าถึงตำแหน่ง";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "ข้อมูลตำแหน่งไม่พร้อมใช้งาน";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "หมดเวลาในการดึงตำแหน่ง";
+            break;
+        }
+        
+        toast({
+          title: "เกิดข้อผิดพลาด",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        
+        setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
+
+  // ฟังก์ชันค้นหาสถานที่
+  const searchPlaces = async () => {
+    if (!searchQuery.trim()) {
+      toast({
+        title: "กรุณากรอกข้อมูล",
+        description: "กรุณาใส่ชื่อสถานที่ที่ต้องการค้นหา",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    
+    try {
+      // ใช้ Nominatim API ของ OpenStreetMap
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=th&addressdetails=1`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
+      const results = await response.json();
+      console.log('🔍 ผลการค้นหา:', results);
+      
+      if (results.length === 0) {
+        toast({
+          title: "ไม่พบผลการค้นหา",
+          description: "ลองใช้คำค้นหาอื่นหรือเพิ่มรายละเอียด เช่น ชื่อเมือง",
+        });
+      }
+      
+      setSearchResults(results);
+    } catch (error) {
+      console.error('เกิดข้อผิดพลาดในการค้นหา:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถค้นหาสถานที่ได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // เลือกสถานที่จากผลการค้นหา
+  const selectPlace = (place: any) => {
+    const lat = parseFloat(place.lat);
+    const lng = parseFloat(place.lon);
+    
+    handleCoordinatesChange({ lat, lng });
+    
+    // อัปเดตข้อมูลสถานที่และที่อยู่ถ้ามี
+    const placeName = place.display_name.split(',')[0]; // เอาชื่อแรกเป็นชื่อสถานที่
+    
+    setFormData({
+      ...formData,
+      location: {
+        ...formData.location,
+        coordinates: { lat, lng },
+        venue: formData.location.venue || placeName,
+        address: formData.location.address || place.display_name
+      }
+    });
+    
+    // ล้างผลการค้นหา
+    setSearchResults([]);
+    setSearchQuery('');
+    
+    toast({
+      title: "เลือกสถานที่สำเร็จ",
+      description: `ตำแหน่ง: ${placeName}`,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="container py-8">
@@ -334,9 +492,10 @@ export default function AdminEventForm() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center space-x-4">
+    <div className="min-h-screen bg-background">
+      <div className="container py-8 pt-24"> {/* Add top padding to avoid navbar overlap */}
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={handleBackToList}>
             <ChevronLeft className="h-4 w-4 mr-2" />
             กลับ
@@ -591,6 +750,92 @@ export default function AdminEventForm() {
                       })}
                       rows={2}
                     />
+                  </div>
+                  
+                  {/* Map Selector สำหรับเลือกตำแหน่ง */}
+                  <div className="space-y-4">
+                    <Label>📍 เลือกตำแหน่งบนแผนที่</Label>
+                    
+                    {/* ปุ่มช่วยเหลือ */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={getCurrentLocation}
+                        disabled={isGettingLocation}
+                        className="flex-1 min-w-0"
+                      >
+                        <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                        {isGettingLocation ? 'กำลังดึงตำแหน่ง...' : 'ดึงตำแหน่งปัจจุบัน'}
+                      </Button>
+                      
+                      <div className="flex-1 min-w-0 flex gap-2">
+                        <Input
+                          placeholder="ค้นหาสถานที่ เช่น สยามพารากอน, MBK"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && searchPlaces()}
+                          className="flex-1 min-w-0"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={searchPlaces}
+                          disabled={isSearching || !searchQuery.trim()}
+                          className="flex-shrink-0"
+                        >
+                          <Search className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* ผลการค้นหา */}
+                    {searchResults.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">ผลการค้นหา (คลิกเพื่อเลือก):</Label>
+                        <div className="max-h-40 overflow-y-auto space-y-1 border rounded-md p-2">
+                          {searchResults.map((place, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => selectPlace(place)}
+                              className="w-full text-left p-2 hover:bg-muted rounded text-sm border-b last:border-b-0 transition-colors"
+                            >
+                              <div className="font-medium truncate">{place.display_name.split(',')[0]}</div>
+                              <div className="text-xs text-muted-foreground truncate">{place.display_name}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <MapSelector
+                      coordinates={formData.location.coordinates}
+                      onCoordinatesChange={handleCoordinatesChange}
+                      height="350px"
+                    />
+                    
+                    {/* แสดงพิกัดปัจจุบัน */}
+                    {formData.location.coordinates.lat !== 0 && formData.location.coordinates.lng !== 0 && (
+                      <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="space-y-1">
+                          <Label className="text-sm text-blue-700 dark:text-blue-300">ละติจูด (Latitude)</Label>
+                          <Input
+                            value={formData.location.coordinates.lat.toFixed(6)}
+                            readOnly
+                            className="bg-white dark:bg-gray-900 text-sm font-mono border-blue-200 dark:border-blue-700"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm text-blue-700 dark:text-blue-300">ลองติจูด (Longitude)</Label>
+                          <Input
+                            value={formData.location.coordinates.lng.toFixed(6)}
+                            readOnly
+                            className="bg-white dark:bg-gray-900 text-sm font-mono border-blue-200 dark:border-blue-700"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -859,6 +1104,7 @@ export default function AdminEventForm() {
             </Button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
