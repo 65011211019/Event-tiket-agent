@@ -3,6 +3,8 @@ import { MessageCircle, X, Send, Bot, User, Loader2, AlertCircle } from 'lucide-
 import { useAI } from '@/contexts/AIContext';
 import { ChatMessage } from '@/types/ai';
 import EventPreview from './EventPreview';
+import BookingChoices from './BookingChoices';
+import TicketOptions from './TicketOptions';
 import { Event } from '@/types/event';
 
 const AIChat: React.FC = () => {
@@ -11,6 +13,7 @@ const AIChat: React.FC = () => {
     isLoading,
     messages,
     error,
+    context,
     sendMessage,
     toggleChat,
     clearChat,
@@ -85,6 +88,11 @@ const AIChat: React.FC = () => {
     const suggestions = message.metadata?.suggestions as string[] || [];
     const eventData = message.metadata?.context as Event[] || [];
     
+    // Check for booking-related actions in message metadata
+    const messageAction = message.metadata?.action;
+    const showBookingChoices = messageAction?.type === 'show_booking_choices';
+    const showTicketOptions = messageAction?.type === 'show_ticket_options';
+    
     return (
       <div
         key={message.id}
@@ -111,8 +119,31 @@ const AIChat: React.FC = () => {
             </div>
           </div>
           
-          {/* Show event preview if there's event data */}
-          {!isUser && eventData && eventData.length > 0 && (
+          {/* Show booking choices if action type is show_booking_choices */}
+          {!isUser && showBookingChoices && messageAction?.payload?.events && (
+            <div className="mt-3">
+              <BookingChoices 
+                events={messageAction.payload.events}
+                onEventSelect={(event) => {
+                  console.log('Event selected for booking:', event);
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Show ticket options if action type is show_ticket_options */}
+          {!isUser && showTicketOptions && messageAction?.payload && (
+            <div className="mt-3">
+              <TicketOptions 
+                event={messageAction.payload.event}
+                ticketOptions={messageAction.payload.ticketOptions}
+                eventId={messageAction.payload.eventId}
+              />
+            </div>
+          )}
+          
+          {/* Show event preview if there's event data (regular events display) */}
+          {!isUser && eventData && eventData.length > 0 && !showBookingChoices && !showTicketOptions && (
             <EventPreview 
               events={eventData} 
               onEventClick={handleEventClick}

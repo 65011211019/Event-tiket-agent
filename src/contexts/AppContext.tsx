@@ -282,7 +282,7 @@ const mockUsers = [
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = React.useState<User | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true); // Start with loading true
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -318,14 +318,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initialize user from localStorage
   React.useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const initializeAuth = () => {
       try {
-        setUser(JSON.parse(savedUser));
-      } catch {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          // Validate the parsed user has required fields
+          if (parsedUser && parsedUser.id && parsedUser.email && parsedUser.role) {
+            setUser(parsedUser);
+          } else {
+            // Invalid user data, remove it
+            localStorage.removeItem('user');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to parse user from localStorage:', error);
         localStorage.removeItem('user');
+      } finally {
+        setIsLoading(false); // Always set loading to false after initialization
       }
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   const isAdmin = user?.role === 'admin';

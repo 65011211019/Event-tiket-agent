@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ArrowRight, Calendar, Users, Star, MapPin, Sparkles, TrendingUp } from 'lucide-react';
+import { Search, ArrowRight, Calendar, Users, Star, MapPin, Sparkles, TrendingUp, Bot, MessageCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -136,7 +136,7 @@ export default function Home() {
                 onSubmit={handleSearch}
                 placeholder="ค้นหาอีเว้นท์, หมวดหมู่, หรือสถานที่..."
                 size="lg"
-                className="bg-white/10 backdrop-blur rounded-2xl p-2"
+                className="bg-white/20 backdrop-blur rounded-2xl p-2 [&>div>input]:bg-white/90 [&>div>input]:text-gray-900 [&>div>input]:placeholder:text-gray-600"
               />
             </div>
 
@@ -189,6 +189,77 @@ export default function Home() {
               </Card>
             ))}
           </div>
+        </section>
+
+        {/* AI Agent Section */}
+        <section className="space-y-8">
+          <Card className="border-0 bg-gradient-to-br from-primary/5 via-primary-light/5 to-transparent shadow-soft overflow-hidden">
+            <CardContent className="p-8 md:p-12">
+              <div className="flex flex-col lg:flex-row items-center gap-8">
+                <div className="flex-1 space-y-6 text-center lg:text-left">
+                  <div className="flex items-center justify-center lg:justify-start mb-4">
+                    <Badge className="bg-gradient-to-r from-primary to-primary-light text-white border-0">
+                      <Bot className="w-4 h-4 mr-2" />
+                      AI Assistant
+                    </Badge>
+                  </div>
+                  
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    ผู้ช่วย AI สำหรับการจองตั๋ว
+                  </h2>
+                  
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    ใช้ผู้ช่วย AI ที่ชาญฉลาดของเราเพื่อค้นหาและจองอีเว้นท์ได้อย่างง่ายดาย 
+                    เพียงแค่พิมพ์ "จองให้หน่อย" หรือชื่ออีเว้นท์ที่ต้องการ AI จะช่วยแนะนำและจัดการการจองให้คุณแบบครบวงจร
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/50 border border-white/20">
+                      <MessageCircle className="w-8 h-8 text-primary flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-sm">สนทนาธรรมชาติ</h4>
+                        <p className="text-xs text-muted-foreground">พูดคุยเหมือนกับคนจริง</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/50 border border-white/20">
+                      <Zap className="w-8 h-8 text-primary flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-sm">จองได้ทันที</h4>
+                        <p className="text-xs text-muted-foreground">ไม่ต้องค้นหาเอง</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3 p-4 rounded-xl bg-white/50 border border-white/20">
+                      <Bot className="w-8 h-8 text-primary flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-sm">แนะนำส่วนตัว</h4>
+                        <p className="text-xs text-muted-foreground">เหมาะกับความชอบ</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <span className="font-medium">ลองพิมพ์:</span>
+                      <Badge variant="outline" className="text-xs">"จองให้หน่อย"</Badge>
+                      <Badge variant="outline" className="text-xs">"จอง concert"</Badge>
+                      <Badge variant="outline" className="text-xs">"หาอีเว้นท์ tech"</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center shadow-xl">
+                      <Bot className="w-16 h-16 md:w-20 md:h-20 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Categories */}
@@ -340,10 +411,6 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                <Calendar className="w-5 h-5 mr-2" />
-                สร้างอีเว้นท์
-              </Button>
               <Button size="lg" variant="outline" className="border-white/20 text-black dark:text-white hover:bg-white/10">
                 เรียนรู้เพิ่มเติม
               </Button>

@@ -673,7 +673,7 @@ export default function EventDetail() {
                     </Button>
                   ) : (
                     <Button asChild className="w-full bg-gradient-primary text-primary-foreground hover:opacity-90">
-                      <Link to={`/events/${event.id}/book`}>
+                      <Link to={`/events/${event.id}/booking`}>
                         จองตั๋วเลย
                       </Link>
                     </Button>

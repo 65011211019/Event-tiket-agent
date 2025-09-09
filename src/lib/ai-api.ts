@@ -330,17 +330,40 @@ class AIApi implements AIApiInterface {
   // Analytics & Statistics
   async getSystemStats() {
     try {
-      // Mock implementation with sample data
-      const events = await this.getAllEvents();
-      const tickets = await this.getUserTickets();
+      // Get real data from API instead of mock data
+      const [eventsResult, userTickets] = await Promise.all([
+        this.getAllEvents(),
+        this.getUserTickets() // This might need a user ID in real implementation
+      ]);
+      
+      const events = eventsResult.events || [];
+      const tickets = userTickets || [];
+      const now = new Date();
+      
+      // Calculate real statistics from actual data
+      const activeEvents = events.filter((e: any) => {
+        if (!e.schedule?.startDate) return false;
+        const eventDate = new Date(e.schedule.startDate);
+        return eventDate > now && e.status === 'active';
+      }).length;
+      
+      const totalRevenue = tickets.reduce((sum: number, ticket: any) => {
+        return sum + (ticket.totalAmount || ticket.price || 0);
+      }, 0);
+      
+      const registeredUsers = events.reduce((sum: number, event: any) => {
+        return sum + (event.capacity?.registered || 0);
+      }, 0);
       
       return {
-        totalEvents: events.events?.length || 0,
-        activeEvents: events.events?.filter((e: Event) => new Date(e.schedule.startDate) > new Date()).length || 0,
-        totalTickets: tickets.length || 0,
-        totalRevenue: tickets.reduce((sum: number, ticket: any) => sum + (ticket.price || 0), 0),
-        totalUsers: 150, // Mock data
-        activeUsers: 45, // Mock data
+        totalEvents: events.length,
+        activeEvents: activeEvents,
+        totalTickets: tickets.length,
+        totalRevenue: totalRevenue,
+        totalUsers: registeredUsers, // Based on event registrations
+        activeUsers: Math.floor(registeredUsers * 0.3), // Estimate 30% active
+        lastUpdated: now.toISOString(),
+        dataSource: 'real-time-api'
       };
     } catch (error) {
       console.error('AI API - Get system stats error:', error);
@@ -438,6 +461,31 @@ class AIApi implements AIApiInterface {
     } catch (error) {
       console.error('AI API - Get similar events error:', error);
       throw new Error('ไม่สามารถดึงอีเว้นท์ที่คล้ายกันได้');
+    }
+  }
+
+  // Force real-time data refresh - NEW METHOD
+  async forceDataRefresh(): Promise<{ events: number; categories: number; tickets: number }> {
+    try {
+      console.log('🔄 Forcing real-time data refresh from all APIs...');
+      
+      const [eventsResult, categories, tickets] = await Promise.all([
+        this.getAllEvents(),
+        this.getAllCategories(),
+        this.getUserTickets()
+      ]);
+      
+      const refreshedData = {
+        events: eventsResult.events?.length || 0,
+        categories: categories?.length || 0,
+        tickets: tickets?.length || 0
+      };
+      
+      console.log('✅ Real-time data refresh completed:', refreshedData);
+      return refreshedData;
+    } catch (error) {
+      console.error('⚠️ Force data refresh failed:', error);
+      throw new Error('ไม่สามารถอัปเดตข้อมูลแบบ real-time ได้');
     }
   }
 

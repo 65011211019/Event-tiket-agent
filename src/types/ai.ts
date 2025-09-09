@@ -6,7 +6,10 @@ export interface ChatMessage {
   metadata?: {
     eventId?: string;
     userId?: string;
-    action?: string;
+    action?: {
+      type: string;
+      payload?: any;
+    };
     context?: any;
     suggestions?: string[];
   };
@@ -54,6 +57,18 @@ export interface AIContext {
     tickets: any[];
   };
   memory?: AIMemory;
+  // AI Booking-related properties
+  bookingChoices?: {
+    events: any[];
+    originalQuery?: string;
+  };
+  ticketOptions?: {
+    event: any;
+    ticketOptions: any[];
+    eventId: string;
+  };
+  showBookingInterface?: boolean;
+  showTicketSelection?: boolean;
 }
 
 export interface AICapability {
@@ -68,7 +83,7 @@ export interface AICapability {
 export interface AIResponse {
   message: string;
   action?: {
-    type: 'navigate' | 'api_call' | 'form_fill' | 'display_data';
+    type: 'navigate' | 'api_call' | 'form_fill' | 'display_data' | 'proceed_to_booking' | 'show_ticket_options' | 'show_booking_choices';
     payload: any;
   };
   suggestions?: string[];
