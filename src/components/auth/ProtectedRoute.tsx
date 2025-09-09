@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AppContext';
 
 interface ProtectedRouteProps {
@@ -16,6 +16,7 @@ export default function ProtectedRoute({
   requireNonAdmin = false,
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -28,7 +29,7 @@ export default function ProtectedRoute({
 
   // Redirect to login if auth is required but user is not logged in
   if (requireAuth && !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Redirect to home if admin access is required but user is not admin

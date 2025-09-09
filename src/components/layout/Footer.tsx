@@ -42,7 +42,7 @@ export default function Footer() {
                 <Ticket className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
-                EventTix
+                EventTicketAgent
               </span>
             </div>
             <p className="text-muted-foreground mb-6 max-w-md">
@@ -51,7 +51,7 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Mail className="h-4 w-4 mr-3 text-primary" />
-                support@eventtix.com
+                support@EventTicketAgent.com
               </div>
               <div className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Phone className="h-4 w-4 mr-3 text-primary" />
@@ -150,7 +150,7 @@ export default function Footer() {
 
         <div className="border-t mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 EventTix. สงวนลิขสิทธิ์.
+            © 2024 EventTicketAgent. สงวนลิขสิทธิ์.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm duration-200">

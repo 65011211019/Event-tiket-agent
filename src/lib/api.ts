@@ -55,6 +55,9 @@ export const eventApi = {
     if (filters?.dateRange) params.append('dateRange', filters.dateRange);
     if (filters?.sortBy) params.append('sortBy', filters.sortBy);
     if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder);
+    if (filters?.priceRange?.min !== undefined) params.append('minPrice', filters.priceRange.min.toString());
+    if (filters?.priceRange?.max !== undefined) params.append('maxPrice', filters.priceRange.max.toString());
+    if (filters?.page !== undefined) params.append('page', filters.page.toString());
     
     const endpoint = `/events${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await apiRequest<any>(endpoint);

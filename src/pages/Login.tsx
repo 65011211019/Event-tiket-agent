@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +10,22 @@ import { toast } from '@/hooks/use-toast';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const location = useLocation();
+  const { login, isLoading, user } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+
+  // Get the intended destination from location state or default to home
+  const from = location.state?.from?.pathname || '/';
+
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (user) {
+      // If user is admin, redirect to admin dashboard, otherwise to intended destination
+      const destination = user.role === 'admin' ? '/admin' : from;
+      navigate(destination, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +35,7 @@ export default function Login() {
         title: "เข้าสู่ระบบสำเร็จ",
         description: "ยินดีต้อนรับ!",
       });
-      navigate('/');
+      // The useEffect above will handle the navigation after user state is updated
     } catch (error) {
       toast({
         title: "เข้าสู่ระบบไม่สำเร็จ",
@@ -41,7 +54,7 @@ export default function Login() {
               <Calendar className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              EventTix
+              EventTicketAgent
             </span>
           </div>
           <CardTitle>เข้าสู่ระบบ</CardTitle>
